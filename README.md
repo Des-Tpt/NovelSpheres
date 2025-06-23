@@ -1,4 +1,4 @@
-NovelSphere is a small project of mine aimed at building a story-sharing website. There's no profound reason behind it; I'm doing this project to improve my coding skills and programming mindset while increasing my proficiency with Next.js and TypeScript.
+NovelSphere is a small project of mine aimed at building a story-sharing website. There's no profound reason behind it. I'm doing this project to improve my coding skills and programming mindset while increasing my proficiency with Next.js and TypeScript.
 
 ![image](https://github.com/user-attachments/assets/db04c9e1-fb33-4e0c-b10e-d64421c07705)
 
