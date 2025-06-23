@@ -24,6 +24,8 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+Beside that, to lanch my project, you will need environment variables of MongoDB, Cloudinary and Jwt. How to find or make it? Just trying...
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
