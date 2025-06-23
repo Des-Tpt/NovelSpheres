@@ -1,0 +1,78 @@
+.SearchBar {
+    display: flex;
+    align-items: center;
+    background-color: black;
+    color: white;
+    gap: 1rem;
+    width: 100%;
+    z-index: 5;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+.SearchBar svg {
+    height: 1.25rem;
+    width: auto;
+}
+
+.input {
+    width: 100%;
+    flex: 1;
+    font-size: 1rem;
+    font-family:Arial, Helvetica, sans-serif;
+    height: 1.75rem;
+    background-color: black;
+    padding: 0.2rem;
+    outline: none;
+    border: none;
+    color: white;
+}
+.input::placeholder{
+    color: ghostwhite;
+    opacity: 0.7;
+}
+
+.dropdown {
+    scrollbar-width: thin;
+    position: absolute;
+    max-height: 500px;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 4;
+    border-radius: 0.4rem;
+    background-color: black;
+    width: 100%;
+    max-height: auto;
+    overflow-y: auto;
+}
+
+.result {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.novel-container {
+    padding: 10px;
+    border-radius: 5px;
+    gap: 8px;
+    color: white;
+}
+
+.novel-container:hover {
+    background-color: #818181;
+}
+
+
+.no-result {
+    padding: 10px;
+    cursor: default;
+    color: #888;
+    font-style: italic;
+}
+
+.no-result:hover{
+    color: black;
+}
+
