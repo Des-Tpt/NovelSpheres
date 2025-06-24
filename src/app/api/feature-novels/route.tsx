@@ -28,11 +28,8 @@ export async function GET(req: NextRequest) {
         await connectDB();
 
         const novels = await Novel.aggregate([{ $sample: {size: 3}}]) as INovel[];
-        console.log(novels);
 
         const featuredNovels = await Promise.all(novels.map(getFeaturedNovelData));
-
-        console.log(featuredNovels);
 
         return NextResponse.json(featuredNovels);
 

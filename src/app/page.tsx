@@ -1,11 +1,13 @@
-import Banner from "@/components/home/banner";
-import Body from "@/components/home/body";
+import Banner from "@/components/home/Banner";
+import BookFilter from "@/components/home/BookFilter";
+import FeatureBook from "@/components/home/FeatureBook";
 
 export default function Home() {
     return (
       <div>
         <Banner/>
-        <Body />
+        <FeatureBook />
+        <BookFilter />
       </div>
     )
   }

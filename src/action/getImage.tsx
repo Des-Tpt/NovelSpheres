@@ -7,8 +7,10 @@ const getImage = async (publicId: string, format: string): Promise<string | null
             const blob = await res.blob();
             return URL.createObjectURL(blob);
         } catch (err) {
-            console.error('Lỗi khi fetch ảnh:', err);
-            return null;
+            const url = `https://res.cloudinary.com/dr29oyoqx/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
+            const res = await fetch(url);
+            const blob = await res.blob();
+            return URL.createObjectURL(blob);
         }
     };
 
