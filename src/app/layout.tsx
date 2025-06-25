@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import './globals.css'; 
 import Header from '@/components/header/Header';
+import Footer from '@/components/footer/Footer';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   // Tạo QueryClient instance
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <QueryClientProvider client={queryClient}>
           <Header />
           {children}
+          <Footer />
         </QueryClientProvider>
       </body>
     </html>

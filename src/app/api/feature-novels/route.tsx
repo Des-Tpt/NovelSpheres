@@ -7,7 +7,6 @@ import { IUser } from '@/model/User';
 import { Genre, IGenre } from '@/model/Genre';
 import { Chapter } from '@/model/Chapter';
 import { connectDB } from '@/lib/db';
-import getImage from '@/action/getImage';
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,

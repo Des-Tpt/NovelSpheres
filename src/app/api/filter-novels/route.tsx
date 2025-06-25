@@ -1,14 +1,17 @@
 import { connectDB } from "@/lib/db";
 import { Genre } from "@/model/Genre";
-import { User } from "@/model/User";
+import { IGenre } from "@/model/Genre";
 import { Chapter } from "@/model/Chapter";
 import { INovel, Novel } from "@/model/Novel";
+import { User } from '@/model/User';
+import { IUser } from '@/model/User';
 import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
-export async function GET(req: NextRequest) {
-  await connectDB();
 
+export async function GET(req: NextRequest) {
   try {
+    await connectDB();
+
     const { searchParams } = new URL(req.url);
     const genreIds = searchParams.getAll("genreIds");
 
@@ -49,15 +52,23 @@ export async function GET(req: NextRequest) {
         .populate("genresId", "name");
     }
 
-    // Đếm số chương
+    // Đếm số chương + Add thể loại chính
     const novelsWithChapterCount = await Promise.all(
       novels.map(async (novel) => {
         const chapterCount = await Chapter.countDocuments({
           novelId: novel._id,
         });
+
+        const firstGenreId = novel.genresId[0]
+        const genres = await Genre.findById(firstGenreId).lean<IGenre>();
+
+        const user = await User.findById(novel.authorId).lean<IUser>();
+        
         return {
           ...novel.toObject(),
+          authorName: user?.username || 'Vô danh',
           chapterCount: chapterCount,
+          firstGenreName: genres?.name || 'Không rõ',
         };
       })
     );

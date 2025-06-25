@@ -22,6 +22,8 @@ export interface INovelWithPopulate extends Document {
     createdAt: Date;
     updatedAt: Date;
     chapterCount :number;
+    firstGenreName : string;
+    authorName: string;
 }
 
 export default INovelWithPopulate;

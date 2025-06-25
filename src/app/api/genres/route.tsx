@@ -4,8 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
     console.log(Genre.modelName);
-    await connectDB();
     try {
+        await connectDB();
+
         const genres = await Genre.find({})
             .collation({ locale: 'vi', strength: 1})
             .select('_id name')

@@ -24,10 +24,11 @@ export async function GET(req: NextRequest) {
         console.log("Trống query → trả mảng rỗng");
         return NextResponse.json([]);
     }
-
-    await connectDB();
     
     try {
+
+        await connectDB();
+
         const decodedQuery = decodeURIComponent(query);
         const novels = await Novel.find({ title: { $regex: new RegExp(decodedQuery, 'i') } })
             .collation({ locale: 'vi', strength: 1 })         

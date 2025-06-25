@@ -1,11 +1,14 @@
 'use client'
 import getGenres from "@/action/getGenres";
 import getNovelByFilter from "@/action/getNovelByFilter";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { ArrowRightIcon, ArrowTrendingUpIcon, BookmarkIcon, BookOpenIcon, ClockIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import getImage from "@/action/getImage";
 import INovelWithPopulate from "@/type/INovelWithPopulate";
+import { random } from "lodash";
+import { formatDistanceToNow } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 type Genre = {
     _id: string;
@@ -24,7 +27,11 @@ const BookFilter = () => {
     const [selectedGenres, setSelectedGenres] = useState<Genre[]>([]);
     const [novels, setNovels] = useState<INovelWithPopulate[]>([]);
     const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
-    const [sort, setSort] = useState<string>("createdAt");
+    const [sort, setSort] = useState<string>("views");
+
+    const getTimeAgo = (updatedAt: string | Date) => {
+        return `Cập nhật ${formatDistanceToNow(new Date(updatedAt), { addSuffix: true,  locale: vi })}`;
+    }
 
     useEffect(() => {
         if (novels) {
@@ -75,7 +82,7 @@ const BookFilter = () => {
     if (!genres || genres.length === 0) return <p>Không có dữ liệu</p>;
 
     return (
-    <div className="flex flex-wrap justify-center gap-1 bg-gradient-to-r from-black from-20% via-gray-950 via-75% to-black pt-[5%] pb-[5%]">
+    <div className="md:flex md:flex-wrap justify-center gap-1 bg-gradient-to-r from-black from-20% via-gray-950 via-75% to-black pt-[5%] pb-[5%]">
         <div className="w-full md:mx-[14%] mx-10 p-4 rounded-2xl group hover:shadow hover:shadow-white hover:border-white transition-all duration-300">
             <h1 className="text-white mb-2 block text-3xl">Lọc theo thể loại</h1>
             {selectedGenres.length > 0 &&  
@@ -103,30 +110,73 @@ const BookFilter = () => {
                     </button>
                 ))}
             </div>
-            <div className="flex items-center">
-                <button id="views" onClick={handleOnClick} className={`px-4 py-2 rounded-full text-sm font-medium transition ${sort === "views" ? "bg-amber-500 text-white shadow" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
-                >Phổ biến</button>
-                <button id="updatedAt" onClick={handleOnClick} className={`px-4 py-2 rounded-full text-sm font-medium transition ${sort === "updatedAt" ? "bg-amber-500 text-white shadow" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
-                Mới</button>
-                <button id="title" onClick={handleOnClick} className={`px-4 py-2 rounded-full text-sm font-medium transition ${sort === "title" ? "bg-amber-500 text-white shadow" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`} >
-                A - Z</button>
-            </div>
         </div>
-            <div className="flex">
-            {novels.map(novel => (
-                    <div key={novel._id.toString()}>
-                        <img
-                            src={novel.coverImage?.publicId 
-                                ? imageUrls[novel.coverImage.publicId] 
-                                : 'https://res.cloudinary.com/dr29oyoqx/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png'
-                            }
-                            alt={novel.title}
-                            className="w-48 h-62 object-cover"
-                        />
-                    </div>
-                    ))
-                }
+        <div className="flex flex-col items-center py-10">
+            <div className="w-auto h-auto pb-2.5">
+                <div className="flex items-center border-2 border-gray-800 bg-gray-800 rounded-l-[0.4rem] rounded-r-[0.4rem]">
+                    <button id="views" onClick={handleOnClick} className={`cursor-pointer px-4 py-2 w-[8rem] font-inter text-[0.9rem] justify-center items-center flex rounded-[0.4rem] text-sm font-medium transition ${sort === "views" ? "bg-black text-amber-600 shadow" : "bg-gray-800 text-white hover:bg-gray-200 transition-colors duration-200"}`}
+                    ><ArrowTrendingUpIcon className="w-6 h-6 pr-2"/> Phổ biến</button>
+                    <button id="updatedAt" onClick={handleOnClick} className={`cursor-pointer px-4 py-2 w-[8rem] font-inter text-[0.9rem] justify-center items-center rounded-[0.4rem] flex text-sm font-medium transition ${sort === "updatedAt" ? "bg-black text-amber-600 shadow" : "bg-gray-800 text-white hover:bg-gray-200 transition-colors duration-200"}`}>
+                    <ClockIcon className="w-6 h-6 pr-2"/>Mới</button>
+                    <button id="title" onClick={handleOnClick} className={`cursor-pointer px-4 py-2 w-[8rem] font-inter text-[0.9rem] justify-center items-center flex rounded-[0.4rem] text-sm font-medium transition ${sort === "title" ? "bg-black text-amber-600 shadow" : "bg-gray-800 text-white-600 hover:bg-gray-200 transition-colors duration-200"}`} >
+                    <BookmarkIcon className="w-6 h-6 pr-2"/> A - Z</button>
+                </div>
             </div>
+            <div className="flex flex-col w-full max-w-[1400px] mx-auto">
+                <div className="flex justify-between items-center py-5 md:px-6.5 md:py-0">
+                    <span className="text-white mb-2 text-3xl">Tiểu thuyết phổ biến</span>
+                    <button className="flex cursor-pointer text-amber-600 font-inter rounded-[10px] px-4 py-1.5 hover:bg-gray-600">
+                        Xem tất cả <ArrowRightIcon className="pl-2 w-6 h-6"/>
+                    </button>
+                </div>
+                <div className="grid grid-cols-2 gap-3 md:flex md:pt-6 md:gap-3 md:justify-center md:flex-wrap md:min-w-[1400px]">
+                {novels.length > 0 ? novels.map(novel => (
+                    <div key={novel._id.toString()} className="flex flex-col cursor-pointer rounded-lg border border-white transition-transform duration-200 hover:-translate-y-1">
+                    <a href={`novel-detailed?id=${novel._id}`}>
+                        <div className="relative rounded-lg overflow-hidden">
+                        <img
+                            src={novel.coverImage?.publicId ? imageUrls[novel.coverImage.publicId] : 'https://res.cloudinary.com/dr29oyoqx/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png'}
+                            alt={novel.title}
+                            className="w-53 h-42 object-cover"
+                        />
+                        <div className="flex">
+                            <span className="rounded-2xl absolute bg-gray-600 py-0.25 px-2 font-semibold text-[0.75rem] top-2.5 left-2">
+                            {novel.rating ? `⭐ ${novel.rating}` : 'Chưa có đánh giá'}
+                            </span>
+                            <span className="rounded-2xl absolute bg-gray-600 py-0.5 px-4 font-semibold top-2.5 text-[0.75rem] right-2">
+                            {novel.status}
+                            </span>
+                        </div>
+                        <div className="bg-black rounded-b-lg h-35 w-51 relative">
+                            <div className="flex flex-col p-3">
+                            <span className="font-semibold font text-[0.9rem]">{novel.title}</span>
+                            <span className="font-inter text-[0.7rem]">của {novel.authorName}</span>
+                            <div className="flex justify-between">
+                                <span className="text-[0.75rem] px-3 font-sans flex items-center font-bold justify-center absolute bottom-11.25 right-0.5">
+                                {novel.firstGenreName}
+                                </span>
+                                <span className="text-[0.75rem] px-3 font-sans flex items-center font-bold justify-center absolute bottom-11 left-0.5">
+                                <BookOpenIcon className="w-5 h-5 pr-1" />
+                                {novel.chapterCount ? ` ${novel.chapterCount} chương` : ` ${random(1, 1000)} chương`}
+                                </span>
+                                <span className="text-[0.72rem] px-3 font-sans flex items-center absolute bottom-4 left-0.5">
+                                <ClockIcon className="w-5 h-5 pr-1"/>
+                                {getTimeAgo(novel.updatedAt)}
+                                </span>
+                            </div>
+                            </div>
+                        </div>
+                        </div>
+                    </a>
+                    </div>
+                )) : (
+                    <div className="text-white text-sm italic">
+                        Không có tiểu thuyết nào được tìm thấy.
+                    </div>
+                )}
+                </div>
+            </div>
+        </div>    
     </div>
     )
 }

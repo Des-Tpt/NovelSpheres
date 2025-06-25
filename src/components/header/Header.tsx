@@ -111,7 +111,7 @@ const Header = () => {
           <Button
             type={<ChatBubbleLeftIcon className="h-5 w-5" />}
             text="Diễn đàn"
-            href="#"
+            href="/forum"
             onClick={() => handleClick('forum')}
             isActive={activeButton === 'forum'}
           />
