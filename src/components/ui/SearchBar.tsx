@@ -6,6 +6,7 @@ import './SearchBar.css';
 import { motion, AnimatePresence } from "framer-motion";
 import { random } from "lodash";
 import getImage from "@/action/getImage";
+import Image from "next/image";
 
 type Novel = {
     _id: string;
@@ -106,9 +107,11 @@ const SearchBar = () => {
                         <li className="novel-container" key={novel._id}>
                             <div className="flex items-center gap-2">
                                 {novel.coverImage && imageUrls[novel.coverImage.publicId] && (
-                                <img
+                                <Image
                                     src={imageUrls[novel.coverImage.publicId]}
                                     alt={novel.title}
+                                    width={200}
+                                    height={280}
                                     className="max-w-[38px] max-h-[72px] object-cover rounded m-0.5 mr-2"
                                 />
                                 )}

@@ -9,6 +9,9 @@ import INovelWithPopulate from "@/type/INovelWithPopulate";
 import { random } from "lodash";
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import { motion } from "framer-motion";
+import Image from "next/image";
+
 
 type Genre = {
     _id: string;
@@ -76,14 +79,27 @@ const BookFilter = () => {
             prev.find((g) => g._id == genre._id) ? prev.filter((g) => g._id !== genre._id) : [...prev, genre]
         )
     }
+
+    const handleTranslate = (en: string) => {
+        switch(en) {
+            case 'Completed' : return 'Hoàn thành';
+            case 'Ongoing' : return 'Đang tiến hành'
+            case 'Hiatus' : return 'Tạm ngưng'
+        }
+    }
+
+    const cardVariants = {
+    hidden: { opacity: 0, y: 50 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
+    };
     
     if (isGenresLoading) return (<div className="flex flex-col pt-7 bg-gradient-to-r from-black from-20% via-gray-950 via-75% to-black min-h-screen"></div>);
     if (genresError instanceof Error) return <p>Lỗi: {genresError.message}</p>;
     if (!genres || genres.length === 0) return <p>Không có dữ liệu</p>;
 
     return (
-    <div className="md:flex md:flex-wrap justify-center gap-1 bg-gradient-to-r from-black from-20% via-gray-950 via-75% to-black pt-[5%] pb-[5%]">
-        <div className="w-full md:mx-[14%] mx-10 p-4 rounded-2xl group hover:shadow hover:shadow-white hover:border-white transition-all duration-300">
+    <div className="flex flex-wrap justify-center gap-1 bg-black px-2.5 md:bg-gradient-to-r md:from-black md:from-20% md:via-gray-950 md:via-75% md:to-black pt-[5%] pb-[5%]">
+        <div className="w-full hidden md:flex md:flex-col md:mx-[14%] mx-10 p-4 rounded-2xl group hover:shadow hover:shadow-gray-400 hover:border-gray-400 transition-all duration-300">
             <h1 className="text-white mb-2 block text-3xl">Lọc theo thể loại</h1>
             {selectedGenres.length > 0 &&  
                 <div className="flex gap-1.5 font-inter py-2.5 flex-wrap items-center pb-5">Đã chọn:
@@ -100,7 +116,7 @@ const BookFilter = () => {
             <div className="flex font-bold flex-wrap justify-center gap-3 sm:grid sm:grid-cols-5 sm:gap md:grid md:grid-cols-8 md:gap-2 ">
                 {genres.map((genre) => (
                     <button key={genre._id} 
-                    className={`cursor-pointer border border-white text-center text-[0.9rem] font-sans text-white hover:bg-white hover:text-black transition-all duration-300 rounded-[8px] py-1 w-[7rem] md:w-auto
+                    className={`cursor-pointer border border-gray-400 text-center text-[0.9rem] font-sans text-white hover:bg-gray-400 hover:text-black transition-all duration-300 rounded-[8px] py-1 w-[7rem] md:w-auto
                     ${selectedGenres.find((g) => g._id === genre._id)
                                     ? 'bg-gray-700 text-black'
                                     : 'hover:bg-white hover:text-black'}
@@ -129,37 +145,50 @@ const BookFilter = () => {
                         Xem tất cả <ArrowRightIcon className="pl-2 w-6 h-6"/>
                     </button>
                 </div>
+                
                 <div className="grid grid-cols-2 gap-3 md:flex md:pt-6 md:gap-3 md:justify-center md:flex-wrap md:min-w-[1400px]">
                 {novels.length > 0 ? novels.map(novel => (
-                    <div key={novel._id.toString()} className="flex flex-col cursor-pointer rounded-lg border border-white transition-transform duration-200 hover:-translate-y-1">
+                    <motion.div
+                        key={novel._id.toString()}
+                        className="flex flex-col cursor-pointer rounded-lg border border-gray-400 shadow-sm group shadow-gray-400 transition-transform duration-200 hover:-translate-y-1"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, ease: 'easeOut' }}
+                    >
                     <a href={`novel-detailed?id=${novel._id}`}>
                         <div className="relative rounded-lg overflow-hidden">
-                        <img
-                            src={novel.coverImage?.publicId ? imageUrls[novel.coverImage.publicId] : 'https://res.cloudinary.com/dr29oyoqx/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png'}
+                        <Image
+                            src={
+                                novel.coverImage?.publicId && imageUrls[novel.coverImage.publicId]
+                                    ? imageUrls[novel.coverImage.publicId]
+                                    : 'https://res.cloudinary.com/dr29oyoqx/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png'
+                                }
+                            width={200}
+                            height={280}
                             alt={novel.title}
-                            className="w-53 h-42 object-cover"
+                            className="w-53 h-53 object-cover object-top"
                         />
                         <div className="flex">
                             <span className="rounded-2xl absolute bg-gray-600 py-0.25 px-2 font-semibold text-[0.75rem] top-2.5 left-2">
                             {novel.rating ? `⭐ ${novel.rating}` : 'Chưa có đánh giá'}
                             </span>
-                            <span className="rounded-2xl absolute bg-gray-600 py-0.5 px-4 font-semibold top-2.5 text-[0.75rem] right-2">
-                            {novel.status}
+                            <span className="rounded-2xl absolute bg-gray-600 py-0.25 px-4 font-semibold top-2.5 text-[0.75rem] right-2">
+                            {handleTranslate(novel.status)}
                             </span>
                         </div>
                         <div className="bg-black rounded-b-lg h-35 w-51 relative">
                             <div className="flex flex-col p-3">
-                            <span className="font-semibold font text-[0.9rem]">{novel.title}</span>
+                            <span className="font-semibold font text-[0.9rem] group-hover:text-amber-500 transition-colors">{novel.title}</span>
                             <span className="font-inter text-[0.7rem]">của {novel.authorName}</span>
                             <div className="flex justify-between">
-                                <span className="text-[0.75rem] px-3 font-sans flex items-center font-bold justify-center absolute bottom-11.25 right-0.5">
+                                <span className="text-[0.75rem] px-3 font-sans flex items-center font-bold justify-center absolute bottom-11.25 right-5 md:right-0.5">
                                 {novel.firstGenreName}
                                 </span>
                                 <span className="text-[0.75rem] px-3 font-sans flex items-center font-bold justify-center absolute bottom-11 left-0.5">
                                 <BookOpenIcon className="w-5 h-5 pr-1" />
                                 {novel.chapterCount ? ` ${novel.chapterCount} chương` : ` ${random(1, 1000)} chương`}
                                 </span>
-                                <span className="text-[0.72rem] px-3 font-sans flex items-center absolute bottom-4 left-0.5">
+                                <span className="text-[0.65rem] md:text-[0.72rem] px-3 font-sans flex items-center absolute bottom-4 left-0.5">
                                 <ClockIcon className="w-5 h-5 pr-1"/>
                                 {getTimeAgo(novel.updatedAt)}
                                 </span>
@@ -168,7 +197,7 @@ const BookFilter = () => {
                         </div>
                         </div>
                     </a>
-                    </div>
+                    </motion.div>
                 )) : (
                     <div className="text-white text-sm italic">
                         Không có tiểu thuyết nào được tìm thấy.

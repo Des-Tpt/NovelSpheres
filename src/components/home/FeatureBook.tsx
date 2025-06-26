@@ -11,6 +11,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Navigation, Pagination } from 'swiper/modules';
+import Image from "next/image";
 
 type Novel = {
     _id: string;
@@ -39,15 +40,24 @@ interface BookCardProps {
 
 // BookCard Component
 const BookCard: React.FC<BookCardProps> = ({ novel, imageUrls, index = 0, showAnimation = true }) => {
+    const handleTranslate = (en: string) => {
+        switch(en) {
+            case 'Completed' : return 'Hoàn thành';
+            case 'Ongoing' : return 'Đang tiến hành'
+            case 'Hiatus' : return 'Tạm ngưng'
+        }
+    }
     const cardContent = (
-        <div className="m-4 flex flex-col cursor-pointer rounded-lg group hover:scale-105 hover:shadow-white hover:shadow-2xl duration-300 transition-all">
+        <div className="m-4 flex flex-col cursor-pointer rounded-lg shadow-gray-400 shadow-sm border border-gray-400 group hover:scale-105 hover:shadow-gray-400 hover:shadow-2xl duration-300 transition-all">
             <a href={`novel-detailed?id=${novel._id}`}>
                 <div className="relative items-center rounded-lg overflow-hidden">
-                    <img
-                        src={novel.coverImage?.publicId 
-                            ? imageUrls[novel.coverImage.publicId] 
+                    <Image
+                        src={novel.coverImage?.publicId && imageUrls[novel.coverImage.publicId]
+                            ? imageUrls[novel.coverImage.publicId]
                             : 'https://res.cloudinary.com/dr29oyoqx/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png'
                         }
+                        width={200}
+                        height={280}
                         alt={novel.title}
                         className="w-142 h-142 object-cover"
                     />
@@ -56,7 +66,7 @@ const BookCard: React.FC<BookCardProps> = ({ novel, imageUrls, index = 0, showAn
                             {novel.rating ? `⭐ ${novel.rating}` : 'Chưa có đánh giá'}
                         </span>
                         <span className="rounded-2xl absolute bg-gray-600 py-0.5 px-4 font-semibold top-2.5 right-2.5">
-                            {novel.status}
+                            {handleTranslate(novel.status)}
                         </span>
                     </div>
 
@@ -133,9 +143,9 @@ const FeatureBook: React.FC = () => {
     if (!data || data.length === 0) return <p>Không có dữ liệu</p>;
 
     return (
-        <div className="flex flex-col pt-7 bg-gradient-to-r from-black from-20% via-gray-950 via-75% to-black">
-            <div className="flex justify-between items-center md:px-[14.8%] px-10">
-                <span className="font-bold text-[2rem]">Có thể bạn sẽ thích?</span>
+        <div className="flex flex-col pt-7 bg-black px-2.5 md:bg-gradient-to-r md:from-black md:from-20% md:via-gray-950 md:via-75% md:to-black">
+            <div className="flex justify-between items-center pt-10 md:pt-0 md:px-[14.8%] px-2">
+                <span className="font-bold text-[1.5rem] md:text-[2rem]">Có thể bạn sẽ thích?</span>
                 <button className="flex cursor-pointer text-amber-600 font-inter rounded-[10px] px-4 py-1.5 hover:bg-gray-600">
                     Xem tất cả <ArrowRightIcon className="pl-2 w-6 h-6"/>
                 </button>
@@ -155,7 +165,7 @@ const FeatureBook: React.FC = () => {
             </div>
 
             {/* Giao diện cho Mobile */}
-            <div className="md:hidden block mx-6 py-5">
+            <div className="md:hidden block py-5">
                 <Swiper
                 modules={[Navigation, Pagination]}
                 spaceBetween={30}

@@ -68,7 +68,7 @@ const Header = () => {
             isActive={activeButton === 'login'}
           />
         </div>
-        <div className='md:hidden flex ml-20'>
+        <div className='md:hidden flex'>
           <Button
             type={<UserIcon className="h-5 w-5" />}
             text="Đăng nhập"
