@@ -32,13 +32,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       process.env.JWT_SECRET!,
       { expiresIn: '2d' }
     );
-
+    
     (await cookies()).set('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24 * 2, // 2 ngày
+      maxAge: 60 * 60 * 24 * 2,
       sameSite: 'strict',
     })
+
+    console.log((await cookies()).get);
 
     return NextResponse.json({
       success: true,

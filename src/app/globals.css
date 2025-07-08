@@ -25,31 +25,3 @@ body {
 .font-inter {
   font-family: var(--font-inter);
 }
-
-/* ====== CHẶN CHỌN & CON TRỎ TRÊN TOÀN BỘ TRANG, TRỪ input/textarea ====== */
-
-/* 1. Tắt chọn và caret trên mọi phần tử, TRỪ input & textarea */
-body *:not(input):not(textarea):not([contenteditable="true"]) {
-  user-select: none;
-  caret-color: transparent;
-}
-
-input,
-textarea,
-[contenteditable="true"] {
-  user-select: text;
-  caret-color: auto;
-}
-
-
-/* 2. Vô hiệu hoá contenteditable nếu không khai báo rõ ràng */
-[contenteditable="true"]:not([data-allow-edit="true"]) {
-  pointer-events: none;
-  user-select: none;
-  caret-color: transparent;
-}
-
-/* 3. Tắt outline focus trừ các phần tử focusable */
-body *:not(input):not(textarea):not(button):not(select):not([tabindex]):not([data-focusable="true"]) {
-  outline: none !important;
-}

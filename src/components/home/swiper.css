@@ -20,8 +20,3 @@
 .swiper-pagination-bullet {
     background: #333;
 }
-
-.swiper-pagination-bullet-active {
-    background: #007aff;
-    opacity: 1;
-}

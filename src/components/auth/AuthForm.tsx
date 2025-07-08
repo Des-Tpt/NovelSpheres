@@ -18,7 +18,7 @@ interface PopupProps {
     onClose: () => void;
 }
 
-function Popup({ message, onClose, type }: PopupProps) {
+function Popup({ message, type }: PopupProps) {
     const isSuccess = type === 'success';
     return (
         <div className='hidden md:flex'>
@@ -65,7 +65,8 @@ export default function AuthForm({ onClose, isOpen }: Props) {
                     email,
                     username: tab === 'login' ? undefined : username, // Chỉ gửi username khi đăng ký
                     password,
-                })
+                }),
+                credentials: 'include',
             });
 
             const data = await res.json();

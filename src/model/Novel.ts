@@ -12,8 +12,8 @@ export interface INovel extends Document {
     },
     genresId: [Schema.Types.ObjectId],
     status: 'Ongoing' | 'Completed' | 'Hiatus',
-    views: Number;
-    rating: Number;
+    views: number;
+    rating: number;
     createdAt: Date,
     updatedAt: Date
 }

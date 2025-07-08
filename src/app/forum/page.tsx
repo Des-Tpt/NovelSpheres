@@ -1,6 +1,8 @@
+import Introduce from "@/components/forum/Introduce";
+
 const forum = () => {
     return (
-        <p>Đây là 4rum</p>
+        <Introduce />
     )
 }
 

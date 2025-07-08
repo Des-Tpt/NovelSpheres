@@ -38,7 +38,6 @@ interface BookCardProps {
     showAnimation?: boolean;
 }
 
-// BookCard Component
 const BookCard: React.FC<BookCardProps> = ({ novel, imageUrls, index = 0, showAnimation = true }) => {
     const handleTranslate = (en: string) => {
         switch(en) {
@@ -59,7 +58,7 @@ const BookCard: React.FC<BookCardProps> = ({ novel, imageUrls, index = 0, showAn
                         width={200}
                         height={280}
                         alt={novel.title}
-                        className="w-142 h-142 object-cover"
+                        className="w-142 h-100 md:h-80 object-cover"
                     />
                     <div className="flex">
                         <span className="rounded-2xl absolute bg-gray-600 py-0.25 px-2 font-semibold text-[1rem] top-2.5 left-2.5">
@@ -72,18 +71,18 @@ const BookCard: React.FC<BookCardProps> = ({ novel, imageUrls, index = 0, showAn
 
                     <div className="bg-black rounded-b-lg h-55 sm:h-60 relative">
                         <div className="flex flex-col p-3">
-                            <span className="font-bold text-[1.4rem] group-hover:text-amber-600 transition-colors duration-300">
+                            <span className="font-bold text-[1.4rem] group-hover:text-amber-600 transition-colors line-clamp-1 duration-300">
                                 {novel.title}
                             </span>
-                            <span className="pl-1 py-3 font-inter">của {novel.authorName}</span>
-                            <span className="text-[0.9rem] font-inter">{novel.description}</span>
+                            <span className="pl-1 pb-3 pt-1.5 font-inter">của {novel.authorName}</span>
+                            <span className="text-[0.9rem] font-inter sm:line-clamp-3 md:line-clamp-5">{novel.description}</span>
                             <div className="flex justify-between">
                                 <span className="rounded-2xl border px-3 font-sans absolute bottom-3 left-5">
                                     {novel.firstGenreName}
                                 </span>
                                 <span className="rounded-2xl border px-3 flex items-center absolute bottom-3 right-5">
                                     <BookOpenIcon className="w-5 h-5 pr-1"/>
-                                    {novel.chapterCount ? ` ${novel.chapterCount} chương` : ` ${random(1, 1000)} chương`}
+                                    {novel.chapterCount ? ` ${novel.chapterCount} ch` : ` ${random(1, 1000)} ch`}
                                 </span>
                             </div>
                         </div>
@@ -152,7 +151,7 @@ const FeatureBook: React.FC = () => {
             </div>
             
             {/* Giao diện cho Desktop */}
-            <div className="hidden gap md:grid md:grid-cols-3 md:px-[14%]">
+            <div className="hidden gap md:grid md:grid-cols-4 md:px-[14%]">
                 {data.map((novel, index) => (
                     <BookCard
                         key={novel._id}
@@ -176,7 +175,7 @@ const FeatureBook: React.FC = () => {
                 >
                 {data.map((novel, index) => (
                     <SwiperSlide>
-                        <div className="pt-5 pb-20">
+                        <div className="pt-5 pb-10">
                             <BookCard
                             key={novel._id}
                             novel={novel}

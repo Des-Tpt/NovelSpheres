@@ -22,7 +22,7 @@ type Genre = {
 const BookFilter = () => {
     //Lấy thể loại novel.
     const { data: genres, isLoading: isGenresLoading, error: genresError } = useQuery<Genre[] | null>({
-        queryKey: ['genres'],
+        queryKey: ['genres-home'],
         queryFn: getGenres,
         staleTime: 1000 * 60 * 5,
         });
@@ -63,10 +63,6 @@ const BookFilter = () => {
             try {
                 const data = await getNovelByFilter(selectedGenres, sort);
                 if (data) setNovels(data);
-                    console.log("Data structure:", JSON.stringify(data))
-                    console.log("Thông tin data:", data);
-                    console.log("Thông tin novel:", novels);
-
             } catch (err) {
                 console.log(err);
             }
@@ -178,8 +174,8 @@ const BookFilter = () => {
                         </div>
                         <div className="bg-black rounded-b-lg h-35 w-51 relative">
                             <div className="flex flex-col p-3">
-                            <span className="font-semibold font text-[0.9rem] group-hover:text-amber-500 transition-colors">{novel.title}</span>
-                            <span className="font-inter text-[0.7rem]">của {novel.authorName}</span>
+                            <span className="font-semibold font text-[0.9rem] group-hover:text-amber-500 transition-colors line-clamp-1">{novel.title}</span>
+                            <span className="font-inter text-[0.7rem] line-clamp-1">của {novel.authorName}</span>
                             <div className="flex justify-between">
                                 <span className="text-[0.75rem] px-3 font-sans flex items-center font-bold justify-center absolute bottom-11.25 right-5 md:right-0.5">
                                 {novel.firstGenreName}

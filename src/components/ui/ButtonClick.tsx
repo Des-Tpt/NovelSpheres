@@ -10,7 +10,7 @@ interface ButtonProps {
     onClick?: () => void;
 }
 
-const Button = ({ type, text, href, onClick }: ButtonProps) => {
+const ButtonClick = ({ type, text, href, onClick }: ButtonProps) => {
     
     const buttonVariants = {
         initial: { opacity: 1, scale: 1 },
@@ -34,4 +34,4 @@ const Button = ({ type, text, href, onClick }: ButtonProps) => {
     )
 }
 
-export default Button;
+export default ButtonClick;

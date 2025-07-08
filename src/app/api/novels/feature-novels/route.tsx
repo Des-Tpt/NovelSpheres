@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     try {
         await connectDB();
 
-        const novels = await Novel.aggregate([{ $sample: {size: 3}}]) as INovel[];
+        const novels = await Novel.aggregate([{ $sample: {size: 4}}]) as INovel[];
 
         const featuredNovels = await Promise.all(novels.map(getFeaturedNovelData));
 
