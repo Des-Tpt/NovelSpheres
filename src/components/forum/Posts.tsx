@@ -50,7 +50,7 @@ export default function ForumPage() {
         const headerOffset = 64;
         const element = postContainerRef.current;
 
-        if (element) {
+        if (element && (category || page > 1 || sort !== 'date' || limit !== 10)) {
             const offsetTop = element.getBoundingClientRect().top + window.scrollY;
             window.scrollTo({
                 top: offsetTop - headerOffset,
@@ -174,12 +174,7 @@ export default function ForumPage() {
             variants={filterVariants}
         >
             <div className='flex items-center gap-2'>
-                <motion.div
-                    animate={{ rotate: [0, 360] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                >
-                    <Filter className='w-4.5 h-4.5'/>
-                </motion.div>
+            <Filter className='w-4.5 h-4.5'/>
                 <span className='font-semibold text-[1.25rem]'>Bộ lọc bài viết</span>
             </div>
             <div className="flex gap-10 items-center">
