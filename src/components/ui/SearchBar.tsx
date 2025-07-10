@@ -117,7 +117,7 @@ const SearchBar = () => {
                                 )}
                                 <div className="flex-1 flex justify-between items-center">
                                 <div className="flex flex-col">
-                                    <span className="font-bold font-inter text-[1.05rem]">{novel.title}</span>
+                                    <span className="font-bold font-inter line-clamp-1 text-[0.9rem]">{novel.title}</span>
                                     <div className="flex items-center font-sans text-[0.9rem]">
                                         <span className="text-muted-foreground">của {novel.authorId?.username || 'Chưa có tác giả'}</span>
                                         <span className="text-[10px] mx-2.5">● </span>

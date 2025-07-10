@@ -25,7 +25,7 @@ const Header = () => {
 
   return (
     <div>
-      <header className="bg-black text-white px-[5%] py-2.5 flex justify-between items-center md:px-[15%]">
+      <header className="bg-black text-white px-[5%] py-2.5 fixed flex justify-between items-center md:px-[15%] w-full z-60">
         <link href="https://fonts.googleapis.com/css2?family=Crimson+Text&display=swap" rel="stylesheet" />
         <div className="flex justify-center mr-2.5">
           <BookOpenIcon className="h-8 w-8" />

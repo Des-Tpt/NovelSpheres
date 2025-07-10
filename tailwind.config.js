@@ -12,7 +12,6 @@ module.exports = {
         fontFamily: {
             inter: ['var(--font-inter)'],
             times: ['"Times New Roman"', 'serif'],
-            serif: ['Crimson Text', 'serif'],
             sans: ['Inter', 'sans-serif'],
         }
     },

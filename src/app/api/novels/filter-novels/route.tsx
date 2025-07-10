@@ -55,13 +55,12 @@ export async function GET(req: NextRequest) {
     // Đếm số chương + Add thể loại chính
     const novelsWithChapterCount = await Promise.all(
       novels.map(async (novel) => {
+        
         const chapterCount = await Chapter.countDocuments({
           novelId: novel._id,
         });
-
         const firstGenreId = novel.genresId[0]
         const genres = await Genre.findById(firstGenreId).lean<IGenre>();
-
         const user = await User.findById(novel.authorId).lean<IUser>();
         
         return {

@@ -11,6 +11,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { motion } from "framer-motion";
 import Image from "next/image";
+import LoadingComponent from "../ui/Loading";
 
 
 type Genre = {
@@ -89,7 +90,7 @@ const BookFilter = () => {
     show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
     };
     
-    if (isGenresLoading) return (<div className="flex flex-col pt-7 bg-gradient-to-r from-black from-20% via-gray-950 via-75% to-black min-h-screen"></div>);
+    if (isGenresLoading) return (<LoadingComponent/>);
     if (genresError instanceof Error) return <p>Lỗi: {genresError.message}</p>;
     if (!genres || genres.length === 0) return <p>Không có dữ liệu</p>;
 

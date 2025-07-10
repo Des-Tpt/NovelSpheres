@@ -2,7 +2,9 @@ import Introduce from "@/components/forum/Introduce";
 
 const forum = () => {
     return (
-        <Introduce />
+        <div className="pt-15">
+            <Introduce />
+        </div>
     )
 }
 

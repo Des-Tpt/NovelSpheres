@@ -12,6 +12,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Navigation, Pagination } from 'swiper/modules';
 import Image from "next/image";
+import LoadingComponent from "../ui/Loading";
 
 type Novel = {
     _id: string;
@@ -136,7 +137,7 @@ const FeatureBook: React.FC = () => {
     }, [data, imageUrls]);
 
     if (isLoading) return (
-        <div className="flex flex-col pt-7 bg-gradient-to-r from-black from-20% via-gray-950 via-75% to-black min-h-screen"></div>
+        <LoadingComponent />
     );
     if (error instanceof Error) return <p>Lỗi: {error.message}</p>;
     if (!data || data.length === 0) return <p>Không có dữ liệu</p>;

@@ -102,8 +102,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         return NextResponse.json({ error: 'Định dạng ảnh không hợp lệ' }, { status: 400 });
     }
     const url = `https://res.cloudinary.com/${cloudName}/image/upload/${publicId}.${format}`;
-    console.log(cloudName)
-
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error('Lỗi fetch ảnh');

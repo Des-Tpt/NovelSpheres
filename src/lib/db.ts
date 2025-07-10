@@ -18,14 +18,14 @@ export async function connectDB(): Promise<void> {
     if (cached.conn) {return cached.conn};
 
     if (!cached.promise) {
-        cached.promise = await mongoose.connect(MONGODB_URI, {
+        cached.promise = mongoose.connect(MONGODB_URI, {
             bufferCommands:false,
         }).then(() => {
             console.log('✅ Đã kết nối tới MongoDB');
             return mongoose.connection;
         }) .catch((error) => {
             console.error('Không thể kết nối tới DB:', error);
-            cached.promise = null; // Reset promise nếu lỗi
+            cached.promise = null;
             throw error;
         });
     }

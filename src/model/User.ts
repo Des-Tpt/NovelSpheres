@@ -8,7 +8,10 @@ export interface IUser extends Document {
   role: 'reader' | 'admin' | 'writer';
   profile?: {
     bio?: string;
-    avatar?: string;
+    avatar?: {
+      publicId: string;
+      format: string;
+    };
   };
   createdAt: Date;
 }
@@ -21,7 +24,10 @@ const UserSchema = new Schema<IUser>({
   role: { type: String, enum: ['reader', 'writer', 'admin'], default: 'reader' },
   profile: {
     bio: String,
-    avatar: String,
+    avatar: {
+      publicId: { type: String },
+      format: { type: String },
+    },
   },
   createdAt: { type: Date, default: Date.now },
 });

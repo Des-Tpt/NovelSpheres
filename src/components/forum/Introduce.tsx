@@ -92,7 +92,6 @@ const Introduce = () => {
         );
     }
 
-    // No data state
     if (!data || data.length === 0) {
         return (
             <div className="flex flex-col pt-7 px-[14%] bg-black md:bg-gradient-to-r md:from-black md:from-20% md:via-gray-950 md:via-75% md:to-black">
