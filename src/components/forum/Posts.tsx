@@ -1,6 +1,6 @@
 'use client';
 
-import { useForumPosts } from '@/action/getPost';
+import { useForumPosts } from '@/action/getPosts';
 import { useEffect, useState, useRef } from 'react';
 import LoadingComponent from '../ui/Loading';
 import getImage from '@/action/getImage';
@@ -9,6 +9,7 @@ import CustomSelect from '../ui/CustomSelect';
 import Image from 'next/image';
 import { random } from 'lodash';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ChatBubbleLeftEllipsisIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 
 export default function ForumPage() {
     const [page, setPage] = useState(1);
@@ -105,58 +106,23 @@ export default function ForumPage() {
         }
     }
 
-    const containerVariants = {
+    // Simplified animation variants - only for essential animations
+    const staggerContainer = {
         hidden: { opacity: 0 },
         visible: {
             opacity: 1,
             transition: {
-                staggerChildren: 0.1
+                staggerChildren: 0.05 // Reduced stagger delay
             }
         }
     };
 
-    const itemVariants = {
-        hidden: { 
-            opacity: 0, 
-            y: 20,
-            scale: 0.95
-        },
+    const fadeInUp = {
+        hidden: { opacity: 0, y: 10 },
         visible: { 
             opacity: 1, 
             y: 0,
-            scale: 1,
-            transition: {
-                type: "spring" as const,
-                stiffness: 100,
-                damping: 15
-            }
-        }
-    };
-
-    const filterVariants = {
-        hidden: { opacity: 0, y: -20 },
-        visible: { 
-            opacity: 1, 
-            y: 0,
-            transition: {
-                type: "spring" as const,
-                stiffness: 120,
-                damping: 20
-            }
-        }
-    };
-
-    const paginationVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { 
-            opacity: 1, 
-            y: 0,
-            transition: {
-                type: "spring" as const,
-                stiffness: 100,
-                damping: 15,
-                delay: 0.2
-            }
+            transition: { duration: 0.2 } // Faster animation
         }
     };
 
@@ -164,25 +130,126 @@ export default function ForumPage() {
     if (isError) return <p>Có lỗi xảy ra.</p>;
 
     return (
-    <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-    >
-        <motion.div 
-            className='flex justify-between border-gray-600 border rounded-[0.8rem] py-5 px-5 bg-gray-950'
-            variants={filterVariants}
-        >
+    <div className="forum-page">
+        <style jsx>{`
+            .forum-page {
+                animation: fadeIn 0.3s ease-out;
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            
+            .filter-section {
+                transition: all 0.2s ease;
+            }
+            
+            .filter-section:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+            
+            .post-card {
+                transition: all 0.2s ease;
+            }
+            
+            .post-card:hover {
+                transform: translateY(-2px);
+                background-color: rgba(31, 41, 55, 0.8);
+            }
+            
+            .post-image {
+                transition: transform 0.2s ease;
+            }
+            
+            .post-image:hover {
+                transform: scale(1.05);
+            }
+            
+            .post-title {
+                transition: color 0.2s ease;
+            }
+            
+            .post-title:hover {
+                color: #3b82f6;
+            }
+            
+            .tag-badge {
+                transition: all 0.2s ease;
+            }
+            
+            .tag-badge:hover {
+                transform: scale(1.05);
+                border-color: #3b82f6;
+                background-color: rgba(59, 130, 246, 0.1);
+            }
+            
+            .role-badge {
+                transition: all 0.2s ease;
+            }
+            
+            .role-badge:hover {
+                transform: scale(1.05);
+                border-color: #10b981;
+                background-color: rgba(16, 185, 129, 0.1);
+            }
+            
+            .stat-item {
+                transition: all 0.2s ease;
+            }
+            
+            .stat-item:hover {
+                transform: scale(1.05);
+                color: #3b82f6;
+            }
+            
+            .views-stat:hover {
+                color: #10b981;
+            }
+            
+            .pagination-btn {
+                transition: all 0.2s ease;
+            }
+            
+            .pagination-btn:hover:not(:disabled) {
+                transform: translateY(-1px);
+                background-color: rgba(55, 65, 81, 1);
+            }
+            
+            .pagination-btn:active:not(:disabled) {
+                transform: translateY(0);
+            }
+            
+            .page-number {
+                transition: all 0.2s ease;
+            }
+            
+            .page-number:hover {
+                transform: translateY(-1px);
+            }
+            
+            .page-number:active {
+                transform: translateY(0);
+            }
+            
+            .loading-text {
+                animation: pulse 1.5s ease-in-out infinite;
+            }
+            
+            @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.5; }
+            }
+        `}</style>
+
+        <div className='filter-section flex justify-between border-gray-600 border rounded-[0.8rem] py-5 px-5 bg-gray-950'>
             <div className='flex items-center gap-2'>
-            <Filter className='w-4.5 h-4.5'/>
+                <Filter className='w-4.5 h-4.5'/>
                 <span className='font-semibold text-[1.25rem]'>Bộ lọc bài viết</span>
             </div>
             <div className="flex gap-10 items-center">
-                <motion.div 
-                    className='flex gap-2 items-center'
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                >
+                <div className='flex gap-2 items-center'>
                     <div><span>Danh sách:</span></div>
                     <CustomSelect 
                         value={category}
@@ -190,55 +257,45 @@ export default function ForumPage() {
                         options={categoryOptions}
                         placeholder="Tất cả"
                     />
-                </motion.div>
-                <motion.div 
-                    className='flex gap-2 items-center'
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                >
+                </div>
+                <div className='flex gap-2 items-center'>
                     <div><span>Sắp xếp:</span></div>
-                        <CustomSelect 
-                            value={sort}
-                            onChange={setSort}
-                            options={sortOptions}
-                            placeholder="Mới nhất"
-                        />
-                </motion.div>
+                    <CustomSelect 
+                        value={sort}
+                        onChange={setSort}
+                        options={sortOptions}
+                        placeholder="Mới nhất"
+                    />
+                </div>
             </div>
-        </motion.div>
+        </div>
 
-        <motion.div 
+        <div 
             ref={postContainerRef}
             className="mt-4 w-full border border-gray-600 rounded-[0.8rem] overflow-hidden"
-            variants={itemVariants}
         >
+            <div className='flex px-5 py-5 items-center bg-gray-950'>
+                <ChatBubbleLeftEllipsisIcon className='w-8 h-8'/>
+                <span className='font-bold pl-2.5 text-[1.3rem] pb-1'>Danh sách bài viết</span>
+                <span className='pb-1 ml-3 rounded-[0.8rem] border border-gray-600 px-2 font-sans font-bold text-[0.8rem]'>{data?.total} bài đăng</span>
+            </div>
             <AnimatePresence mode="wait">
                 <motion.div
                     key={`${page}-${category}-${sort}-${limit}`}
                     initial="hidden"
                     animate="visible"
                     exit="hidden"
-                    variants={containerVariants}
+                    variants={staggerContainer}
                 >
                     {data?.data.map((post, index) => (
                     <motion.div 
                         key={post._id} 
-                        className="mb-2 w-full bg-gray-950 py-5 px-5"
-                        variants={itemVariants}
-                        whileHover={{ 
-                            scale: 1.02,
-                            backgroundColor: "rgba(31, 41, 55, 0.8)",
-                            transition: { duration: 0.2 }
-                        }}
-                        whileTap={{ scale: 0.98 }}
+                        className="post-card mb-2 w-full bg-gray-950 py-5 px-5 group hover:bg-gray-700 transition-colors duration-200"
+                        variants={fadeInUp}
                     >
-                        <a href={`forum/post/id=${post._id}`}>
+                        <a href={`forum/post/${post._id}`}>
                         <div className='flex gap-5 h-full'>
-                            <motion.div 
-                                className="flex-shrink-0"
-                                whileHover={{ scale: 1.1 }}
-                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            >
+                            <div className="flex-shrink-0">
                                 <Image 
                                     src={post?.avatar?.publicId && imageUrls[post.avatar.publicId]
                                         ? imageUrls[post.avatar.publicId]
@@ -247,103 +304,48 @@ export default function ForumPage() {
                                     width={200}
                                     height={280}
                                     alt={post.title}
-                                    className="w-15 h-15 rounded-4xl object-cover object-top"
+                                    className="post-image w-15 h-15 rounded-4xl object-cover object-top"
                                 />
-                            </motion.div>
+                            </div>
                             <div className='flex flex-col flex-1 justify-between'>
                                 <div className="flex-1">
                                     <div className='flex justify-between items-center'>
-                                        <motion.h3 
-                                            className="text-[1.35rem] font-bold"
-                                            whileHover={{ color: "#3b82f6" }}
-                                            transition={{ duration: 0.2 }}
-                                        >
+                                        <h3 className="post-title text-[1.35rem] font-bold group-hover:text-amber-600 transition-colors duration-200">
                                             {post.title}
-                                        </motion.h3>
-                                        <motion.span 
-                                            className='font-bold text-[0.8rem] font-sans'
-                                            initial={{ opacity: 0, x: 20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 0.1 }}
-                                        >
+                                        </h3>
+                                        <span className='font-bold text-[0.8rem] font-sans'>
                                             {handleFormatDate(post.createdAt)}
-                                        </motion.span>
+                                        </span>
                                     </div>
-                                    <motion.div 
-                                        className="flex text-[0.85rem] font-inter font-normal text-white gap-3 py-1.5 items-center"
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.2 }}
-                                    >
+                                    <div className="flex text-[0.85rem] font-inter font-normal text-white gap-3 py-1.5 items-center">
                                         <span>{post.owner}</span>•
-                                        <motion.span 
-                                            className='border border-gray-600 px-2 pt-1 pb-0.5 rounded-[1rem]'
-                                            whileHover={{ 
-                                                scale: 1.05,
-                                                borderColor: "#3b82f6",
-                                                backgroundColor: "rgba(59, 130, 246, 0.1)"
-                                            }}
-                                        >
+                                        <span className='tag-badge border border-gray-600 px-2 pt-1 pb-0.5 rounded-[1rem]'>
                                             {handleCategory(post.category)}
-                                        </motion.span>•
-                                        <motion.span 
-                                            className='border border-gray-600 px-2 pt-1 pb-0.5 rounded-[1rem]'
-                                            whileHover={{ 
-                                                scale: 1.05,
-                                                borderColor: "#10b981",
-                                                backgroundColor: "rgba(16, 185, 129, 0.1)"
-                                            }}
-                                        >
+                                        </span>•
+                                        <span className='role-badge border border-gray-600 px-2 pt-1 pb-0.5 rounded-[1rem]'>
                                             {handleRole(post.role)}
-                                        </motion.span>
-                                    </motion.div>
-                                    <motion.p 
-                                        className="font-sans text-[0.95rem] line-clamp-2 flex-1"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ delay: 0.3 }}
-                                    >
+                                        </span>
+                                    </div>
+                                    <p className="font-sans text-[0.95rem] line-clamp-2 flex-1">
                                         {post.content}
-                                    </motion.p>
+                                    </p>
                                 </div>
-                                <motion.div 
-                                    className='border-b py-2 border-gray-600'
-                                    initial={{ scaleX: 0 }}
-                                    animate={{ scaleX: 1 }}
-                                    transition={{ delay: 0.4, duration: 0.5 }}
-                                ></motion.div>
-                                <motion.div 
-                                    className="mt-auto flex gap-5 pt-2.5 justify-between font-sans"
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.5 }}
-                                >
+                                <div className='border-b py-2 border-gray-600'></div>
+                                <div className="mt-auto flex gap-5 pt-2.5 justify-between font-sans">
                                     <div className='flex gap-7 text-[0.88rem] font-bold'>
-                                        <motion.div 
-                                            className='flex items-center gap-1.5'
-                                            whileHover={{ scale: 1.1, color: "#3b82f6" }}
-                                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                        >
+                                        <div className='stat-item flex items-center gap-1.5'>
                                             <Share2 className='w-4 h-4'/>
                                             <span>{post.totalRepiles === 0 ? random(1,10) : post.totalRepiles}</span>
-                                        </motion.div>
-                                        <motion.div 
-                                            className='flex items-center gap-1.5'
-                                            whileHover={{ scale: 1.1, color: "#10b981" }}
-                                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                        >
+                                        </div>
+                                        <div className='stat-item views-stat flex items-center gap-1.5'>
                                             <EyeIcon className='w-4.5 h-4.5' />
                                             <span>{post.views === 0 ? random(10, 100) : post.views}</span>
-                                        </motion.div>
+                                        </div>
                                     </div>
-                                    <motion.div
-                                        initial={{ opacity: 0, scale: 0.8 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ delay: 0.6 }}
-                                    >
+                                    <div>
                                         <span>#{index}</span>
-                                    </motion.div>
-                                </motion.div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         </a>
@@ -351,27 +353,14 @@ export default function ForumPage() {
                     ))}
                 </motion.div>
             </AnimatePresence>
-        </motion.div>
+        </div>
 
-        <motion.div 
-            className="mt-4 flex flex-col gap-4 border border-gray-600 bg-gray-950 rounded-[0.8rem] p-5"
-            variants={paginationVariants}
-        >
+        <div className="mt-4 flex flex-col gap-4 border border-gray-600 bg-gray-950 rounded-[0.8rem] p-5">
             <div className='justify-between flex items-center'>
-                <motion.p 
-                    className="text-[1rem] text-gray-400"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 }}
-                >
+                <p className="text-[1rem] text-gray-400">
                     Hiển thị {startItem}-{endItem} của {totalItems} kết quả
-                </motion.p>
-                <motion.div 
-                    className='items-center flex gap-1.5'
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 }}
-                >
+                </p>
+                <div className='items-center flex gap-1.5'>
                     <span>Hiển thị: </span>
                     <CustomSelect 
                         value={limit}
@@ -380,72 +369,54 @@ export default function ForumPage() {
                         placeholder={10}
                     />
                     <span> / trang</span>
-                </motion.div>
+                </div>
             </div>
-            <motion.div 
-                className='flex gap-2.5 justify-center'
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-            >
-                <motion.button 
+            <div className='flex gap-2.5 justify-center'>
+                <button 
                     disabled={page === 1} 
                     onClick={() => setPage((p) => p - 1)}
-                    className="px-3 border border-gray-600 rounded-md bg-gray-950 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-800"
-                    whileHover={{ scale: page === 1 ? 1 : 1.02 }}
-                    whileTap={{ scale: page === 1 ? 1 : 0.98 }}
-                    transition={{ duration: 0.2 }}
+                    className="pagination-btn px-3 border border-gray-600 rounded-md bg-gray-950 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     Trang trước
-                </motion.button>
+                </button>
                 
                 <div className='flex gap-2.5'>
                     {Array.from({ length: TotalPages }, (_, i) => i + 1).map((pageNum) => (
-                        <motion.button
+                        <button
                             key={pageNum}
                             onClick={() => setPage(pageNum)}
-                            className={`px-3 py-0.5 border border-gray-600 rounded-md text-white ${
+                            className={`page-number px-3 py-0.5 border border-gray-600 rounded-md text-white ${
                                 page === pageNum 
                                     ? 'bg-blue-600 border-blue-500' 
                                     : 'bg-gray-950 hover:bg-gray-800'
                             }`}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            transition={{ duration: 0.2 }}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
                         >
                             {pageNum}
-                        </motion.button>
+                        </button>
                     ))}
                 </div>
-                <motion.button
+                <button
                     disabled={!data?.hasMore}
                     onClick={() => setPage((p) => p + 1)}
-                    className="px-3 border border-gray-600 rounded-md bg-gray-950 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-800"
-                    whileHover={{ scale: !data?.hasMore ? 1 : 1.02 }}
-                    whileTap={{ scale: !data?.hasMore ? 1 : 0.98 }}
-                    transition={{ duration: 0.2 }}
+                    className="pagination-btn px-3 border border-gray-600 rounded-md bg-gray-950 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     Trang sau
-                </motion.button>
-            </motion.div>
-        </motion.div>
+                </button>
+            </div>
+        </div>
         
         <AnimatePresence>
             {isFetching && (
                 <motion.p 
-                    className="text-sm text-gray-400"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.3 }}
+                    className="loading-text text-sm text-gray-400"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                 >
                     Đang tải trang mới...
                 </motion.p>
             )}
         </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }
