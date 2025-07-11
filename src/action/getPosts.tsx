@@ -41,7 +41,6 @@ export const useForumPosts = ({ page = 1, category = '', sort = 'date', limit = 
       if (!res.ok) throw new Error('Không thể lấy dữ liệu bài viết');
       return res.json();
     },
-    placeholderData: keepPreviousData,
     staleTime: 1000 * 30 * 5,
   });
 };
