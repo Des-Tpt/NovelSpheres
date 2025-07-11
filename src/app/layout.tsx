@@ -1,4 +1,3 @@
-// app/layout.tsx
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -8,12 +7,10 @@ import Header from '@/components/header/Header';
 import Footer from '@/components/footer/Footer';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  // Tạo QueryClient instance
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
-        // Tùy chỉnh mặc định cho queries
-        staleTime: 180 * 1000, // Dữ liệu hết hạn sau 3 phút
+        staleTime: 180 * 1000,
         refetchOnWindowFocus: false,
       },
     },

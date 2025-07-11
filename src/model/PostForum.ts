@@ -26,7 +26,6 @@ const ForumPostSchema = new Schema<IForumPost>({
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
   views: {type: Schema.Types.Number, default: 0}
-
 });
 
 ForumPostSchema.pre('save', function (next) {

@@ -9,16 +9,30 @@ import CustomSelect from '../ui/CustomSelect';
 import Image from 'next/image';
 import { random } from 'lodash';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChatBubbleLeftEllipsisIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
+import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/24/outline';
 import LoadingPostComponent from '../ui/LoadingPost';
+import { useSearchParams } from 'next/navigation';
 
 export default function ForumPage() {
+    const searchParams = useSearchParams();
     const [page, setPage] = useState(1);
     const [category, setCategory] = useState('');
     const [sort, setSort] = useState('date');
     const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
     const [limit, setLimit] = useState(10);
     
+    useEffect(() => {
+        const queryCategory = searchParams.get('category');
+        const querySort = searchParams.get('sort');
+        const queryPage = searchParams.get('page');
+        const queryLimit = searchParams.get('limit');
+
+        if (queryCategory !== null) setCategory(queryCategory);
+        if (querySort !== null) setSort(querySort);
+        if (queryPage !== null) setPage(parseInt(queryPage));
+        if (queryLimit !== null) setLimit(parseInt(queryLimit));
+    }, []);
+
     const { data, isLoading, isFetching, isError } = useForumPosts({
         page,
         category,

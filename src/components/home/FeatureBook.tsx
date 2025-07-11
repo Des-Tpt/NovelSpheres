@@ -122,19 +122,25 @@ const FeatureBook: React.FC = () => {
     });
 
     useEffect(() => {
-        if (data) {
-            data.map(async (novel) => {
-                const publicId = novel.coverImage?.publicId;
-                const format = novel.coverImage?.format ?? 'jpg';
-                if (publicId && !imageUrls[publicId]) {
-                    const res = await getImage(publicId, format);
-                    if (res) {
-                        setImageUrls((prev) => ({ ...prev, [publicId]: res }));
-                    }
-                }
-            });
+    if (!data) return;
+
+    const fetchImages = async () => {
+        for (const novel of data) {
+        const publicId = novel.coverImage?.publicId;
+        const format = novel.coverImage?.format ?? 'jpg';
+
+        if (publicId && !imageUrls[publicId]) {
+            const res = await getImage(publicId, format);
+            if (res) {
+            setImageUrls((prev) => ({ ...prev, [publicId]: res }));
+            }
         }
-    }, [data, imageUrls]);
+        }
+    };
+
+    fetchImages();
+    }, [data]);
+
 
     if (isLoading) return (
         <LoadingComponent />

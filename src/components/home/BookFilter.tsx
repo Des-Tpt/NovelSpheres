@@ -13,15 +13,12 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import LoadingComponent from "../ui/Loading";
 
-
 type Genre = {
     _id: string;
     name: string;
 }
 
-
 const BookFilter = () => {
-    //Lấy thể loại novel.
     const { data: genres, isLoading: isGenresLoading, error: genresError } = useQuery<Genre[] | null>({
         queryKey: ['genres-home'],
         queryFn: getGenres,
@@ -38,19 +35,25 @@ const BookFilter = () => {
     }
 
     useEffect(() => {
-        if (novels) {
-            novels.map(async (novel) => {
-                const publicId = novel.coverImage?.publicId;
-                const format = novel.coverImage?.format ?? 'jpg';
-                    if (publicId && !imageUrls[publicId]) {
-                        const res = await getImage(publicId, format);
-                        if (res) {
-                            setImageUrls((prev) => ({ ...prev, [publicId]: res }));
-                        }
-                    }
-            });
+    if (!novels) return;
+
+    const fetchImages = async () => {
+        for (const novel of novels) {
+        const publicId = novel.coverImage?.publicId;
+        const format = novel.coverImage?.format ?? 'jpg';
+
+        if (publicId && !imageUrls[publicId]) {
+            const res = await getImage(publicId, format);
+            if (res) {
+            setImageUrls((prev) => ({ ...prev, [publicId]: res }));
+            }
         }
+        }
+    };
+
+    fetchImages();
     }, [novels]);
+
 
     const handleOnClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         const id = e.currentTarget.id;
