@@ -1,10 +1,9 @@
 'use client'
-import getGenres from "@/action/getGenres";
-import getNovelByFilter from "@/action/getNovelByFilter";
+import { getGenres, getNovelByFilter } from "@/action/novelActions";
 import { ArrowRightIcon, ArrowTrendingUpIcon, BookmarkIcon, BookOpenIcon, ClockIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import getImage from "@/action/getImage";
+import getImage from "@/action/imageActions";
 import INovelWithPopulate from "@/type/INovelWithPopulate";
 import { random } from "lodash";
 import { formatDistanceToNow } from 'date-fns';
@@ -54,6 +53,14 @@ const BookFilter = () => {
     fetchImages();
     }, [novels]);
 
+    const handleFilterName = (sort: string) => {
+        switch(sort)
+        {
+            case "views" : return "Tiểu thuyết phổ biến";
+            case "updatedAt" : return "Mới cập nhật";
+            case "title" : return "Theo thứ tự bảng chữ cái";
+        }
+    }
 
     const handleOnClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         const id = e.currentTarget.id;
@@ -87,11 +94,6 @@ const BookFilter = () => {
             case 'Hiatus' : return 'Tạm ngưng'
         }
     }
-
-    const cardVariants = {
-    hidden: { opacity: 0, y: 50 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
-    };
     
     if (isGenresLoading) return (<LoadingComponent/>);
     if (genresError instanceof Error) return <p>Lỗi: {genresError.message}</p>;
@@ -140,7 +142,7 @@ const BookFilter = () => {
             </div>
             <div className="flex flex-col w-full max-w-[1400px] mx-auto">
                 <div className="flex justify-between items-center py-5 md:px-6.5 md:py-0">
-                    <span className="text-white mb-2 text-3xl">Tiểu thuyết phổ biến</span>
+                    <span className="text-white mb-2 text-3xl">{handleFilterName(sort)}</span>
                     <button className="flex cursor-pointer text-amber-600 font-inter rounded-[10px] px-4 py-1.5 hover:bg-gray-600">
                         Xem tất cả <ArrowRightIcon className="pl-2 w-6 h-6"/>
                     </button>

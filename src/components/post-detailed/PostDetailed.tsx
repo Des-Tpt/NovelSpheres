@@ -1,20 +1,25 @@
 'use client'
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getPost } from '@/action/getPostById';
 import LoadingPostComponent from '../ui/LoadingPost';
-import ReactMarkdown from 'react-markdown';
-import { ArrowLeftIcon, Clock, EyeIcon } from 'lucide-react';
+import { ArrowLeftIcon, Clock, EyeIcon, MessageCircle, ChevronDown, ChevronUp, Send, ThumbsUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import getImage from '@/action/getImage';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'react-hot-toast';
+import { getPostById } from '@/action/postActions';
+import { createComment } from '@/action/commentActions';
+import { formatDistanceToNow } from 'date-fns';
+import { vi } from 'date-fns/locale';
+
 
 interface Post {
   _id: string;
-  userId: { username: string; role: string; profile?: { avatar?: { publicId: string; format: string } } };
+  userId: { _id:string; username: string; role: string; profile?: { avatar?: { publicId: string; format: string } } };
   novelId?: { 
-    title: string 
+    _id: string;
+    title: string; 
   };
   title: string;
   content: string;
@@ -25,48 +30,120 @@ interface Post {
 
 interface Comment {
   _id: string;
-  userId: { username: string; role: string; profile?: { avatar?: { publicId: string; format: string } } };
+  userId: { _id: string; username: string; role: string; profile?: { avatar?: { publicId: string; format: string } } };
   content: string;
-  replyToUserId?: { username: string };
+  replyToUserId?: { username: string; _id: string };
   replies: Comment[];
   createdAt: string;
 }
 
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.6,
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: { 
+    opacity: 1, 
+    x: 0,
+    transition: { duration: 0.4 }
+  }
+};
+
+const commentVariants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: { 
+    opacity: 1, 
+    scale: 1,
+    transition: { duration: 0.3 }
+  },
+  exit: { 
+    opacity: 0, 
+    scale: 0.95,
+    transition: { duration: 0.2 }
+  }
+};
+
 const PostDetail = () => {
   const { id } = useParams();
-  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
+  const queryClient = useQueryClient();
+  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState('');
+  const [newComment, setNewComment] = useState('');
+  const [replyToUser, setReplyToUser] = useState<{ id: string; username: string } | null>(null);
+  const [showAllReplies, setShowAllReplies] = useState<Set<string>>(new Set());
+  
   const { data, isLoading, error } = useQuery<{ post: Post; comments: Comment[] }>({
     queryKey: ['post', id],
-    queryFn: () => getPost(id as string),
+    queryFn: () => getPostById(id as string),
   });
 
-  function countTotalComments(comments: Comment[]): number {
-  let total = 0;
-  for (const comment of comments) {
-    total += 1;
-    if (comment.replies && comment.replies.length > 0) {
-      total += countTotalComments(comment.replies);
+  // Mutation để tạo comment mới
+  const createCommentMutation = useMutation({
+    mutationFn: createComment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['post', id] });
+      toast.success('Bình luận đã được đăng thành công!');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Có lỗi xảy ra khi đăng bình luận');
     }
-  }
+  });
+
+  const formatComment = (comments: Comment[]) => {
+    return comments.map(comment => ({
+      parent: comment,
+      replies: (comment.replies || []).sort((a, b) => 
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      )
+    }));
+  };
+
+  function countTotalComments(comments: Comment[]): number {
+    let total = 0;
+    for (const comment of comments) {
+      total += 1;
+      if (comment.replies && comment.replies.length > 0) {
+        total += countTotalComments(comment.replies);
+      }
+    }
     return total;
   }
+
   const handleCategory = (category: String) => {
-      switch(category) {
-            case 'general' : return 'Thảo luận chung';
-            case 'reviews' : return 'Đánh giá & Nhận xét'
-            case 'ask-author' : return 'Hỏi đáp tác giả'
-            case 'writing' : return 'Sáng tác & Viết lách'
-            case 'recommendations' : return 'Gợi ý & Đề xuất'
-            case 'support' : return 'Hỗ trợ & Trợ giúp'
-        }
-  }
-  const handleRole = (role: String) => {
-        switch(role) {
-            case 'admin' : return 'Quản trị viên';
-            case 'Writer' : return 'Tác gia'
-            case 'reader' : return 'Độc giả'
-        }
+    switch(category) {
+      case 'general' : return 'Thảo luận chung';
+      case 'reviews' : return 'Đánh giá & Nhận xét'
+      case 'ask-author' : return 'Hỏi đáp tác giả'
+      case 'writing' : return 'Sáng tác & Viết lách'
+      case 'recommendations' : return 'Gợi ý & Đề xuất'
+      case 'support' : return 'Hỗ trợ & Trợ giúp'
     }
+  }
+
+    const getTimeAgo = (updatedAt: string | Date) => {
+        return `Cập nhật ${formatDistanceToNow(new Date(updatedAt), { addSuffix: true,  locale: vi })}`;
+    }
+
+
+  const handleRole = (role: String) => {
+    switch(role) {
+      case 'admin' : return 'Quản trị viên';
+      case 'writer' : return 'Tác giả'
+      case 'reader' : return 'Độc giả'
+      default: return 'Thành viên'
+    }
+  }
 
   const handleCategoryColor = (category: string) => {
     const baseClass =
@@ -90,154 +167,400 @@ const PostDetail = () => {
     }
   };
 
-
-  if (isLoading) return (<div className='px-[14%]'><LoadingPostComponent /></div>);
-  if (error) return <div className="text-center py-10 text-red-500">Error: {error.message.toString()}</div>;
-  if (!data?.post) return <div className="text-center py-10">Post not found</div>;
-
-  const { post, comments } = data;
-
-  const content = post.content.replace(/\\n/g, '\n');
-
   const getAvatarUrl = (publicId?: string, format?: string) => {
     return publicId && publicId.startsWith('http') 
       ? publicId 
       : 'https://res.cloudinary.com/dr29oyoqx/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png';
   };
 
-  return (
-  <div className='px[14%]'>
-    <div className="max-w-[60%] mx-auto p-4 min-h-screen">
-      <div className='flex font-inter text-[0.92rem] py-3'>
-        <a href='/forum' className='pr-2 flex items-center'><ArrowLeftIcon className='w-3.5 h-3.5' /><span className='pl-1'>Diễn đàn</span></a> / 
-        <a href={`/forum?category=${post.category}`} className='pl-2 pr-2'>{handleCategory(post.category)}</a> / 
-        <a href='#' className='pl-2 pr-2'>Bài viết</a>
-      </div>
-      {/* Post Section */}
-      <div className='bg-gray-900 px-5 py-2.5 border border-gray-600 rounded-[0.8rem]'>
-        <div>{handleCategoryColor(post.category)}</div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white py-1">{post.title}</h1>
-        {post.novelId && (
-          <div className='pb-4'>
-            <Link href={`/novel/${post.novelId.title}`} className="font-inter text-[0.95rem] pl-0.5 mt-2 block">
-              Liên quan đến: <span className='text-amber-600 hover:underline'>{post.novelId.title}</span>
-            </Link>
-          </div>
-        )}
-        <div className="flex items-center gap-3">
-          <Image
-            src={getAvatarUrl(post.userId.profile?.avatar?.publicId, post.userId.profile?.avatar?.format)}
-            alt={post.userId.username}
-            width={80}
-            height={80}
-            className="rounded-full w-15 h-15 object-cover"
-          />
-          <div>
-            <Link href={`/user/${post.userId.username}`} className="font-semibold text-gray-900 text-[1.3rem] dark:text-white hover:text-blue-500">
-              <div className='flex items-center'>
-                <span>{post.userId.username}</span>
-                <span className='ml-3 px-2.5 font-inter text-[0.75rem] font-bold border border-gray-600 rounded-2xl mt-0.5'>{handleRole(post.userId.role)}</span>
-              </div>
-            </Link>
-            <div className='flex gap-3 font-inter'>
-              <div className='flex items-center gap-1 text-sm text-gray-300'>
-                <Clock className='w-4 h-4' />
-                <span>
-                  {new Date(post.createdAt).toLocaleString('vi-VN', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false
-                  })}
-                </span>
-              </div>
-              •
-              <div className='flex items-center gap-1 text-sm text-gray-300'>
-                <EyeIcon className='w-4 h-4' />
-                <span>{post.views} lượt xem</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-     <div className='bg-gray-900 px-5 py-1.5 mt-2.5 border border-gray-600 rounded-[0.8rem]'>
-        <div className="mt-4 text-gray-700 dark:text-gray-300 leading-relaxed">
-          <ReactMarkdown>
-            {content}
-          </ReactMarkdown>
-        </div>
-      </div>
+  const toggleExpandComment = (commentId: string) => {
+    const newExpanded = new Set(expandedComments);
+    if (newExpanded.has(commentId)) {
+      newExpanded.delete(commentId);
+    } else {
+      newExpanded.add(commentId);
+    }
+    setExpandedComments(newExpanded);
+  };
 
-      {/* Comments Section */}
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Comments ({countTotalComments(comments)})</h2>
-        {comments.map((comment) => (
-          <div key={comment._id} className="mb-6">
-            <div className="flex gap-4">
-              <Image
-                src={getAvatarUrl(comment.userId.profile?.avatar?.publicId, comment.userId.profile?.avatar?.format)}
-                alt={comment.userId.username}
-                width={80}
-                height={80}
-                className="rounded-full w-10 h-10 object-cover mt-1"
-              />
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <Link href={`/user/${comment.userId.username}`} className="font-semibold text-gray-900 dark:text-white hover:underline">
-                    {comment.userId.username}
-                  </Link>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {new Date(comment.createdAt).toLocaleDateString()}
-                  </p>
+  const toggleShowAllReplies = (commentId: string) => {
+    const newShowAll = new Set(showAllReplies);
+    if (newShowAll.has(commentId)) {
+      newShowAll.delete(commentId);
+    } else {
+      newShowAll.add(commentId);
+    }
+    setShowAllReplies(newShowAll);
+  };
+
+  const handleReply = (commentId: string, username: string, userId: string) => {
+    setReplyingTo(commentId);
+    setReplyToUser({ id: userId, username });
+    setReplyContent('');
+  };
+
+  const handleSubmitReply = async (parentCommentId: string) => {
+    if (!replyContent.trim() || !replyToUser) return;
+    
+    try {
+      const findParentComment = (commentId: string, commentsList: Comment[]): string => {
+        for (const comment of commentsList) {
+          if (comment._id === commentId) {
+            return comment._id;
+          }
+          if (comment.replies && comment.replies.length > 0) {
+            for (const reply of comment.replies) {
+              if (reply._id === commentId) {
+                return comment._id;
+              }
+            }
+          }
+        }
+        return commentId; 
+      };
+      const actualParentId = findParentComment(parentCommentId, comments);
+
+      await createCommentMutation.mutateAsync({
+        sourceId: id as string,
+        content: replyContent,
+        sourceType: 'ForumPost',
+        parentId: actualParentId,
+        replyToUserId: replyToUser.id
+      });
+
+      setReplyingTo(null);
+      setReplyContent('');
+      setReplyToUser(null);
+    } catch (error) {
+      console.error('Error submitting reply:', error);
+    }
+  };
+
+  const handleCancelReply = () => {
+    setReplyingTo(null);
+    setReplyContent('');
+    setReplyToUser(null);
+  };
+
+  const handleSubmitComment = async () => {
+    if (!newComment.trim()) return;
+    
+    try {
+      await createCommentMutation.mutateAsync({
+        sourceId: id as string,
+        content: newComment,
+        sourceType: 'ForumPost'
+      });
+
+      setNewComment('');
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+    }
+  };
+
+  const renderComment = (comment: Comment, isReply: boolean = false) => {
+    return (
+      <motion.div
+        key={comment._id}
+        variants={commentVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        className={`flex gap-4 pb-0.5 ${isReply ? 'ml-16 mt-3' : 'mb-3'}`}
+      >
+        <Image
+          src={getAvatarUrl(comment.userId.profile?.avatar?.publicId, comment.userId.profile?.avatar?.format)}
+          alt={comment.userId.username}
+          width={isReply ? 40 : 40}
+          height={isReply ? 40 : 40}
+          className='rounded-full object-cover mt-1 flex-shrink-0 w-10 h-10'
+        />
+        <div className="flex-1">
+          <div className='rounded-[0.8rem] bg-gray-800 px-3 pt-2 pb-0.5'>
+            <div className="flex items-center gap-2 mb-1">
+              <Link href={`/user/${comment.userId._id}`} className="font-semibold text-[1.15rem] text-white hover:text-blue-400 transition-colors">
+                {comment.userId.username}
+              </Link>
+              <span className="text-[0.85rem] px-2 bg-gray-900 border-white border text-gray-300 rounded-full">
+                {handleRole(comment.userId.role)}
+              </span>
+            </div>
+            <div className="text-gray-300 pb-1.5 mb-1.5 border-b">
+              {comment.replyToUserId && (
+                <span className="text-blue-400 font-medium">@{comment.replyToUserId.username} </span>
+              )}
+              {comment.content}
+            </div>
+          <div className="flex items-center justify-between text-[1.05rem]">
+            <div className='flex gap-4'>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center gap-1 text-gray-400 hover:text-blue-400 transition-colors"
+                disabled={createCommentMutation.isPending}
+              >
+                <ThumbsUp className="w-4 h-4"/>
+                  Thích
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleReply(comment._id, comment.userId.username, comment.userId._id)}
+                className="flex items-center gap-1 text-gray-400 hover:text-blue-400 transition-colors"
+                disabled={createCommentMutation.isPending}
+              >
+                <MessageCircle className="w-4 h-4" />
+                Trả lời
+              </motion.button>
+            </div>
+            <span className="text-[0.9rem] text-gray-400">
+              {getTimeAgo(comment.createdAt)}
+            </span>
+          </div>
+        </div>
+          <AnimatePresence>
+            {replyingTo === comment._id && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mt-3 p-3 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden"
+              >
+                <textarea
+                  value={replyContent}
+                  onChange={(e) => setReplyContent(e.target.value)}
+                  placeholder={`Trả lời @${replyToUser?.username}...`}
+                  className="w-full p-2 bg-gray-900 border border-gray-600 rounded-md text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={3}
+                  disabled={createCommentMutation.isPending}
+                />
+                <div className="flex justify-end gap-2 mt-2">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleCancelReply}
+                    className="px-3 py-1 text-sm text-gray-400 hover:text-white transition-colors"
+                    disabled={createCommentMutation.isPending}
+                  >
+                    Hủy
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => handleSubmitReply(comment._id)}
+                    className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm disabled:opacity-50"
+                    disabled={createCommentMutation.isPending || !replyContent.trim()}
+                  >
+                    {createCommentMutation.isPending ? (
+                      <>
+                        <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                        Đang gửi...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-3 h-3" />
+                        Gửi
+                      </>
+                    )}
+                  </motion.button>
                 </div>
-                <p className="text-gray-700 dark:text-gray-300">
-                  {comment.replyToUserId && (
-                    <span className="text-blue-500 font-medium">@{comment.replyToUserId.username} </span>
-                  )}
-                  {comment.content}
-                </p>
-                {comment.replies.length > 0 && (
-                  <div className="ml-8 mt-3 border-l-2 border-gray-200 dark:border-gray-700 pl-4">
-                    {comment.replies.map((reply) => (
-                      <div key={reply._id} className="mb-3">
-                        <div className="flex gap-3">
-                          <Image
-                            src={getAvatarUrl(reply.userId.profile?.avatar?.publicId, reply.userId.profile?.avatar?.format)}
-                            alt={reply.userId.username}
-                            width={80}
-                            height={80}
-                            className="rounded-full w-10 h-10 mt-1 object-cover"
-                          />
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <Link href={`/user/${reply.userId.username}`} className="font-semibold text-gray-900 dark:text-white hover:underline">
-                                {reply.userId.username}
-                              </Link>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                {new Date(reply.createdAt).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <p className="text-gray-700 dark:text-gray-300">
-                              {reply.replyToUserId && (
-                                <span className="text-blue-500 font-medium">@{reply.replyToUserId.username} </span>
-                              )}
-                              {reply.content}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.div>
+    );
+  };
+
+  if (isLoading) return (<div className='px-[25%]'><LoadingPostComponent /></div>);
+  if (error) return <div className="text-center py-10 text-red-500">Error: {error.message.toString()}</div>;
+  if (!data?.post) return <div className="text-center py-10">Post not found</div>;
+
+  const { post, comments } = data;
+  const organizedComments = formatComment(comments);
+
+  return (
+    <motion.div 
+      className='md:px[14%]'
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <div className="md:max-w-[50%] mx-auto p-4 min-h-screen">
+        <motion.div 
+          className='flex font-inter text-[0.92rem] py-3'
+          variants={itemVariants}
+        >
+          <a href='/forum' className='pr-2 flex items-center'><ArrowLeftIcon className='w-3.5 h-3.5' /><span className='pl-1'>Diễn đàn</span></a> / 
+          <a href={`/forum?category=${post.category}`} className='pl-2 pr-2'>{handleCategory(post.category)}</a> / 
+          <a href='#' className='pl-2 pr-2'>Bài viết</a>
+        </motion.div>
+        
+        <motion.div 
+          className='bg-gray-950 px-5 py-2.5 border border-gray-600 rounded-[0.8rem]'
+          variants={itemVariants}
+        >
+          <div>{handleCategoryColor(post.category)}</div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white py-1">{post.title}</h1>
+          {post.novelId && (
+            <div className='pb-4'>
+              <Link href={`/novel/${post.novelId._id}`} className="font-inter text-[0.95rem] pl-0.5 mt-2 block">
+                Liên quan đến: <span className='text-amber-600 hover:underline'>{post.novelId.title}</span>
+              </Link>
+            </div>
+          )}
+          <div className="flex items-center gap-3">
+            <Image
+              src={getAvatarUrl(post.userId.profile?.avatar?.publicId, post.userId.profile?.avatar?.format)}
+              alt={post.userId.username}
+              width={80}
+              height={80}
+              className="rounded-full w-15 h-15 object-cover"
+            />
+            <div>
+              <Link href={`/user/${post.userId._id}`} className="font-semibold text-gray-900 text-[1.3rem] dark:text-white hover:text-blue-500">
+                <div className='flex items-center'>
+                  <span>{post.userId.username}</span>
+                  <span className='ml-3 px-2.5 font-inter text-[0.75rem] font-bold border border-gray-600 rounded-2xl mt-0.5'>{handleRole(post.userId.role)}</span>
+                </div>
+              </Link>
+              <div className='flex gap-3 font-inter'>
+                <div className='flex items-center gap-1 text-sm text-gray-300'>
+                  <Clock className='w-4 h-4' />
+                  <span>
+                    {new Date(post.createdAt).toLocaleString('vi-VN', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: false
+                    })}
+                  </span>
+                </div>
+                •
+                <div className='flex items-center gap-1 text-sm text-gray-300'>
+                  <EyeIcon className='w-4 h-4' />
+                  <span>{post.views} lượt xem</span>
+                </div>
               </div>
             </div>
           </div>
-        ))}
+        </motion.div>
+        
+        <motion.div 
+          className='bg-gray-950 px-5 py-1.5 mt-2.5 border border-gray-600 rounded-[0.8rem]'
+          variants={itemVariants}
+        >
+          <div className="prose prose-invert my-4 text-gray-700 dark:text-gray-300" 
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
+        </motion.div>
+
+        <motion.div 
+          className="mt-8 bg-gray-950 px-5 py-4 border border-gray-600 rounded-[0.8rem]"
+          variants={itemVariants}
+        >
+          <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+            <MessageCircle className="w-5 h-5" />
+            Bình luận ({countTotalComments(comments)})
+          </h2>
+          
+          <motion.div 
+            className="mb-6 rounded-lg"
+            variants={itemVariants}
+          >
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Viết bình luận của bạn..."
+              className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows={4}
+              disabled={createCommentMutation.isPending}
+            />
+            <div className="flex justify-end mt-3">
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleSubmitComment}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+                disabled={createCommentMutation.isPending || !newComment.trim()}
+              >
+                {createCommentMutation.isPending ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    Đang đăng...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    Đăng bình luận
+                  </>
+                )}
+              </motion.button>
+            </div>
+          </motion.div>
+
+          <div className="space-y-4 pb-2">
+            {comments.length === 0 ? (
+              <motion.div 
+                className="text-center py-8 text-gray-400"
+                variants={itemVariants}
+              >
+                <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p>Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
+              </motion.div>
+            ) : (
+              <AnimatePresence>
+                {organizedComments.map(({ parent, replies }) => (
+                  <div key={parent._id}>
+                    {renderComment(parent, false)}
+                    
+                    {replies.length > 0 && (
+                      <div className="space-y-0">
+                        {(showAllReplies.has(parent._id) ? replies : replies.slice(0, 2)).map((reply) => 
+                          renderComment(reply, true)
+                        )}
+                        
+                        {replies.length > 2 && (
+                          <motion.div
+                            className="ml-12 mt-2"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <motion.button
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => toggleShowAllReplies(parent._id)}
+                              className="flex items-center gap-2 px-3 py-1.5 text-sm text-blue-400 hover:text-blue-300 transition-colors rounded-md hover:bg-gray-800/50"
+                            >
+                              {showAllReplies.has(parent._id) ? (
+                                <>
+                                  <ChevronUp className="w-4 h-4" />
+                                  Ẩn bớt phản hồi
+                                </>
+                              ) : (
+                                <>
+                                  <ChevronDown className="w-4 h-4" />
+                                  Hiển thị {replies.length - 2} phản hồi khác
+                                </>
+                              )}
+                            </motion.button>
+                          </motion.div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </AnimatePresence>
+            )}
+          </div>
+        </motion.div>
       </div>
-    </div>
-    </div>
+    </motion.div>
   );
 };
 

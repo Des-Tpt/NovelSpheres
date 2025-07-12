@@ -15,7 +15,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
         const post = await ForumPost.findById(postId)
             .populate({
                 path: 'userId',
-                select: 'username role profile.avatar'
+                select: '_id username role profile.avatar'
             })
             .populate({
                 path: 'novelId',
@@ -33,22 +33,22 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
         })
         .populate({
             path: 'userId',
-            select: 'username role profile.avatar'
+            select: '_id username role profile.avatar'
         })
         .populate({
             path: 'replyToUserId',
-            select: 'username role'
+            select: '_id username role'
         })
-        .sort({ createdAt: 1 })
+        .sort({ createdAt: -1 })
         .lean();
 
-        const organizedComments = organizeComments(comments);
+        const newComments = optimizeComment(comments);
 
         await ForumPost.findByIdAndUpdate(postId, { $inc: { views: 1 } });
 
         return NextResponse.json({
             post,
-            comments: organizedComments
+            comments: newComments
         });
     } catch (error) {
         console.error('Error fetching post:', error);
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
     }
 }
 
-function organizeComments(comments: any[]) {
+function optimizeComment(comments: any[]) {
     const commentMap = new Map();
     const rootComments: any[] = [];
 

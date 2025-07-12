@@ -1,5 +1,5 @@
 'use client'
-import { BoltIcon, BookmarkSquareIcon, BookOpenIcon, StarIcon, UserGroupIcon } from "@heroicons/react/24/outline";
+import { BoltIcon, BookOpenIcon, StarIcon, UserGroupIcon } from "@heroicons/react/24/outline";
 import Stat from "../ui/Stat";
 import { motion } from "framer-motion";
 

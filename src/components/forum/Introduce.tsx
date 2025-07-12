@@ -2,11 +2,10 @@
 import { PlusIcon } from "@heroicons/react/24/outline";
 import ButtonClick from "../ui/ButtonClick";
 import ForumCard from "../ui/ForumCard";
-import getHeaderForum from "@/action/getHeaderForum";
+import { getHeaderForum } from "@/action/postActions";
 import { Schema } from "mongoose";
 import { PostType } from "@/model/PostForum";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import Posts from "./Posts";
 
 interface ForumPost {

@@ -40,8 +40,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       sameSite: 'strict',
     })
 
-    console.log((await cookies()).get);
-
     return NextResponse.json({
       success: true,
       message: 'Đăng nhập thành công',

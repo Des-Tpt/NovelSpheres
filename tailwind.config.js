@@ -15,6 +15,18 @@ module.exports = {
             sans: ['Inter', 'sans-serif'],
         }
     },
+    typography: {
+      DEFAULT: {
+        css: {
+          h1: {
+            fontSize: '3.5rem',
+            fontFamily: 'var(--font-inter)',
+          },
+        },
+      },
+    },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
 };

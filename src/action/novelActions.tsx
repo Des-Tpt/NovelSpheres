@@ -1,11 +1,22 @@
+import INovelWithPopulate from "@/type/INovelWithPopulate";
 type Genre = {
     _id: string;
     name: string;
 }
 
-import INovelWithPopulate from "@/type/INovelWithPopulate";
+export const getFeatureNovels = async () => {
+    const res  = await fetch(`/api/novels/feature-novels`);
+    if (!res.ok) throw new Error('Lỗi khi fetch dữ liệu');
+  return res.json();
+}
 
-const getNovelByFilter = async (data: Genre[], sortBy: string ): Promise<INovelWithPopulate[]> => {
+export const getGenres = async () => {
+    const res  = await fetch(`/api/genres`);
+    if (!res.ok) throw new Error('Lỗi khi fetch dữ liệu');
+  return res.json();
+}
+
+export const getNovelByFilter = async (data: Genre[], sortBy: string ): Promise<INovelWithPopulate[]> => {
     const query = data.length > 0 
         ? `?${data.map(genre => `genreIds=${encodeURIComponent(genre._id)}`).join('&')}` 
         : '';
@@ -20,5 +31,3 @@ const getNovelByFilter = async (data: Genre[], sortBy: string ): Promise<INovelW
     const result = await res.json();
     return (Array.isArray(result) ? result : result.novels || []) as INovelWithPopulate[];
 };
-
-export default getNovelByFilter;

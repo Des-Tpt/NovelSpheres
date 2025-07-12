@@ -1,9 +1,7 @@
 'use client';
 
-import { useForumPosts } from '@/action/getPosts';
 import { useEffect, useState, useRef } from 'react';
-import LoadingComponent from '../ui/Loading';
-import getImage from '@/action/getImage';
+import getImage from '@/action/imageActions';
 import { EyeIcon, Filter, Share2 } from 'lucide-react';
 import CustomSelect from '../ui/CustomSelect';
 import Image from 'next/image';
@@ -12,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/24/outline';
 import LoadingPostComponent from '../ui/LoadingPost';
 import { useSearchParams } from 'next/navigation';
+import { useForumPosts } from '@/action/postActions';
 
 export default function ForumPage() {
     const searchParams = useSearchParams();
@@ -192,7 +191,7 @@ export default function ForumPage() {
                         {data?.data.map((post, index) => (
                             <motion.div 
                                 key={post._id} 
-                                className="post-card mb-2 w-full bg-gray-950 py-5 px-5 group hover:bg-gray-700 transition-colors duration-200 hover:-translate-y-0.5"
+                                className="post-card mb-2 w-full bg-gray-950 py-5 px-5 group hover:bg-gray-700 transition-colors duration-200"
                                 variants={fadeInUp}
                             >
                                 <a href={`forum/post/${post._id}`}>
@@ -228,8 +227,7 @@ export default function ForumPage() {
                                                         {handleRole(post.role)}
                                                     </span>
                                                 </div>
-                                                <p className="font-sans text-[0.95rem] line-clamp-2 flex-1">
-                                                    {post.content}
+                                                <p className="font-sans text-[0.95rem] line-clamp-2 flex-1"  dangerouslySetInnerHTML={{ __html: post.content }}>
                                                 </p>
                                             </div>
                                             <div className="border-b py-2 border-gray-600"></div>

@@ -5,7 +5,7 @@ import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import './SearchBar.css';
 import { motion, AnimatePresence } from "framer-motion";
 import { random } from "lodash";
-import getImage from "@/action/getImage";
+import getImage from "@/action/imageActions";
 import Image from "next/image";
 
 type Novel = {

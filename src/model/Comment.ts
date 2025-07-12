@@ -20,7 +20,7 @@ export interface IComment extends Document {
         };
     };
     replyToUser?: {
-        _id: string;
+        _id: Schema.Types.ObjectId;
         username: string;
         role: string;
     };

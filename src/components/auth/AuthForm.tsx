@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { motion, AnimatePresence, distance } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { UserIcon, EnvelopeIcon, LockClosedIcon, EyeIcon, EyeSlashIcon, ExclamationCircleIcon, CheckIcon, BookOpenIcon } from '@heroicons/react/24/outline';
 import './AuthForm.css';
 import { FaGoogle, FaGithub } from "react-icons/fa";

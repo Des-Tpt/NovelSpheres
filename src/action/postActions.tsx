@@ -1,4 +1,4 @@
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 interface ForumPost {
   _id: string;
@@ -44,3 +44,20 @@ export const useForumPosts = ({ page = 1, category = '', sort = 'date', limit = 
     staleTime: 1000 * 30 * 5,
   });
 };
+
+export const getHeaderForum = async () => {
+    const res  = await fetch(`/api/forum/header-forum`);
+    if (!res.ok) throw new Error('Lỗi khi fetch dữ liệu');
+  return res.json();
+}
+
+export async function getPostById(id: string) {
+    const res = await fetch(`/api/forum/posts/${id}`);
+
+    if (!res.ok) {
+        throw new Error(`Không thể lấy post!`);
+    }
+
+    const data = await res.json();
+    return data;
+}

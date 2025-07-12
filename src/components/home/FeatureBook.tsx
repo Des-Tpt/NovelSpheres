@@ -1,9 +1,9 @@
 'use client';
 import { useQuery } from "@tanstack/react-query";
-import getFeatureNovels from "@/action/getFeatureNovels";
+import { getFeatureNovels } from "@/action/novelActions";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import getImage from "@/action/getImage";
+import getImage from "@/action/imageActions";
 import { ArrowRightIcon, BookOpenIcon } from "@heroicons/react/24/outline";
 import { random } from "lodash";
 import { Swiper, SwiperSlide } from 'swiper/react';
