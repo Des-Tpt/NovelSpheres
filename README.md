@@ -6,6 +6,9 @@ NovelSphere is a small project of mine aimed at building a story-sharing website
 
 <img width="1919" height="926" alt="image" src="https://github.com/user-attachments/assets/67bcf4af-a6a3-404e-883f-0b6149095f44" />
 
+<img width="1916" height="921" alt="image" src="https://github.com/user-attachments/assets/b29b143c-412d-470d-9c24-206a7bb43d95" />
+
+
 
 
 The project is still very rudimentary, with only the homepage and login functions. I’ll likely continue developing more features in the future, like story posting and forum interactions. Maybe even a backend for admin? If I have the time or enough passion...
