@@ -20,6 +20,7 @@ interface ForumPost {
     updatedAt: Date;
     views: number;
     owner: string;
+    countPost: number;
 }
 
 const Introduce = () => {

@@ -17,6 +17,7 @@ interface ForumPost {
     updatedAt: Date;
     views: number;
     owner: String,
+    countPost: number,
 };
 
 type ForumCardProps = {
@@ -108,7 +109,7 @@ const ForumCard = ({ data }: ForumCardProps) => {
                 <div className="flex flex-col gap-1 pr-1.5 w-full">
                     <div className="flex relative justify-between items-center">
                         <span className="font-bold text-[1.1rem] line-clamp-1">{handleCategory(data.category)}</span>
-                        <span className="absolute rounded-[1.1rem] bg-gray-950 text-[0.8rem] font-bold px-2.5 font-inter right-0.5">{data.views > 0? data.views : random(1, 100)}</span>
+                        <span className="absolute rounded-[1.1rem] bg-gray-950 text-[0.8rem] font-bold px-2.5 font-inter right-0.5">{data.countPost > 0? data.countPost : random(1, 100)}</span>
                     </div>
                     <span className="text-[0.85rem] font-inter line-clamp-1">{handldeDiscription(data.category)}</span>
                     <div className="font-inter font-semibold">

@@ -10,7 +10,8 @@ export async function GET(req: NextRequest) {
         console.log(ForumPost.modelName);
         
         const data = await ForumPost.aggregate([{ $group: { _id: "$category" , doc: { $first: "$$ROOT" } } }, { $replaceRoot: { newRoot: "$doc"}}]);
-        const res = await Promise.all(data.map(getPostOwner));
+        const dataWithUser = await Promise.all(data.map(getPostOwner));
+        const res = await Promise.all(dataWithUser.map(getPostCount))
 
         return NextResponse.json(res);
     } catch (e) {
@@ -25,6 +26,16 @@ async function getPostOwner(data: IForumPost) {
     const base = {
         ...data,
         owner: owner?.username || 'Vô danh',
+    }
+    return base;
+}
+
+async function getPostCount(data: any) {
+    const count = await ForumPost.countDocuments({ category: data.category });
+
+    const base = {
+        ...data,
+        countPost: count,
     }
     return base;
 }

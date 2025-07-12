@@ -383,12 +383,12 @@ const PostDetail = () => {
 
   return (
     <motion.div 
-      className='md:px[14%]'
+      className=''
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      <div className="md:max-w-[50%] mx-auto p-4 min-h-screen">
+      <div className="mx-auto p-4 min-h-screen">
         <motion.div 
           className='flex font-inter text-[0.92rem] py-3'
           variants={itemVariants}
