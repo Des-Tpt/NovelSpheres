@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import './Button.css';
 import { motion } from "framer-motion";
 
@@ -11,6 +11,7 @@ interface ButtonProps {
 }
 
 const ButtonClick = ({ type, text, href, onClick }: ButtonProps) => {
+    const router = useRouter();
     
     const buttonVariants = {
         initial: { opacity: 1, scale: 1 },
@@ -18,19 +19,26 @@ const ButtonClick = ({ type, text, href, onClick }: ButtonProps) => {
         tap: { scale: 0.95, transition: { duration: 0.01 } },
     };
 
+    const handleClick = () => {
+        if (onClick) {
+            onClick();
+        }
+        router.push(href);
+    };
+
     return (
-        <Link className="link" href={href} onClick = {onClick}>
-            <motion.button
-                className={`button`}
-                variants={buttonVariants}
-                initial="initial"
-                whileHover="hover"
-                whileTap="tap"
-                transition={{ duration: 0.1 , ease: "easeInOut" }}>
-                    {type}
-                    <span className="text-span">{text}</span>
-            </motion.button>
-        </Link>
+        <motion.button
+            className={`button`}
+            variants={buttonVariants}
+            initial="initial"
+            whileHover="hover"
+            whileTap="tap"
+            transition={{ duration: 0.1, ease: "easeInOut" }}
+            onClick={handleClick}
+        >
+            {type}
+            <span className="text-span">{text}</span>
+        </motion.button>
     )
 }
 

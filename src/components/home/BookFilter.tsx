@@ -11,6 +11,7 @@ import { vi } from 'date-fns/locale';
 import { motion } from "framer-motion";
 import Image from "next/image";
 import LoadingComponent from "../ui/Loading";
+import handleStatus from "@/utils/handleStatus";
 
 type Genre = {
     _id: string;
@@ -35,39 +36,20 @@ const BookFilter = () => {
         return `Cập nhật ${formatDistanceToNow(new Date(updatedAt), { addSuffix: true,  locale: vi })}`;
     }
 
-    // Hàm lấy image src an toàn
-    const getImageSrc = (novel: INovelWithPopulate) => {
-        const publicId = novel.coverImage?.publicId;
-        const imageUrl = publicId ? imageUrls[publicId] : null;
-        
-        // Chỉ trả về URL nếu nó tồn tại và không phải chuỗi rỗng
-        if (imageUrl && imageUrl.trim() !== '') {
-            return imageUrl;
-        }
-        
-        // Trả về hình ảnh mặc định
-        return `https://res.cloudinary.com/${cloudName!}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
-    };
-
     useEffect(() => {
         if (!novels) return;
 
         const fetchImages = async () => {
             for (const novel of novels) {
-                const publicId = novel.coverImage?.publicId;
-                const format = novel.coverImage?.format ?? 'jpg';
+            const publicId = novel.coverImage?.publicId;
+            const format = novel.coverImage?.format ?? 'jpg';
 
-                if (publicId && !imageUrls[publicId]) {
-                    try {
-                        const res = await getImage(publicId, format);
-                        // Chỉ cập nhật state nếu nhận được phản hồi hợp lệ, không rỗng
-                        if (res && res.trim() !== '') {
-                            setImageUrls((prev) => ({ ...prev, [publicId]: res }));
-                        }
-                    } catch (error) {
-                        console.error(`Không thể tải hình ảnh cho ${publicId}:`, error);
-                    }
+            if (publicId && !imageUrls[publicId]) {
+                const res = await getImage(publicId, format);
+                if (res) {
+                setImageUrls((prev) => ({ ...prev, [publicId]: res }));
                 }
+            }
             }
         };
         fetchImages();
@@ -105,14 +87,6 @@ const BookFilter = () => {
         setSelectedGenres ((prev) =>
             prev.find((g) => g._id == genre._id) ? prev.filter((g) => g._id !== genre._id) : [...prev, genre]
         )
-    }
-
-    const handleTranslate = (en: string) => {
-        switch(en) {
-            case 'Completed' : return 'Hoàn thành';
-            case 'Ongoing' : return 'Đang tiến hành'
-            case 'Hiatus' : return 'Tạm ngưng'
-        }
     }
     
     if (isGenresLoading) return (<LoadingComponent/>);
@@ -161,66 +135,72 @@ const BookFilter = () => {
                 </div>
             </div>
             <div className="flex flex-col w-full max-w-[1400px] mx-auto">
-                <div className="flex justify-between items-center py-5 md:px-6.5 md:py-0">
+                <div className="flex justify-between items-center py-5 md:py-0">
                     <span className="text-white mb-2 text-3xl">{handleFilterName(sort)}</span>
                     <button className="flex cursor-pointer text-amber-600 font-inter rounded-[10px] px-4 py-1.5 hover:bg-gray-600">
                         Xem tất cả <ArrowRightIcon className="pl-2 w-6 h-6"/>
                     </button>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-3 md:flex md:pt-6 md:gap-3 md:justify-center md:flex-wrap md:min-w-[1400px]">
-                {novels.length > 0 ? novels.map(novel => (
-                    <motion.div
-                        key={novel._id.toString()}
-                        className="flex flex-col cursor-pointer rounded-lg border border-gray-400 shadow-sm group shadow-gray-400 transition-transform duration-200 hover:-translate-y-1"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4, ease: 'easeOut' }}
-                    >
-                    <a href={`novel-detailed?id=${novel._id}`}>
-                        <div className="relative rounded-lg overflow-hidden">
-                        <Image
-                            src={getImageSrc(novel)}
-                            width={200}
-                            height={280}
-                            alt={novel.title}
-                            className="w-53 h-53 object-cover object-top"
-                        />
-                        <div className="flex">
-                            <span className="rounded-2xl absolute bg-gray-600 py-0.25 px-2 font-semibold text-[0.75rem] top-2.5 left-2">
-                            {novel.rating ? `⭐ ${novel.rating}` : 'Chưa có đánh giá'}
-                            </span>
-                            <span className="rounded-2xl absolute bg-gray-600 py-0.25 px-4 font-semibold top-2.5 text-[0.75rem] right-2">
-                            {handleTranslate(novel.status)}
-                            </span>
-                        </div>
-                        <div className="bg-black rounded-b-lg h-35 w-51 relative">
-                            <div className="flex flex-col p-3">
-                            <span className="font-semibold font text-[0.9rem] group-hover:text-amber-500 transition-colors line-clamp-1">{novel.title}</span>
-                            <span className="font-inter text-[0.7rem] line-clamp-1">của {novel.authorName}</span>
-                            <div className="flex justify-between">
-                                <span className="text-[0.75rem] px-3 font-sans flex items-center font-bold justify-center absolute bottom-11.25 right-5 md:right-0.5">
-                                {novel.firstGenreName}
+                <div className="w-full flex justify-center">
+                    <div className="grid grid-cols-2 gap-3 md:grid md:grid-cols-6 md:gap-3 md:pt-6 max-w-[1400px]">
+                    {novels.length > 0 ? novels.map(novel => (
+                        <motion.div
+                            key={novel._id.toString()}
+                            className="flex flex-col cursor-pointer rounded-lg border border-gray-400 shadow-sm group shadow-gray-400 transition-transform duration-200 hover:-translate-y-1"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4, ease: 'easeOut' }}
+                        >
+                        <a href={`novel-detailed?id=${novel._id}`}>
+                            <div className="relative rounded-lg overflow-hidden">
+                            <Image
+                                src={
+                                    novel.coverImage?.publicId && imageUrls[novel.coverImage.publicId]
+                                        ? imageUrls[novel.coverImage.publicId]
+                                        : `https://res.cloudinary.com/${cloudName!}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`
+                                    }
+                                width={200}
+                                height={280}
+                                alt={novel.title}
+                                className="w-53 h-53 object-cover object-top"
+                            />
+                            <div className="flex">
+                                <span className="rounded-2xl absolute bg-gray-600 py-0.25 px-2 font-semibold text-[0.75rem] top-2.5 left-2">
+                                {novel.rating ? `⭐ ${novel.rating}` : 'Chưa có đánh giá'}
                                 </span>
-                                <span className="text-[0.75rem] px-3 font-sans flex items-center font-bold justify-center absolute bottom-11 left-0.5">
-                                <BookOpenIcon className="w-5 h-5 pr-1" />
-                                {novel.chapterCount ? ` ${novel.chapterCount} chương` : ` ${random(1, 1000)} chương`}
-                                </span>
-                                <span className="text-[0.65rem] md:text-[0.72rem] px-3 font-sans flex items-center absolute bottom-4 left-0.5">
-                                <ClockIcon className="w-5 h-5 pr-1"/>
-                                {getTimeAgo(novel.updatedAt)}
+                                <span className="rounded-2xl absolute bg-gray-600 py-0.25 px-4 font-semibold top-2.5 text-[0.75rem] right-2">
+                                {handleStatus(novel.status)}
                                 </span>
                             </div>
+                            <div className="bg-black rounded-b-lg h-35 w-51 relative">
+                                <div className="flex flex-col p-3">
+                                <span className="font-semibold font text-[0.9rem] group-hover:text-amber-500 transition-colors line-clamp-1">{novel.title}</span>
+                                <span className="font-inter text-[0.7rem] line-clamp-1">của {novel.authorName}</span>
+                                <div className="flex justify-between">
+                                    <span className="text-[0.75rem] px-3 font-sans flex items-center font-bold justify-center absolute bottom-11.25 right-5 md:right-0.5">
+                                    {novel.firstGenreName}
+                                    </span>
+                                    <span className="text-[0.75rem] px-3 font-sans flex items-center font-bold justify-center absolute bottom-11 left-0.5">
+                                    <BookOpenIcon className="w-5 h-5 pr-1" />
+                                    {novel.chapterCount ? ` ${novel.chapterCount} chương` : ` ${random(1, 1000)} chương`}
+                                    </span>
+                                    <span className="text-[0.65rem] md:text-[0.72rem] px-3 font-sans flex items-center absolute bottom-4 left-0.5">
+                                    <ClockIcon className="w-5 h-5 pr-1"/>
+                                    {getTimeAgo(novel.updatedAt)}
+                                    </span>
+                                </div>
+                                </div>
                             </div>
+                            </div>
+                        </a>
+                        </motion.div>
+                    )
+                    ) : (
+                        <div className="text-white text-sm italic">
+                            Không có tiểu thuyết nào được tìm thấy.
                         </div>
-                        </div>
-                    </a>
-                    </motion.div>
-                )) : (
-                    <div className="text-white text-sm italic">
-                        Không có tiểu thuyết nào được tìm thấy.
+                    )}
                     </div>
-                )}
                 </div>
             </div>
         </div>    

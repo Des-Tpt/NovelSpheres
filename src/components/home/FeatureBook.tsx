@@ -13,6 +13,8 @@ import 'swiper/css/pagination';
 import { Navigation, Pagination } from 'swiper/modules';
 import Image from "next/image";
 import LoadingComponent from "../ui/Loading";
+import handleStatus from "@/utils/handleStatus";
+import { Sparkle } from "lucide-react";
 
 type Novel = {
     _id: string;
@@ -42,13 +44,6 @@ interface BookCardProps {
 const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_NAME as string;
 
 const BookCard: React.FC<BookCardProps> = ({ novel, imageUrls, index = 0, showAnimation = true }) => {
-    const handleTranslate = (en: string) => {
-        switch(en) {
-            case 'Completed' : return 'Hoàn thành';
-            case 'Ongoing' : return 'Đang tiến hành'
-            case 'Hiatus' : return 'Tạm ngưng'
-        }
-    }
     const cardContent = (
         <div className="m-4 flex flex-col cursor-pointer rounded-lg shadow-gray-400 shadow-sm border border-gray-400 group hover:scale-105 hover:shadow-gray-400 hover:shadow-2xl duration-300 transition-all">
             <a href={`novel-detailed?id=${novel._id}`}>
@@ -58,8 +53,8 @@ const BookCard: React.FC<BookCardProps> = ({ novel, imageUrls, index = 0, showAn
                             ? imageUrls[novel.coverImage.publicId]
                             : `https://res.cloudinary.com/${cloudName!}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`
                         }
-                        width={200}
-                        height={280}
+                        width={400}
+                        height={400}
                         alt={novel.title}
                         className="w-142 h-100 md:h-80 object-cover"
                     />
@@ -68,7 +63,7 @@ const BookCard: React.FC<BookCardProps> = ({ novel, imageUrls, index = 0, showAn
                             {novel.rating ? `⭐ ${novel.rating}` : 'Chưa có đánh giá'}
                         </span>
                         <span className="rounded-2xl absolute bg-gray-600 py-0.5 px-4 font-semibold top-2.5 right-2.5">
-                            {handleTranslate(novel.status)}
+                            {handleStatus(novel.status)}
                         </span>
                     </div>
 
@@ -79,7 +74,7 @@ const BookCard: React.FC<BookCardProps> = ({ novel, imageUrls, index = 0, showAn
                             </span>
                             <span className="pl-1 pb-3 pt-1.5 font-inter">của {novel.authorName}</span>
                             <span className="text-[0.9rem] font-inter sm:line-clamp-3 md:line-clamp-5">{novel.description}</span>
-                            <div className="flex justify-between">
+                            <div className="flex lg:flex-col justify-between">
                                 <span className="rounded-2xl border px-3 font-sans absolute bottom-3 left-5">
                                     {novel.firstGenreName}
                                 </span>
@@ -152,8 +147,15 @@ const FeatureBook: React.FC = () => {
 
     return (
         <div className="flex flex-col pt-7 bg-black px-2.5 md:bg-gradient-to-r md:from-black md:from-20% md:via-gray-950 md:via-75% md:to-black">
-            <div className="flex justify-between items-center pt-10 md:pt-0 md:px-[14.8%] px-2">
-                <span className="font-bold text-[1.5rem] md:text-[2rem]">Có thể bạn sẽ thích?</span>
+            <div className="flex justify-between items-center pt-10 pb-2 md:pt-0 md:px-[14.8%] px-2">
+                <div className="flex items-center gap-5">
+                    <Sparkle className="w-12 h-12 p-1.5 text-yellow-500 rounded-[0.8rem] bg-gray-800" />
+                    <div className="flex flex-col">
+                        <span className="font-bold text-[1.25rem] md:text-[1.75rem]">Có thể bạn sẽ thích?</span>
+                        <span className="text-[1rem] md:text-[1.25rem]">Những tác phẩm được gợi ý ngẫu nhiên...</span>
+                    </div>
+                </div>
+
                 <button className="flex cursor-pointer text-amber-600 font-inter rounded-[10px] px-4 py-1.5 hover:bg-gray-600">
                     Xem tất cả <ArrowRightIcon className="pl-2 w-6 h-6"/>
                 </button>

@@ -48,6 +48,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         _id: user._id, 
         username: user.username,
         role: user.role,
+        email: user.email,
         publicId: user.profile?.avatar?.publicId,
         format: user.profile?.avatar?.format
       },

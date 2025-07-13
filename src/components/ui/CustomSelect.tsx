@@ -24,7 +24,7 @@ const CustomSelect = <T extends string | number>({
     return (
         <div className="relative">
             <button 
-                className="border border-gray-600 pl-2 pr-3.5 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-gray-950 w-fit text-left flex justify-between items-center gap-2"
+                className="border cursor-pointer border-gray-600 pl-2 pr-3.5 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-gray-950 w-fit text-left flex justify-between items-center gap-2"
                 onClick={() => setIsOpen(!isOpen)}
                 type="button"
             >

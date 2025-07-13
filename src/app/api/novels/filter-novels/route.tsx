@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
     if (!genreIds || genreIds.length === 0) {
       novels = await Novel.find({})
         .sort(sortQuery)
-        .limit(6)
+        .limit(12)
         .populate("authorId", "username")
         .populate("genresId", "name");
     } else {

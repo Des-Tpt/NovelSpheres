@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import getImage from '@/action/imageActions';
 import { EyeIcon, Filter, Share2 } from 'lucide-react';
 import CustomSelect from '../ui/CustomSelect';
@@ -13,6 +14,7 @@ import { useSearchParams } from 'next/navigation';
 import { useForumPosts } from '@/action/postActions';
 
 export default function ForumPage() {
+    const router = useRouter();
     const searchParams = useSearchParams();
     const [page, setPage] = useState(1);
     const [category, setCategory] = useState('');
@@ -120,6 +122,10 @@ export default function ForumPage() {
         }
     }
 
+    const handlePostClick = (postId: string) => {
+        router.push(`/forum/post/${postId}`);
+    }
+
     const staggerContainer = {
         hidden: { opacity: 0 },
         visible: {
@@ -175,10 +181,10 @@ export default function ForumPage() {
                 ref={postContainerRef}
                 className="mt-4 w-full border border-gray-600 rounded-[0.8rem] overflow-hidden"
             >
-                <div className="flex px-5 py-5 items-center bg-gray-950">
-                    <ChatBubbleLeftEllipsisIcon className="w-8 h-8" />
-                    <span className="font-bold pl-2.5 text-[1.3rem] pb-1">Danh sách bài viết</span>
-                    <span className="pb-1 ml-3 rounded-[0.8rem] border border-gray-600 px-2 font-sans font-bold text-[0.8rem]">{data?.total} bài đăng</span>
+                <div className="flex px-3 md:px-5 py-5 items-center bg-gray-950">
+                    <ChatBubbleLeftEllipsisIcon className="w-6 h-6 md:w-8 md:h-8" />
+                    <span className="font-bold pl-2.5 text-[1.1rem] md:text-[1.3rem] pb-1">Danh sách bài viết</span>
+                    <span className="pb-1 ml-2 md:ml-3 rounded-[0.8rem] border border-gray-600 px-1.5 md:px-2 font-sans font-bold text-[0.7rem] md:text-[0.8rem]">{data?.total} bài đăng</span>
                 </div>
                 <AnimatePresence mode="wait">
                     <motion.div
@@ -191,64 +197,63 @@ export default function ForumPage() {
                         {data?.data.map((post, index) => (
                             <motion.div 
                                 key={post._id} 
-                                className="post-card mb-2 w-full bg-gray-950 py-5 px-5 group hover:bg-gray-700 transition-colors duration-200"
+                                className="post-card mb-2 w-full bg-gray-950 py-3 md:py-5 px-3 md:px-5 group hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
                                 variants={fadeInUp}
+                                onClick={() => handlePostClick(post._id)}
                             >
-                                <a href={`forum/post/${post._id}`}>
-                                    <div className="flex gap-5 h-full">
-                                        <div className="flex-shrink-0">
-                                            <Image 
-                                                src={post?.avatar?.publicId && imageUrls[post.avatar.publicId]
-                                                    ? imageUrls[post.avatar.publicId]
-                                                    : 'https://res.cloudinary.com/dr29oyoqx/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png'
-                                                }
-                                                width={200}
-                                                height={280}
-                                                alt={post.title}
-                                                className="post-image w-15 h-15 rounded-4xl object-cover object-top transition-transform duration-200 hover:scale-105"
-                                            />
-                                        </div>
-                                        <div className="flex flex-col flex-1 justify-between">
-                                            <div className="flex-1">
-                                                <div className="flex justify-between items-center">
-                                                    <h3 className="post-title text-[1.35rem] font-bold group-hover:text-amber-600 transition-colors duration-200">
-                                                        {post.title}
-                                                    </h3>
-                                                    <span className="font-bold text-[0.8rem] font-sans">
-                                                        {handleFormatDate(post.createdAt)}
-                                                    </span>
-                                                </div>
-                                                <div className="flex text-[0.85rem] font-inter font-normal text-white gap-3 py-1.5 items-center">
-                                                    <span>{post.owner}</span>•
-                                                    <span className="tag-badge border border-gray-600 px-2 pt-1 pb-0.5 rounded-[1rem] transition-all duration-200 hover:scale-105 hover:border-blue-500 hover:bg-blue-500/10">
-                                                        {handleCategory(post.category)}
-                                                    </span>•
-                                                    <span className="role-badge border border-gray-600 px-2 pt-1 pb-0.5 rounded-[1rem] transition-all duration-200 hover:scale-105 hover:border-green-500 hover:bg-green-500/10">
-                                                        {handleRole(post.role)}
-                                                    </span>
-                                                </div>
-                                                <p className="font-sans text-[0.95rem] line-clamp-2 flex-1"  dangerouslySetInnerHTML={{ __html: post.content }}>
-                                                </p>
+                                <div className="flex flex-col md:flex-row gap-3 md:gap-5 h-full">
+                                    <div className="flex-shrink-0 flex justify-center md:justify-start">
+                                        <Image 
+                                            src={post?.avatar?.publicId && imageUrls[post.avatar.publicId]
+                                                ? imageUrls[post.avatar.publicId]
+                                                : 'https://res.cloudinary.com/dr29oyoqx/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png'
+                                            }
+                                            width={200}
+                                            height={280}
+                                            alt={post.title}
+                                            className="post-image w-12 h-12 md:w-15 md:h-15 rounded-2xl md:rounded-4xl object-cover object-top transition-transform duration-200 hover:scale-105"
+                                        />
+                                    </div>
+                                    <div className="flex flex-col flex-1 justify-between">
+                                        <div className="flex-1">
+                                            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2 md:gap-0">
+                                                <h3 className="post-title text-[1.1rem] md:text-[1.35rem] font-bold group-hover:text-amber-600 transition-colors duration-200">
+                                                    {post.title}
+                                                </h3>
+                                                <span className="font-bold text-[0.75rem] md:text-[0.8rem] font-sans text-gray-400 md:text-white">
+                                                    {handleFormatDate(post.createdAt)}
+                                                </span>
                                             </div>
-                                            <div className="border-b py-2 border-gray-600"></div>
-                                            <div className="mt-auto flex gap-5 pt-2.5 justify-between font-sans">
-                                                <div className="flex gap-7 text-[0.88rem] font-bold">
-                                                    <div className="stat-item flex items-center gap-1.5 transition-all duration-200 hover:scale-105 hover:text-blue-500">
-                                                        <Share2 className="w-4 h-4" />
-                                                        <span>{post.totalRepiles === 0 ? random(1,10) : post.totalRepiles}</span>
-                                                    </div>
-                                                    <div className="stat-item views-stat flex items-center gap-1.5 transition-all duration-200 hover:scale-105 hover:text-green-500">
-                                                        <EyeIcon className="w-4.5 h-4.5" />
-                                                        <span>{post.views === 0 ? random(10, 100) : post.views}</span>
-                                                    </div>
+                                            <div className="flex flex-wrap text-[0.8rem] md:text-[0.85rem] font-inter font-normal text-white gap-2 md:gap-3 py-1.5 items-center">
+                                                <span>{post.owner}</span>•
+                                                <span className="tag-badge border border-gray-600 px-2 pt-1 pb-0.5 rounded-[1rem] transition-all duration-200 hover:scale-105 hover:border-blue-500 hover:bg-blue-500/10">
+                                                    {handleCategory(post.category)}
+                                                </span>•
+                                                <span className="role-badge border border-gray-600 px-2 pt-1 pb-0.5 rounded-[1rem] transition-all duration-200 hover:scale-105 hover:border-green-500 hover:bg-green-500/10">
+                                                    {handleRole(post.role)}
+                                                </span>
+                                            </div>
+                                            <p className="font-sans text-[0.9rem] md:text-[0.95rem] line-clamp-2 flex-1"  dangerouslySetInnerHTML={{ __html: post.content }}>
+                                            </p>
+                                        </div>
+                                        <div className="border-b py-2 border-gray-600"></div>
+                                        <div className="mt-auto flex gap-3 md:gap-5 pt-2.5 justify-between font-sans">
+                                            <div className="flex gap-4 md:gap-7 text-[0.8rem] md:text-[0.88rem] font-bold">
+                                                <div className="stat-item flex items-center gap-1.5 transition-all duration-200 hover:scale-105 hover:text-blue-500">
+                                                    <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                                                    <span>{post.totalRepiles === 0 ? random(1,10) : post.totalRepiles}</span>
                                                 </div>
-                                                <div>
-                                                    <span>#{index + 1}</span>
+                                                <div className="stat-item views-stat flex items-center gap-1.5 transition-all duration-200 hover:scale-105 hover:text-green-500">
+                                                    <EyeIcon className="w-4 h-4 md:w-4.5 md:h-4.5" />
+                                                    <span>{post.views === 0 ? random(10, 100) : post.views}</span>
                                                 </div>
+                                            </div>
+                                            <div>
+                                                <span>#{index + 1}</span>
                                             </div>
                                         </div>
                                     </div>
-                                </a>
+                                </div>
                             </motion.div>
                         ))}
                     </motion.div>

@@ -12,6 +12,8 @@ import { getPostById } from '@/action/postActions';
 import { createComment } from '@/action/commentActions';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import handleRole from '@/utils/handleRole';
+import handlePostCategory from '@/utils/handleCategory';
 
 
 interface Post {
@@ -37,7 +39,6 @@ interface Comment {
   createdAt: string;
 }
 
-// Animation variants
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: { 
@@ -73,6 +74,8 @@ const commentVariants = {
   }
 };
 
+const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
+
 const PostDetail = () => {
   const { id } = useParams();
   const queryClient = useQueryClient();
@@ -88,7 +91,6 @@ const PostDetail = () => {
     queryFn: () => getPostById(id as string),
   });
 
-  // Mutation để tạo comment mới
   const createCommentMutation = useMutation({
     mutationFn: createComment,
     onSuccess: () => {
@@ -120,30 +122,10 @@ const PostDetail = () => {
     return total;
   }
 
-  const handleCategory = (category: String) => {
-    switch(category) {
-      case 'general' : return 'Thảo luận chung';
-      case 'reviews' : return 'Đánh giá & Nhận xét'
-      case 'ask-author' : return 'Hỏi đáp tác giả'
-      case 'writing' : return 'Sáng tác & Viết lách'
-      case 'recommendations' : return 'Gợi ý & Đề xuất'
-      case 'support' : return 'Hỗ trợ & Trợ giúp'
-    }
-  }
-
     const getTimeAgo = (updatedAt: string | Date) => {
         return `Cập nhật ${formatDistanceToNow(new Date(updatedAt), { addSuffix: true,  locale: vi })}`;
     }
 
-
-  const handleRole = (role: String) => {
-    switch(role) {
-      case 'admin' : return 'Quản trị viên';
-      case 'writer' : return 'Tác giả'
-      case 'reader' : return 'Độc giả'
-      default: return 'Thành viên'
-    }
-  }
 
   const handleCategoryColor = (category: string) => {
     const baseClass =
@@ -170,17 +152,7 @@ const PostDetail = () => {
   const getAvatarUrl = (publicId?: string, format?: string) => {
     return publicId && publicId.startsWith('http') 
       ? publicId 
-      : 'https://res.cloudinary.com/dr29oyoqx/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png';
-  };
-
-  const toggleExpandComment = (commentId: string) => {
-    const newExpanded = new Set(expandedComments);
-    if (newExpanded.has(commentId)) {
-      newExpanded.delete(commentId);
-    } else {
-      newExpanded.add(commentId);
-    }
-    setExpandedComments(newExpanded);
+      : `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
   };
 
   const toggleShowAllReplies = (commentId: string) => {
@@ -394,7 +366,7 @@ const PostDetail = () => {
           variants={itemVariants}
         >
           <a href='/forum' className='pr-2 flex items-center'><ArrowLeftIcon className='w-3.5 h-3.5' /><span className='pl-1'>Diễn đàn</span></a> / 
-          <a href={`/forum?category=${post.category}`} className='pl-2 pr-2'>{handleCategory(post.category)}</a> / 
+          <a href={`/forum?category=${post.category}`} className='pl-2 pr-2'>{handlePostCategory(post.category)}</a> / 
           <a href='#' className='pl-2 pr-2'>Bài viết</a>
         </motion.div>
         

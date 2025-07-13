@@ -11,6 +11,7 @@ export async function getCurrentUser() {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
       _id: string;
       username: string;
+      email: string;
       publicId: string;
       format: string;
       role: string;
