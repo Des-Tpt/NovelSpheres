@@ -5,6 +5,23 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 
+
+export interface IUser {
+  _id: string;
+  username: string;
+  email: string;
+  password: string;
+  role: 'reader' | 'admin' | 'writer';
+  profile?: {
+    bio?: string;
+    avatar?: {
+      publicId: string;
+      format: string;
+    };
+  };
+  createdAt: Date;
+}
+
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     const { email, password } = await req.json();
@@ -15,8 +32,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     await connectDB();
 
-    // Tìm user
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).lean<IUser>();
     const isMatch = user && await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
@@ -26,9 +42,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const secret = process.env.JWT_SECRET;
     if (!secret) throw new Error("JWT_SECRET is not defined");
 
-    // Tạo JWT
+    //Tạo jwt token (về cơ bản là 1 interface chứa các attribute được lưu vào cookies)
     const token = jwt.sign(
-      { userId: user._id, role: user.role },
+      { 
+        _id: user._id, 
+        username: user.username,
+        role: user.role,
+        publicId: user.profile?.avatar?.publicId,
+        format: user.profile?.avatar?.format
+      },
       process.env.JWT_SECRET!,
       { expiresIn: '2d' }
     );
@@ -43,12 +65,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({
       success: true,
       message: 'Đăng nhập thành công',
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-      }
     });
 
   } catch (error) {

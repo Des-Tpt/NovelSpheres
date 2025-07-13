@@ -1,44 +1,36 @@
-import mongoose from 'mongoose';
+import mongoose from 'mongoose'
 
-const MONGODB_URI = process.env.MONGODB_URI as string;
+const MONGODB_URI = process.env.MONGODB_URI as string
 
 if (!MONGODB_URI) {
-    throw new Error('⚠️ MONGODB_URI chưa được khai báo trong .env.local');
+  throw new Error('⚠️ MONGODB_URI chưa được khai báo trong .env.local')
 }
- 
-//Biến cached dùng để giữ kết nối với MongoDB, tránh connect quá nhiều lần.
-let cached = (global as any).mongoose;
+
+let cached = (global as any).mongoose
 
 if (!cached) {
-    cached = (global as any).mongoose = {conn: null, promise: null};
+  cached = (global as any).mongoose = { conn: null, promise: null }
 }
 
-export async function connectDB(): Promise<void> {
-    //Kiểm tra xem đã kết nối hay chưa? Rồi thì thôi, không cần kết nối lại.
-    if (cached.conn) {return cached.conn};
+export async function connectDB(): Promise<typeof mongoose> {
+  if (cached.conn) return cached.conn
 
-    if (!cached.promise) {
-        cached.promise = mongoose.connect(MONGODB_URI, {
-            bufferCommands:false,
-        }).then(() => {
-            console.log('✅ Đã kết nối tới MongoDB');
-            return mongoose.connection;
-        }) .catch((error) => {
-            console.error('Không thể kết nối tới DB:', error);
-            cached.promise = null;
-            throw error;
-        });
-    }
-    
-    cached.conn = await cached.promise;
-    return cached.conn;
-}
+  if (!cached.promise) {
+    cached.promise = mongoose
+      .connect(MONGODB_URI, {
+        bufferCommands: false,
+      })
+      .then((mongooseInstance) => {
+        console.log('✅ Đã kết nối tới MongoDB')
+        return mongooseInstance
+      })
+      .catch((error) => {
+        console.error('Không thể kết nối tới DB:', error)
+        cached.promise = null
+        throw error
+      })
+  }
 
-export async function disconnectDB(): Promise<void> {
-    if (cached.conn) {
-        await mongoose.disconnect();
-        cached.conn = null;
-        cached.promise = null;
-        console.log('Đã ngắt kết nối MongoDB');
-    }
+  cached.conn = await cached.promise
+  return cached.conn
 }

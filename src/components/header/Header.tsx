@@ -1,14 +1,27 @@
 'use client'
 import { BookOpenIcon, ChatBubbleLeftIcon, HomeIcon, UserIcon, XMarkIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import Button from '../ui/Button';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SearchBar from '../ui/SearchBar';
 import AuthForm from '../auth/AuthForm';
+import { getUserFromCookies } from '@/action/userAction';
+import getImage from '@/action/imageActions';
+import Image from 'next/image';
+
+interface User {
+  _id: string;
+  username: string;
+  role: string;
+  publicId: string;
+  format: string;
+}
 
 const Header = () => {
   const [activeButton, setActiveButton] = useState<String | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User>();
+  const [userImage, setUserImage] = useState<string>('');
 
   const handleClick = (buttonId: string) => {
     setActiveButton(buttonId);
@@ -23,6 +36,18 @@ const Header = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+  useEffect(() => {
+    const fetchUser = async () => {
+        const response = await getUserFromCookies();
+        if (response?.user) {
+            setCurrentUser(response.user);
+            const imageUrl = await getImage(response.user.publicId, response.user.format);
+            setUserImage(imageUrl);
+        }
+    };
+    fetchUser();
+  }, []);
+
   return (
     <div>
       <header className="bg-black text-white px-[5%] py-2.5 fixed flex justify-between items-center md:px-[15%] w-full z-60">
@@ -31,7 +56,7 @@ const Header = () => {
           <BookOpenIcon className="h-8 w-8" />
           <span className="font-['Crimson_Text'] text-2xl font-semibold pl-4">NovelSphere</span>
         </div>
-
+        
         {/* Giao diện PC */}
         <div className="hidden md:flex gap-4">
           <Button
@@ -50,37 +75,67 @@ const Header = () => {
           />
         </div>
 
-        {/* SearchBar trên PC */}
         <div className="hidden md:block w-[30%] justify-center relative">
           <SearchBar />
         </div>
 
-        {/* Login trên PC */}
         <div className="hidden md:block font-['Crimson_Text']">
-          <Button
-            type={<UserIcon className="h-5 w-5" />}
-            text="Đăng nhập"
-            href="#"
-            onClick={() => {
-              handleClick('login');
-              setIsAuthOpen(true);
-            }}
-            isActive={activeButton === 'login'}
-          />
+          {currentUser ? (
+            <div className="flex items-center gap-3">
+              {userImage && (
+                <Image 
+                  src={userImage} 
+                  alt={currentUser.username}
+                  width={32}
+                  height={32}
+                  className="rounded-full object-cover"
+                />
+              )}
+              <span className="text-white font-medium">{currentUser.username}</span>
+            </div>
+          ) : (
+            <Button
+              type={<UserIcon className="h-5 w-5" />}
+              text="Đăng nhập"
+              href="#"
+              onClick={() => {
+                handleClick('login');
+                setIsAuthOpen(true);
+              }}
+              isActive={activeButton === 'login'}
+            />
+          )}
         </div>
+
         <div className='md:hidden flex'>
-          <Button
-            type={<UserIcon className="h-5 w-5" />}
-            text="Đăng nhập"
-            href="#"
-            onClick={() => {
-              handleClick('login');
-              setIsAuthOpen(true);
-              setIsSidebarOpen(false);
-            }}
-            isActive={activeButton === 'login'}
-          />
+          {currentUser ? (
+            <div className="flex items-center gap-2">
+              {userImage && (
+                <Image 
+                  src={userImage} 
+                  alt={currentUser.username}
+                  width={28}
+                  height={28}
+                  className="rounded-full object-cover"
+                />
+              )}
+              <span className="text-white font-medium text-sm">{currentUser.username}</span>
+            </div>
+          ) : (
+            <Button
+              type={<UserIcon className="h-5 w-5" />}
+              text="Đăng nhập"
+              href="#"
+              onClick={() => {
+                handleClick('login');
+                setIsAuthOpen(true);
+                setIsSidebarOpen(false);
+              }}
+              isActive={activeButton === 'login'}
+            />
+          )}
         </div>
+
         {/* Sidebar */}
         <button onClick={handleOpenSidebar} className="md:hidden block">
           <Bars3Icon className="w-5 h-5" />

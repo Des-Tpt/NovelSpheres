@@ -1,44 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserIcon, EnvelopeIcon, LockClosedIcon, EyeIcon, EyeSlashIcon, ExclamationCircleIcon, CheckIcon, BookOpenIcon } from '@heroicons/react/24/outline';
+import { UserIcon, EnvelopeIcon, LockClosedIcon, EyeIcon, EyeSlashIcon, BookOpenIcon } from '@heroicons/react/24/outline';
 import './AuthForm.css';
 import { FaGoogle, FaGithub } from "react-icons/fa";
 import ButtonClick from '../ui/ButtonClick';
-
+import { Popup } from '../ui/Popup';
 
 interface Props {
     onClose: () => void;
     isOpen: boolean;
-}
-
-interface PopupProps {
-    type: 'success' | 'error';
-    message: string;
-    onClose: () => void;
-}
-
-function Popup({ message, type }: PopupProps) {
-    const isSuccess = type === 'success';
-    return (
-        <div className='hidden md:flex'>
-            <motion.div
-                className={`popup ${isSuccess? 'popup-success' : 'popup-error'} hidden md:block fixed scale-100 bottom-5 right-5`}
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-            >
-            <div className= 'flex items-center gap-2'>
-                <div className='popup-icon'>{isSuccess ? <CheckIcon className="w-7 h-7 text-green-500"/> : <ExclamationCircleIcon className="w-7 h-7 text-red-700"/>}</div>
-                <div className='popup-content'>
-                    <p className="title">{isSuccess ? 'Thao tác thành công' : 'Thao tác thất bại'}</p>
-                    <p className="text">{message}</p>
-                </div>
-            </div>
-            </motion.div>
-        </div>
-    );
 }
 
 export default function AuthForm({ onClose, isOpen }: Props) {
@@ -63,7 +34,7 @@ export default function AuthForm({ onClose, isOpen }: Props) {
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     email,
-                    username: tab === 'login' ? undefined : username, // Chỉ gửi username khi đăng ký
+                    username: tab === 'login' ? undefined : username,
                     password,
                 }),
                 credentials: 'include',
@@ -95,14 +66,14 @@ export default function AuthForm({ onClose, isOpen }: Props) {
 
     useEffect(() => {
     if (errorMsg) {
-        const timeout = setTimeout(() => setErrorMsg(''), 3000); // 3s
+        const timeout = setTimeout(() => setErrorMsg(''), 3000); 
         return () => clearTimeout(timeout);
     }
     }, [errorMsg]);
 
     useEffect(() => {
     if (successMsg) {
-        const timeout = setTimeout(() => setSuccessMsg(''), 3000); // 3s
+        const timeout = setTimeout(() => setSuccessMsg(''), 3000);
         return () => clearTimeout(timeout);
     }
     }, [successMsg]);

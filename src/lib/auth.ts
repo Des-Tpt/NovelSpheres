@@ -9,12 +9,16 @@ export async function getCurrentUser() {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
-      userId: string;
+      _id: string;
+      username: string;
+      publicId: string;
+      format: string;
       role: string;
     };
     return decoded;
+
   } catch (err) {
-    console.error('Invalid token:', err);
+    console.error('Token không khả dụng:', err);
     return null;
   }
 }

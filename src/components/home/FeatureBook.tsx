@@ -39,6 +39,8 @@ interface BookCardProps {
     showAnimation?: boolean;
 }
 
+const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_NAME as string;
+
 const BookCard: React.FC<BookCardProps> = ({ novel, imageUrls, index = 0, showAnimation = true }) => {
     const handleTranslate = (en: string) => {
         switch(en) {
@@ -54,7 +56,7 @@ const BookCard: React.FC<BookCardProps> = ({ novel, imageUrls, index = 0, showAn
                     <Image
                         src={novel.coverImage?.publicId && imageUrls[novel.coverImage.publicId]
                             ? imageUrls[novel.coverImage.publicId]
-                            : 'https://res.cloudinary.com/dr29oyoqx/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png'
+                            : `https://res.cloudinary.com/${cloudName!}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`
                         }
                         width={200}
                         height={280}

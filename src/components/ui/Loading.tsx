@@ -12,7 +12,7 @@ const LoadingComponent = () => {
         
         <div className="flex items-center space-x-1">
           <span className="text-white text-xl font-medium">Đang tải</span>
-          <div className="flex space-x-1 pt-2">
+          <div className="flex space-x-1 pt-2.5">
             <div 
               className="w-1 h-1 pt-1 bg-white rounded-full animate-bounce" 
               style={{animationDelay: '0ms'}}

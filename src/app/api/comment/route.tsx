@@ -4,7 +4,6 @@ import { Comment } from '@/model/Comment';
 import { ForumPost } from '@/model/PostForum';
 import { getCurrentUser } from '@/lib/auth';
 import { Novel } from '@/model/Novel';
-import { error } from 'console';
 import { Chapter } from '@/model/Chapter';
 
 export async function POST(request: NextRequest) {
@@ -58,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     // Tạo comment mới
     const newComment = new Comment({
-      userId: user.userId,
+      userId: user._id,
       parentId: parentId || null,
       replyToUserId: replyToUserId || null,
       sourceType,

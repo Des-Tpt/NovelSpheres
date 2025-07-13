@@ -17,6 +17,8 @@ type Genre = {
     name: string;
 }
 
+const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_NAME as string;
+
 const BookFilter = () => {
     const { data: genres, isLoading: isGenresLoading, error: genresError } = useQuery<Genre[] | null>({
         queryKey: ['genres-home'],
@@ -33,24 +35,42 @@ const BookFilter = () => {
         return `Cập nhật ${formatDistanceToNow(new Date(updatedAt), { addSuffix: true,  locale: vi })}`;
     }
 
-    useEffect(() => {
-    if (!novels) return;
-
-    const fetchImages = async () => {
-        for (const novel of novels) {
+    // Hàm lấy image src an toàn
+    const getImageSrc = (novel: INovelWithPopulate) => {
         const publicId = novel.coverImage?.publicId;
-        const format = novel.coverImage?.format ?? 'jpg';
-
-        if (publicId && !imageUrls[publicId]) {
-            const res = await getImage(publicId, format);
-            if (res) {
-            setImageUrls((prev) => ({ ...prev, [publicId]: res }));
-            }
+        const imageUrl = publicId ? imageUrls[publicId] : null;
+        
+        // Chỉ trả về URL nếu nó tồn tại và không phải chuỗi rỗng
+        if (imageUrl && imageUrl.trim() !== '') {
+            return imageUrl;
         }
-        }
+        
+        // Trả về hình ảnh mặc định
+        return `https://res.cloudinary.com/${cloudName!}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
     };
 
-    fetchImages();
+    useEffect(() => {
+        if (!novels) return;
+
+        const fetchImages = async () => {
+            for (const novel of novels) {
+                const publicId = novel.coverImage?.publicId;
+                const format = novel.coverImage?.format ?? 'jpg';
+
+                if (publicId && !imageUrls[publicId]) {
+                    try {
+                        const res = await getImage(publicId, format);
+                        // Chỉ cập nhật state nếu nhận được phản hồi hợp lệ, không rỗng
+                        if (res && res.trim() !== '') {
+                            setImageUrls((prev) => ({ ...prev, [publicId]: res }));
+                        }
+                    } catch (error) {
+                        console.error(`Không thể tải hình ảnh cho ${publicId}:`, error);
+                    }
+                }
+            }
+        };
+        fetchImages();
     }, [novels]);
 
     const handleFilterName = (sort: string) => {
@@ -160,11 +180,7 @@ const BookFilter = () => {
                     <a href={`novel-detailed?id=${novel._id}`}>
                         <div className="relative rounded-lg overflow-hidden">
                         <Image
-                            src={
-                                novel.coverImage?.publicId && imageUrls[novel.coverImage.publicId]
-                                    ? imageUrls[novel.coverImage.publicId]
-                                    : 'https://res.cloudinary.com/dr29oyoqx/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png'
-                                }
+                            src={getImageSrc(novel)}
                             width={200}
                             height={280}
                             alt={novel.title}
