@@ -1,6 +1,6 @@
 'use client'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import LoadingPostComponent from '../ui/LoadingPost';
@@ -14,11 +14,22 @@ import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import handleRole from '@/utils/handleRole';
 import handlePostCategory from '@/utils/handleCategory';
+import getImage from '@/action/imageActions';
 
 
 interface Post {
   _id: string;
-  userId: { _id:string; username: string; role: string; profile?: { avatar?: { publicId: string; format: string } } };
+  userId: { 
+    _id:string; 
+    username: string;
+    role: string; 
+    profile?: { 
+      avatar?: { 
+        publicId: string; 
+        format: string 
+      } 
+    } 
+  };
   novelId?: { 
     _id: string;
     title: string; 
@@ -77,14 +88,18 @@ const commentVariants = {
 const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 
 const PostDetail = () => {
+  const router = useRouter();
   const { id } = useParams();
   const queryClient = useQueryClient();
-  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+  
+  // All state declarations at the top
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
   const [newComment, setNewComment] = useState('');
   const [replyToUser, setReplyToUser] = useState<{ id: string; username: string } | null>(null);
   const [showAllReplies, setShowAllReplies] = useState<Set<string>>(new Set());
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   
   const { data, isLoading, error } = useQuery<{ post: Post; comments: Comment[] }>({
     queryKey: ['post', id],
@@ -149,11 +164,17 @@ const PostDetail = () => {
     }
   };
 
-  const getAvatarUrl = (publicId?: string, format?: string) => {
-    return publicId && publicId.startsWith('http') 
-      ? publicId 
-      : `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
-  };
+  useEffect(() => {
+        if (!Array.isArray(data?.comments)) return;
+        data.comments.map(async (comment) => {
+            const publicId = comment.userId.profile?.avatar?.publicId ?? '';
+            const format = comment.userId.profile?.avatar?.format?? 'jpg';
+            const res = await getImage(publicId, format);
+            if (res) {
+                setImageUrls((prev) => ({ ...prev, [publicId]: res }));
+            }
+        });
+    }, [data]);
 
   const toggleShowAllReplies = (commentId: string) => {
     const newShowAll = new Set(showAllReplies);
@@ -214,6 +235,10 @@ const PostDetail = () => {
     setReplyToUser(null);
   };
 
+  const handleToProfile = (_id: string) => {
+    router.push(`/profile/${_id}`);
+  }
+
   const handleSubmitComment = async () => {
     if (!newComment.trim()) return;
     
@@ -241,7 +266,10 @@ const PostDetail = () => {
         className={`flex gap-4 pb-0.5 ${isReply ? 'ml-16 mt-3' : 'mb-3'}`}
       >
         <Image
-          src={getAvatarUrl(comment.userId.profile?.avatar?.publicId, comment.userId.profile?.avatar?.format)}
+          src={comment?.userId.profile?.avatar?.publicId && imageUrls[comment.userId.profile?.avatar?.publicId]
+                ? imageUrls[comment.userId.profile?.avatar?.publicId]
+                : `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`
+              }
           alt={comment.userId.username}
           width={isReply ? 40 : 40}
           height={isReply ? 40 : 40}
@@ -250,9 +278,9 @@ const PostDetail = () => {
         <div className="flex-1">
           <div className='rounded-[0.8rem] bg-gray-800 px-3 pt-2 pb-0.5'>
             <div className="flex items-center gap-2 mb-1">
-              <Link href={`/user/${comment.userId._id}`} className="font-semibold text-[1.15rem] text-white hover:text-blue-400 transition-colors">
+              <div onClick={() => handleToProfile(comment.userId._id)} className="font-semibold text-[1.15rem] text-white hover:text-blue-400 transition-colors">
                 {comment.userId.username}
-              </Link>
+              </div>
               <span className="text-[0.85rem] px-2 bg-gray-900 border-white border text-gray-300 rounded-full">
                 {handleRole(comment.userId.role)}
               </span>
@@ -346,6 +374,22 @@ const PostDetail = () => {
     );
   };
 
+  // Fixed useEffect for fetching avatar - moved before early returns
+  useEffect(() => {
+    if (!data?.post?.userId.profile?.avatar?.publicId || !data?.post?.userId.profile?.avatar?.format) return;
+
+    const fetchImage = async () => {
+      try {
+        const url = await getImage(data.post.userId.profile!.avatar!.publicId, data.post.userId.profile!.avatar!.format);
+        setAvatarUrl(url);
+      } catch (error) {
+        console.error('Error fetching avatar:', error);
+      }
+    };
+
+    fetchImage();
+  }, [data?.post?.userId.profile?.avatar?.publicId, data?.post?.userId.profile?.avatar?.format]);
+
   if (isLoading) return (<div className='px-[25%]'><LoadingPostComponent /></div>);
   if (error) return <div className="text-center py-10 text-red-500">Error: {error.message.toString()}</div>;
   if (!data?.post) return <div className="text-center py-10">Post not found</div>;
@@ -384,12 +428,12 @@ const PostDetail = () => {
             </div>
           )}
           <div className="flex items-center gap-3">
-            <Image
-              src={getAvatarUrl(post.userId.profile?.avatar?.publicId, post.userId.profile?.avatar?.format)}
-              alt={post.userId.username}
-              width={80}
-              height={80}
-              className="rounded-full w-15 h-15 object-cover"
+            <Image 
+              src={avatarUrl || `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`}
+              width={200}
+              height={280}
+              alt={post.title}
+              className="post-image w-12 h-12 md:w-15 md:h-15 rounded-2xl md:rounded-4xl object-cover object-top transition-transform duration-200 hover:scale-105"
             />
             <div>
               <Link href={`/user/${post.userId._id}`} className="font-semibold text-gray-900 text-[1.3rem] dark:text-white hover:text-blue-500">
@@ -475,7 +519,7 @@ const PostDetail = () => {
             </div>
           </motion.div>
 
-          <div className="space-y-4 pb-2">
+          <div className="space-y-4 border-t-[1px] border-white pt-10 pb-10">
             {comments.length === 0 ? (
               <motion.div 
                 className="text-center py-8 text-gray-400"

@@ -7,10 +7,9 @@ import AuthForm from '../auth/AuthForm';
 import { getUserFromCookies } from '@/action/userAction';
 import getImage from '@/action/imageActions';
 import Image from 'next/image';
-import { ArrowRight, Book } from 'lucide-react';
+import { ArrowRight, Book, Heart, History, HistoryIcon } from 'lucide-react';
 import handleRole from '@/utils/handleRole';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useRouter } from 'next/router';
 
 interface User {
   _id: string;
@@ -28,13 +27,13 @@ const Header = () => {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<User>();
   const [userImage, setUserImage] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true); // Thêm loading state
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleClick = (buttonId: string) => {
     setActiveButton(buttonId);
   };
   
-
   const handleCloseAuth = () => {
     setIsAuthOpen(false);
     setActiveButton(null);
@@ -64,11 +63,18 @@ const Header = () => {
 
   useEffect(() => {
     const fetchUser = async () => {
-        const response = await getUserFromCookies();
-        if (response?.user) {
-            setCurrentUser(response.user);
-            const imageUrl = await getImage(response.user.publicId, response.user.format);
-            setUserImage(imageUrl);
+        setIsLoading(true); // Bắt đầu loading
+        try {
+            const response = await getUserFromCookies();
+            if (response?.user) {
+                setCurrentUser(response.user);
+                const imageUrl = await getImage(response.user.publicId, response.user.format);
+                setUserImage(imageUrl);
+            }
+        } catch (error) {
+            console.error('Error fetching user:', error);
+        } finally {
+            setIsLoading(false); // Kết thúc loading
         }
     };
     fetchUser();
@@ -116,8 +122,15 @@ const Header = () => {
           <SearchBar />
         </div>
 
+        {/* Desktop Auth Section với Loading */}
         <div className="hidden md:block relative" ref={dropdownRef}>
-          {currentUser ? (
+          {isLoading ? (
+            // Hiển thị skeleton loading thay vì nút
+            <div className="flex items-center gap-2 p-2">
+              <div className="w-8 h-8 bg-gray-600 rounded-full animate-pulse"></div>
+              <div className="w-4 h-4 bg-gray-600 rounded animate-pulse"></div>
+            </div>
+          ) : currentUser ? (
             <div className="relative">
               <button 
                 onClick={handleToggleUserDropdown}
@@ -170,6 +183,14 @@ const Header = () => {
                       <span>Hồ sơ</span>
                     </button>
                     <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-gray-100 hover:bg-gray-600 transition-colors">
+                      <Heart className="h-5 w-5" />
+                      <span>Yêu thích</span>
+                    </button>
+                    <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-gray-100 hover:bg-gray-600 transition-colors">
+                      <History className="h-5 w-5" />
+                      <span>Lịch sử</span>
+                    </button>
+                    <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-gray-100 hover:bg-gray-600 transition-colors">
                       <Cog6ToothIcon className="h-5 w-5" />
                       <span>Cài đặt</span>
                     </button>
@@ -202,10 +223,13 @@ const Header = () => {
           )}
         </div>
 
-        {/* Mobile User Section */}
+        {/* Mobile User Section với Loading */}
         <div className='md:hidden flex items-center gap-2'>
-          {currentUser ? (
+          {isLoading ? (
+            <div className="w-8 h-8 bg-gray-600 rounded-full animate-pulse"></div>
+          ) : currentUser ? (
             <div className="hidden items-center gap-2">
+              {/* Mobile user info nếu cần */}
             </div>
           ) : (
             <Button
@@ -242,8 +266,19 @@ const Header = () => {
           </button>
         </div>
 
-        {/* User Info trong sidebar */}
-        {currentUser && (
+        {/* User Info trong sidebar với Loading */}
+        {isLoading ? (
+          <div className="p-4 border-b border-gray-700">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 bg-gray-600 rounded-full animate-pulse"></div>
+              <div className="flex-1">
+                <div className="h-4 bg-gray-600 rounded animate-pulse mb-2"></div>
+                <div className="h-3 bg-gray-600 rounded animate-pulse w-3/4 mb-1"></div>
+                <div className="h-3 bg-gray-600 rounded animate-pulse w-1/2"></div>
+              </div>
+            </div>
+          </div>
+        ) : currentUser ? (
           <div className="p-4 border-b border-gray-700">
             <div className="flex items-center gap-3 mb-3">
               {userImage && (
@@ -262,7 +297,7 @@ const Header = () => {
               </div>
             </div>
           </div>
-        )}
+        ) : null}
 
         <div className="flex flex-col gap-2 p-4">
           <Button
@@ -285,9 +320,18 @@ const Header = () => {
             }}
             isActive={activeButton === 'forum'}
           />
-          
+           <Button
+            type={<Book className="h-5 w-5" />}
+            text="Danh sách"
+            href="/novels"
+            onClick={() => {
+              handleClick('forum');
+              setIsSidebarOpen(false);
+            }}
+            isActive={activeButton === 'forum'}
+          />
           {/* User menu items trong sidebar */}
-          {currentUser && (
+          {!isLoading && currentUser && (
             <>
               <div className="border-t border-gray-700 my-2"></div>
               <Button
@@ -299,6 +343,26 @@ const Header = () => {
                   setIsSidebarOpen(false);
                 }}
                 isActive={activeButton === 'profile'}
+              />
+              <Button
+                type={<Heart className="h-5 w-5" />}
+                text="Yêu thích"
+                href="/favorite"
+                onClick={() => {
+                  handleClick('settings');
+                  setIsSidebarOpen(false);
+                }}
+                isActive={activeButton === 'settings'}
+              />
+              <Button
+                type={<HistoryIcon className="h-5 w-5" />}
+                text="Lịch sử"
+                href="/History"
+                onClick={() => {
+                  handleClick('settings');
+                  setIsSidebarOpen(false);
+                }}
+                isActive={activeButton === 'settings'}
               />
               <Button
                 type={<Cog6ToothIcon className="h-5 w-5" />}

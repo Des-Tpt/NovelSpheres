@@ -1,7 +1,7 @@
 .SearchBar {
     display: flex;
     align-items: center;
-    background-color: rgb(49, 49, 49);
+    background-color: rgb(34, 34, 34);
     color: white;
     gap: 1rem;
     width: 100%;
@@ -11,7 +11,6 @@
     padding-left: 0.5rem;
     padding-right: 2rem;
     border-radius: 0.6rem;
-
 }
 
 .SearchBar svg {

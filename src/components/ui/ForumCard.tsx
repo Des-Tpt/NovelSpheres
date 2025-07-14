@@ -37,12 +37,10 @@ const ForumCard = ({ data }: ForumCardProps) => {
     }
 
     const getTimeAgo = (updatedAt: string | Date) => {
-        // Kiểm tra xem updatedAt có tồn tại và hợp lệ không
         if (!updatedAt) return 'Không xác định';
         
         try {
             const date = new Date(updatedAt);
-            // Kiểm tra xem date có hợp lệ không
             if (isNaN(date.getTime())) return 'Không xác định';
             
             return `${formatDistanceToNow(date, { addSuffix: true, locale: vi })}`;
@@ -101,7 +99,7 @@ const ForumCard = ({ data }: ForumCardProps) => {
     }
 
     return (
-        <div className="border-gray-500 border bg-gray-950 rounded-[1rem] min-h-32 sm:min-h-40 h-auto py-4 sm:py-6 pr-2 w-auto flex items-center">
+        <div className="border-gray-500 border bg-gray-950 rounded-[1rem] min-h-42 sm:min-h-40 h-auto py-4 sm:py-6 pr-2 w-auto flex items-center">
             <div className="flex justify-center w-full">
                 <div className="pl-3 sm:pl-5 pr-2 sm:pr-3 bg-gray-950 items-start">
                     {handleIcon(data.category)}
@@ -113,7 +111,7 @@ const ForumCard = ({ data }: ForumCardProps) => {
                     </div>
                     <span className="text-[0.75rem] sm:text-[0.85rem] font-inter line-clamp-1 sm:line-clamp-1 min-w-0">{handldeDiscription(data.category)}</span>
                     <div className="font-inter font-semibold min-w-0">
-                        <span className="text-[0.8rem] line-clamp-2 sn:line-clamp-3 sm:text-[0.9rem] pr-2 block min-w-0 ">{data.title}</span>
+                        <span className="text-[0.8rem] line-clamp-1 sm:line-clamp-1 sm:text-[0.85rem] pr-2 block min-w-0 ">{data.title}</span>
                         <div className="flex text-[0.75rem] sm:text-[0.9rem] gap-1 sm:gap-2 items-center min-w-0">
                             <span className="truncate max-w-[35%] sm:max-w-[50%] min-w-0">{data.owner || 'Không xác định'}</span>
                             <span className="text-gray-400 flex-shrink-0">•</span>

@@ -13,6 +13,8 @@ import LoadingPostComponent from '../ui/LoadingPost';
 import { useSearchParams } from 'next/navigation';
 import { useForumPosts } from '@/action/postActions';
 
+const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
+
 export default function ForumPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -206,7 +208,7 @@ export default function ForumPage() {
                                         <Image 
                                             src={post?.avatar?.publicId && imageUrls[post.avatar.publicId]
                                                 ? imageUrls[post.avatar.publicId]
-                                                : 'https://res.cloudinary.com/dr29oyoqx/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png'
+                                                : `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`
                                             }
                                             width={200}
                                             height={280}
@@ -245,7 +247,7 @@ export default function ForumPage() {
                                                 </div>
                                                 <div className="stat-item views-stat flex items-center gap-1.5 transition-all duration-200 hover:scale-105 hover:text-green-500">
                                                     <EyeIcon className="w-4 h-4 md:w-4.5 md:h-4.5" />
-                                                    <span>{post.views === 0 ? random(10, 100) : post.views}</span>
+                                                    <span>{post.views}</span>
                                                 </div>
                                             </div>
                                             <div>
