@@ -6,7 +6,6 @@ import LoadingPostComponent from '../ui/LoadingPost';
 import { ArrowLeftIcon, Clock, EyeIcon, MessageCircle, ChevronDown, ChevronUp, Send, ThumbsUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'react-hot-toast';
 import { getPostById } from '@/action/postActions';
 import { createComment } from '@/action/commentActions';
 import { formatDistanceToNow } from 'date-fns';
@@ -14,6 +13,7 @@ import { vi } from 'date-fns/locale';
 import handleRole from '@/utils/handleRole';
 import handlePostCategory from '@/utils/handleCategory';
 import getImage from '@/action/imageActions';
+import { Popup } from '../ui/Popup';
 
 
 interface Post {
@@ -98,6 +98,8 @@ const PostDetail = () => {
   const [replyToUser, setReplyToUser] = useState<{ id: string; username: string } | null>(null);
   const [showAllReplies, setShowAllReplies] = useState<Set<string>>(new Set());
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [errorNotice, setErrorNotice] = useState<string | null>(null);
+  const [successNotice, setSuccessNotice] = useState<string | null>(null);
   
   const { data, isLoading, error } = useQuery<{ post: Post; comments: Comment[] }>({
     queryKey: ['post', id],
@@ -108,10 +110,10 @@ const PostDetail = () => {
     mutationFn: createComment,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['post', id] });
-      toast.success('Bình luận đã được đăng thành công!');
+      setSuccessNotice('Bình luận đã được đăng thành công!');
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Có lỗi xảy ra khi đăng bình luận');
+      setErrorNotice(error.message);
     }
   });
 
@@ -134,6 +136,20 @@ const PostDetail = () => {
     }
     return total;
   }
+
+  useEffect(() => {
+    if (errorNotice) {
+        const timeout = setTimeout(() => setErrorNotice(''), 2000); 
+        return () => clearTimeout(timeout);
+    }
+  }, [errorNotice]);
+
+  useEffect(() => {
+    if (successNotice) {
+        const timeout = setTimeout(() => setSuccessNotice(''), 2000);
+        return () => clearTimeout(timeout);
+    }
+  }, [successNotice]);
 
   const getTimeAgo = (updatedAt: string | Date) => {
     return `Cập nhật ${formatDistanceToNow(new Date(updatedAt), { addSuffix: true,  locale: vi })}`;
@@ -579,6 +595,22 @@ const PostDetail = () => {
           </div>
         </motion.div>
       </div>
+      <AnimatePresence>
+        {successNotice && (
+          <Popup
+            message={successNotice}
+            type="success"
+            onClose={() => setSuccessNotice(null)}
+          />
+        )}
+        {errorNotice && (
+          <Popup
+            message={errorNotice}
+            type="error"
+            onClose={() => setErrorNotice(null)}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

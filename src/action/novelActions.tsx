@@ -31,3 +31,14 @@ export const getNovelByFilter = async (data: Genre[], sortBy: string ): Promise<
     const result = await res.json();
     return (Array.isArray(result) ? result : result.novels || []) as INovelWithPopulate[];
 };
+
+export const getNovelById = async (id: string) => {
+    const res = await fetch(`/api/novels/${id}`);
+
+    if (!res.ok) {
+        throw new Error('Không thể lấy tiểu thuyết!');
+    }
+
+    const data = await res.json();
+    return data;
+}

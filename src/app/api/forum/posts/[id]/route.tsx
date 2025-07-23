@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ForumPost } from '@/model/PostForum';
 import { Comment } from '@/model/Comment';
 import { connectDB } from '@/lib/db';
+import optimizeComment from '@/utils/handleOptimize';
 
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
     try {
@@ -54,29 +55,4 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
         console.error('Error fetching post:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-}
-
-function optimizeComment(comments: any[]) {
-    const commentMap = new Map();
-    const rootComments: any[] = [];
-
-    //Tạo object replies rỗng cho comment.
-    comments.forEach(comment => {
-        commentMap.set(comment._id.toString(), { ...comment, replies: [] });
-    });
-
-    //Thêm các comment vào replies.
-    comments.forEach(comment => {
-        //Nếu parentId tồn tại
-        if (comment.parentId) { //Tìm cha.
-            const parent = commentMap.get(comment.parentId.toString());
-            if (parent) { //Nếu cha không rỗng, push comment đang duyệt hiện tại vào mảng replies của cha.
-                parent.replies.push(commentMap.get(comment._id.toString()));
-            }
-        } else {
-            rootComments.push(commentMap.get(comment._id.toString()));
-        }
-    });
-
-    return rootComments;
 }

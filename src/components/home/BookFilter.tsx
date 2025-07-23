@@ -12,6 +12,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import LoadingComponent from "../ui/Loading";
 import handleStatus from "@/utils/handleStatus";
+import { useRouter } from "next/navigation";
 
 type Genre = {
     _id: string;
@@ -25,8 +26,9 @@ const BookFilter = () => {
         queryKey: ['genres-home'],
         queryFn: getGenres,
         staleTime: 1000 * 60 * 5,
-        });
+    });
 
+    const router = useRouter();
     const [selectedGenres, setSelectedGenres] = useState<Genre[]>([]);
     const [novels, setNovels] = useState<INovelWithPopulate[]>([]);
     const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
@@ -151,8 +153,8 @@ const BookFilter = () => {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.4, ease: 'easeOut' }}
                         >
-                        <a href={`novel-detailed?id=${novel._id}`}>
-                            <div className="relative rounded-lg overflow-hidden">
+                        <div className="relative rounded-lg overflow-hidden"
+                        onClick={() => router.push(`/novels/${novel._id}`)}>
                             <Image
                                 src={
                                     novel.coverImage?.publicId && imageUrls[novel.coverImage.publicId]
@@ -192,7 +194,6 @@ const BookFilter = () => {
                                 </div>
                             </div>
                             </div>
-                        </a>
                         </motion.div>
                     )
                     ) : (

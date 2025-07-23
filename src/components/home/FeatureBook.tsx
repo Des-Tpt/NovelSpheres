@@ -15,6 +15,7 @@ import Image from "next/image";
 import LoadingComponent from "../ui/Loading";
 import handleStatus from "@/utils/handleStatus";
 import { Sparkle } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type Novel = {
     _id: string;
@@ -44,9 +45,12 @@ interface BookCardProps {
 const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_NAME as string;
 
 const BookCard: React.FC<BookCardProps> = ({ novel, imageUrls, index = 0, showAnimation = true }) => {
+    const router = useRouter();
+
     const cardContent = (
-        <div className="m-4 flex flex-col cursor-pointer rounded-lg shadow-gray-400 shadow-sm border border-gray-400 group hover:scale-105 hover:shadow-gray-400 hover:shadow-2xl duration-300 transition-all">
-            <a href={`novel-detailed?id=${novel._id}`}>
+        <div className="m-4 flex flex-col cursor-pointer rounded-lg shadow-gray-400 shadow-sm border border-gray-400 group hover:scale-105 hover:shadow-gray-400 hover:shadow-2xl duration-300 transition-all"
+            onClick={() => router.push(`/novels/${novel._id}`)}
+        >
                 <div className="relative items-center rounded-lg overflow-hidden">
                     <Image
                         src={novel.coverImage?.publicId && imageUrls[novel.coverImage.publicId]
@@ -86,7 +90,6 @@ const BookCard: React.FC<BookCardProps> = ({ novel, imageUrls, index = 0, showAn
                         </div>
                     </div>
                 </div>
-            </a>
         </div>
     );
 
@@ -109,7 +112,7 @@ const BookCard: React.FC<BookCardProps> = ({ novel, imageUrls, index = 0, showAn
     );
 };
 
-const FeatureBook: React.FC = () => {
+const FeatureBook = () => {
     const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
     
     const { data, isLoading, error } = useQuery<Novel[] | null>({

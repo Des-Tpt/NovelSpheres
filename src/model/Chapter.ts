@@ -35,5 +35,3 @@ ChapterSchema.pre('save', function (next) {
   
 
 export const Chapter = models.Chapter || model<IChapter>('Chapter', ChapterSchema, 'Chapter');
-
-// {"_id":{"$oid":"685428779d7a6a08b4f99743"},"title":"Huyền Thoại Dưới Ánh Trăng Mờ","authorId":{"$oid":"685624b69cbcfafda4131671"},"createdAt":{"$date":{"$numberLong":"1713891600000"}},"description":"Một câu chuyện giả tưởng về hành trình của một hiệp sĩ trẻ trong thế giới phép thuật.","rating":{"$numberDecimal":"4.5"},"status":"ongoing","updatedAt":{"$date":{"$numberLong":"1719248400000"}},"view":{"$numberDecimal":"1500"},"coverImage":{"publicId":"LightNovel/BookCover/116699971_p0_pjyxtu","format":"jpg"},"genresId":[{"$oid":"685632912d00d2afd756f371"}]}

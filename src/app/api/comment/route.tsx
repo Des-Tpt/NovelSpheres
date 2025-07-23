@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: 'Vui lòng đăng nhập!' }, { status: 401 });
+      return NextResponse.json({ error: 'Vui lòng đăng nhập để bình luận!' }, { status: 401 });
     }
 
     const { sourceId, content, sourceType, parentId, replyToUserId } = await request.json();

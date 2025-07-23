@@ -5,6 +5,7 @@ import { useState } from 'react';
 import './globals.css'; 
 import Header from '@/components/header/Header';
 import Footer from '@/components/footer/Footer';
+import { Toaster } from 'react-hot-toast';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
+      <Toaster position="top-right" />
         <QueryClientProvider client={queryClient}>
           <Header />
           {children}
