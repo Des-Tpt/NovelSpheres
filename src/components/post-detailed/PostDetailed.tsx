@@ -1,7 +1,6 @@
 'use client'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import Image from 'next/image';
 import LoadingPostComponent from '../ui/LoadingPost';
 import { ArrowLeftIcon, Clock, EyeIcon, MessageCircle, ChevronDown, ChevronUp, Send, ThumbsUp } from 'lucide-react';
@@ -92,11 +91,10 @@ const PostDetail = () => {
   const { id } = useParams();
   const queryClient = useQueryClient();
   
-  // All state declarations at the top
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
-  const [newComment, setNewComment] = useState('');
+  const [newCommentContent, setNewCommentContent] = useState('');
   const [replyToUser, setReplyToUser] = useState<{ id: string; username: string } | null>(null);
   const [showAllReplies, setShowAllReplies] = useState<Set<string>>(new Set());
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -137,10 +135,9 @@ const PostDetail = () => {
     return total;
   }
 
-    const getTimeAgo = (updatedAt: string | Date) => {
-        return `Cập nhật ${formatDistanceToNow(new Date(updatedAt), { addSuffix: true,  locale: vi })}`;
-    }
-
+  const getTimeAgo = (updatedAt: string | Date) => {
+    return `Cập nhật ${formatDistanceToNow(new Date(updatedAt), { addSuffix: true,  locale: vi })}`;
+  }
 
   const handleCategoryColor = (category: string) => {
     const baseClass =
@@ -165,16 +162,16 @@ const PostDetail = () => {
   };
 
   useEffect(() => {
-        if (!Array.isArray(data?.comments)) return;
-        data.comments.map(async (comment) => {
-            const publicId = comment.userId.profile?.avatar?.publicId ?? '';
-            const format = comment.userId.profile?.avatar?.format?? 'jpg';
-            const res = await getImage(publicId, format);
-            if (res) {
-                setImageUrls((prev) => ({ ...prev, [publicId]: res }));
-            }
-        });
-    }, [data]);
+      if (!Array.isArray(data?.comments)) return;
+      data.comments.map(async (comment) => {
+          const publicId = comment.userId.profile?.avatar?.publicId ?? '';
+          const format = comment.userId.profile?.avatar?.format?? 'jpg';
+          const res = await getImage(publicId, format);
+          if (res) {
+            setImageUrls((prev) => ({ ...prev, [publicId]: res }));
+          }
+      });
+  }, [data]);
 
   const toggleShowAllReplies = (commentId: string) => {
     const newShowAll = new Set(showAllReplies);
@@ -192,32 +189,33 @@ const PostDetail = () => {
     setReplyContent('');
   };
 
+  const findParentComment = (parentCommentId: string, commentsList: Comment[]): string => {
+    commentsList.map(comment => {
+      if (comment._id === parentCommentId) {
+        return comment._id;
+      }
+      if (comment.replies && comment.replies.length > 0) {
+        comment.replies.map(reply => {
+          if (reply._id === parentCommentId) {
+            return comment._id;
+          }
+        });
+      }
+    });
+    return parentCommentId; // Nếu không tìm thấy, trả về ID gốc
+  };
+
   const handleSubmitReply = async (parentCommentId: string) => {
     if (!replyContent.trim() || !replyToUser) return;
     
     try {
-      const findParentComment = (commentId: string, commentsList: Comment[]): string => {
-        for (const comment of commentsList) {
-          if (comment._id === commentId) {
-            return comment._id;
-          }
-          if (comment.replies && comment.replies.length > 0) {
-            for (const reply of comment.replies) {
-              if (reply._id === commentId) {
-                return comment._id;
-              }
-            }
-          }
-        }
-        return commentId; 
-      };
-      const actualParentId = findParentComment(parentCommentId, comments);
+      const parentId = findParentComment(parentCommentId, comments);
 
       await createCommentMutation.mutateAsync({
         sourceId: id as string,
         content: replyContent,
         sourceType: 'ForumPost',
-        parentId: actualParentId,
+        parentId: parentId,
         replyToUserId: replyToUser.id
       });
 
@@ -240,16 +238,16 @@ const PostDetail = () => {
   }
 
   const handleSubmitComment = async () => {
-    if (!newComment.trim()) return;
+    if (!newCommentContent.trim()) return;
     
     try {
       await createCommentMutation.mutateAsync({
         sourceId: id as string,
-        content: newComment,
+        content: newCommentContent,
         sourceType: 'ForumPost'
       });
 
-      setNewComment('');
+      setNewCommentContent('');
     } catch (error) {
       console.error('Error submitting comment:', error);
     }
@@ -271,14 +269,14 @@ const PostDetail = () => {
                 : `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`
               }
           alt={comment.userId.username}
-          width={isReply ? 40 : 40}
-          height={isReply ? 40 : 40}
+          width={40}
+          height={40}
           className='rounded-full object-cover mt-1 flex-shrink-0 w-10 h-10'
         />
         <div className="flex-1">
           <div className='rounded-[0.8rem] bg-gray-800 px-3 pt-2 pb-0.5'>
             <div className="flex items-center gap-2 mb-1">
-              <div onClick={() => handleToProfile(comment.userId._id)} className="font-semibold text-[1.15rem] text-white hover:text-blue-400 transition-colors">
+              <div onClick={() => handleToProfile(comment.userId._id)} className="font-semibold cursor-pointer text-[1.15rem] text-white hover:text-blue-400 transition-colors">
                 {comment.userId.username}
               </div>
               <span className="text-[0.85rem] px-2 bg-gray-900 border-white border text-gray-300 rounded-full">
@@ -287,7 +285,7 @@ const PostDetail = () => {
             </div>
             <div className="text-gray-300 pb-1.5 mb-1.5 border-b">
               {comment.replyToUserId && (
-                <span className="text-blue-400 font-medium">@{comment.replyToUserId.username} </span>
+                <span className="text-blue-400 font-medium" onClick={() => handleToProfile(comment.replyToUserId?._id!)}>@{comment.replyToUserId.username} </span>
               )}
               {comment.content}
             </div>
@@ -319,6 +317,8 @@ const PostDetail = () => {
             </span>
           </div>
         </div>
+        
+        {/* Container nhập bình luận, chỉ hiện khi ấn vào trả lời */}
           <AnimatePresence>
             {replyingTo === comment._id && (
               <motion.div
@@ -374,7 +374,6 @@ const PostDetail = () => {
     );
   };
 
-  // Fixed useEffect for fetching avatar - moved before early returns
   useEffect(() => {
     if (!data?.post?.userId.profile?.avatar?.publicId || !data?.post?.userId.profile?.avatar?.format) return;
 
@@ -390,12 +389,16 @@ const PostDetail = () => {
     fetchImage();
   }, [data?.post?.userId.profile?.avatar?.publicId, data?.post?.userId.profile?.avatar?.format]);
 
-  if (isLoading) return (<div className='px-[25%]'><LoadingPostComponent /></div>);
+  if (isLoading) return (<div><LoadingPostComponent /></div>);
   if (error) return <div className="text-center py-10 text-red-500">Error: {error.message.toString()}</div>;
   if (!data?.post) return <div className="text-center py-10">Post not found</div>;
 
   const { post, comments } = data;
   const organizedComments = formatComment(comments);
+
+  const handlePushNovel = (novelId?: string) => {
+    router.push(`/novels/${novelId}`)
+  }
 
   return (
     <motion.div 
@@ -422,9 +425,9 @@ const PostDetail = () => {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white py-1">{post.title}</h1>
           {post.novelId && (
             <div className='pb-4'>
-              <Link href={`/novel/${post.novelId._id}`} className="font-inter text-[0.95rem] pl-0.5 mt-2 block">
-                Liên quan đến: <span className='text-amber-600 hover:underline'>{post.novelId.title}</span>
-              </Link>
+              <div onClick={() => handlePushNovel(post.novelId?._id)} className="font-inter text-[0.95rem] pl-0.5 mt-2 block">
+                Liên quan đến: <span className='text-yellow-500 hover:underline'>{post.novelId.title}</span>
+              </div>
             </div>
           )}
           <div className="flex items-center gap-3">
@@ -436,12 +439,12 @@ const PostDetail = () => {
               className="post-image w-12 h-12 md:w-15 md:h-15 rounded-2xl md:rounded-4xl object-cover object-top transition-transform duration-200 hover:scale-105"
             />
             <div>
-              <Link href={`/user/${post.userId._id}`} className="font-semibold text-gray-900 text-[1.3rem] dark:text-white hover:text-blue-500">
-                <div className='flex items-center'>
+              <div onClick={() => handleToProfile(post.userId._id)} className="font-semibold text-gray-900 text-[1.3rem] dark:text-white hover:text-blue-500">
+                <div className='flex items-center cursor-pointer'>
                   <span>{post.userId.username}</span>
                   <span className='ml-3 px-2.5 font-inter text-[0.75rem] font-bold border border-gray-600 rounded-2xl mt-0.5'>{handleRole(post.userId.role)}</span>
                 </div>
-              </Link>
+              </div>
               <div className='flex gap-3 font-inter'>
                 <div className='flex items-center gap-1 text-sm text-gray-300'>
                   <Clock className='w-4 h-4' />
@@ -489,8 +492,8 @@ const PostDetail = () => {
             variants={itemVariants}
           >
             <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
+              value={newCommentContent}
+              onChange={(e) => setNewCommentContent(e.target.value)}
               placeholder="Viết bình luận của bạn..."
               className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
               rows={4}
@@ -502,7 +505,7 @@ const PostDetail = () => {
                 whileTap={{ scale: 0.95 }}
                 onClick={handleSubmitComment}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
-                disabled={createCommentMutation.isPending || !newComment.trim()}
+                disabled={createCommentMutation.isPending || !newCommentContent.trim()}
               >
                 {createCommentMutation.isPending ? (
                   <>

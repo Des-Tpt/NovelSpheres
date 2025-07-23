@@ -1,4 +1,4 @@
-const handleCategory = (category: String) => {
+const handlePostCategory = (category: String) => {
     switch(category) {
         case 'general' : return 'Thảo luận chung';
         case 'reviews' : return 'Đánh giá & Nhận xét'
@@ -9,4 +9,4 @@ const handleCategory = (category: String) => {
     }
   }
 
-export default handleCategory;
+export default handlePostCategory;

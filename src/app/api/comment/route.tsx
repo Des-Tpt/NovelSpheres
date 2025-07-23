@@ -60,9 +60,9 @@ export async function POST(request: NextRequest) {
       userId: user._id,
       parentId: parentId || null,
       replyToUserId: replyToUserId || null,
-      sourceType,
-      sourceId,
-      content,
+      sourceType: sourceType,
+      sourceId: sourceId,
+      content: content,
       createdAt: new Date(),
     });
 
@@ -72,7 +72,6 @@ export async function POST(request: NextRequest) {
     if (replyToUserId) {
       await newComment.populate('replyToUserId', 'username _id');
     }
-
 
     return NextResponse.json({ 
       success: true, 

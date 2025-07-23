@@ -31,16 +31,16 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
             sourceType: 'ForumPost',
             sourceId: postId
         })
-        .populate({
-            path: 'userId',
-            select: '_id username role profile.avatar'
-        })
-        .populate({
-            path: 'replyToUserId',
-            select: '_id username role'
-        })
-        .sort({ createdAt: -1 })
-        .lean();
+            .populate({
+                path: 'userId',
+                select: '_id username role profile.avatar'
+            })
+            .populate({
+                path: 'replyToUserId',
+                select: '_id username role'
+            })
+            .sort({ createdAt: -1 })
+            .lean();
 
         const newComments = optimizeComment(comments);
 
@@ -60,14 +60,17 @@ function optimizeComment(comments: any[]) {
     const commentMap = new Map();
     const rootComments: any[] = [];
 
+    //Tạo object replies rỗng cho comment.
     comments.forEach(comment => {
         commentMap.set(comment._id.toString(), { ...comment, replies: [] });
     });
 
+    //Thêm các comment vào replies.
     comments.forEach(comment => {
-        if (comment.parentId) {
+        //Nếu parentId tồn tại
+        if (comment.parentId) { //Tìm cha.
             const parent = commentMap.get(comment.parentId.toString());
-            if (parent) {
+            if (parent) { //Nếu cha không rỗng, push comment đang duyệt hiện tại vào mảng replies của cha.
                 parent.replies.push(commentMap.get(comment._id.toString()));
             }
         } else {

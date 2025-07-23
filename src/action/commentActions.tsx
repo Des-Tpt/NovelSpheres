@@ -18,8 +18,8 @@ export const createComment = async (commentData: {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Lỗi khi tạo bình luận');
     }
-
     return await response.json();
+    
   } catch (error) {
     console.error('Error creating comment:', error);
     throw error;
