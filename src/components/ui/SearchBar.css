@@ -22,8 +22,8 @@
 .input {
     width: 100%;
     flex: 1;
-    font-size: 1rem;
-    font-family:Arial, Helvetica, sans-serif;
+    font-size: 0.95rem;
+    font-family: Inter;
     height: 1.75rem;
     padding: 0.2rem;
     outline: none;

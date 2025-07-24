@@ -186,6 +186,17 @@ const PostDetail = () => {
           if (res) {
             setImageUrls((prev) => ({ ...prev, [publicId]: res }));
           }
+
+          if (Array.isArray(comment.replies)) {
+            comment.replies.map(async (reply) => {
+              const replyPublicId = reply.userId.profile?.avatar?.publicId ?? '';
+              const replyFormat = reply.userId.profile?.avatar?.format ?? 'jpg';
+              const replyRes = await getImage(replyPublicId, replyFormat);
+              if (replyRes) {
+                setImageUrls((prev) => ({ ...prev, [replyPublicId]: replyRes }));
+              }
+            });
+          }
       });
   }, [data]);
 
@@ -570,7 +581,7 @@ const PostDetail = () => {
                               whileHover={{ scale: 1.02 }}
                               whileTap={{ scale: 0.98 }}
                               onClick={() => toggleShowAllReplies(parent._id)}
-                              className="flex items-center gap-2 px-3 py-1.5 text-sm text-blue-400 hover:text-blue-300 transition-colors rounded-md hover:bg-gray-800/50"
+                              className="flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm text-blue-400 hover:text-blue-300 transition-colors rounded-md hover:bg-gray-800/50"
                             >
                               {showAllReplies.has(parent._id) ? (
                                 <>

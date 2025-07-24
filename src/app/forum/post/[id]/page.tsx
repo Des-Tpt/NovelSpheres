@@ -1,4 +1,4 @@
-import PostDetail from "@/components/post-detailed/PostDetailed";
+import PostDetail from "@/components/post-detail/PostDetail";
 
 export default function PostPage() {
   return (

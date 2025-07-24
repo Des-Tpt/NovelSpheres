@@ -14,18 +14,28 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
             return NextResponse.json({ error: "NovelId là biến bắt buộc" }, { status: 400 });
         }
 
-        connectDB();
+        await connectDB();
 
         console.log("modelName:", Novel.modelName);
         console.log("modelName:", Comment.modelName);
 
         const novel = await Novel.findById(novelId)
             .populate({ path: "authorId", select: "_id username profile role" })
-            .populate({ path: "genresId", select: "_id name" }).lean();
-        
+            .populate({ path: "genresId", select: "_id name" })
+
         if (!novel) {
             return NextResponse.json({ error: "Không tìm thấy tiểu thuyết" }, { status: 404 });
         }
+
+        const authorId = novel.authorId;
+        const authorNovelCount = await Novel.countDocuments({ authorId: authorId });
+        const chaptersCount = await Chapter.countDocuments({ novelId: novelId });
+
+        const novelResponse = {
+            ...novel.toObject(),
+            authorNovelCount,
+            chaptersCount
+        };
 
         const comments = await Comment.find({ sourceType: "Novel", sourceId: novelId })
             .populate({ path: "userId", select: "_id username profile role" })
@@ -53,7 +63,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
         await Novel.findByIdAndUpdate(novelId, { $inc: { views: 1 } });
 
         return NextResponse.json({
-            novel,
+            novel: novelResponse,
             comments: optimizedComments,
             acts: actsWithChapters,
         });
