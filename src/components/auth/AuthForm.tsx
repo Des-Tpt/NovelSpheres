@@ -54,7 +54,10 @@ export default function AuthForm({ onClose, isOpen }: Props) {
                 setConfirmPassword('');
                 setSuccessMsg(tab === 'login' ? 'Đăng nhập thành công!' : 'Đăng ký thành công!');
                 setErrorMsg('');
-                setTimeout(() => onClose(), 200);
+                setTimeout(() => {
+                    onClose()
+                    window.location.reload(); 
+                }, 200);
             } else {
                 setErrorMsg(data.error || '');
             }

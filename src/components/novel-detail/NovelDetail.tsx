@@ -7,7 +7,7 @@ import { use, useEffect, useState } from 'react';
 import getImage from '@/action/imageActions';
 import Image from 'next/image';
 import handleStatus from '@/utils/handleStatus';
-import { Book, BookMarked, Heart, Share2, StepForward, Calendar, Eye, Clock, BookOpenIcon } from 'lucide-react';
+import { Book, BookMarked, Heart, Share2, StepForward, Calendar, Eye, Clock, BookOpenIcon, Star } from 'lucide-react';
 
 const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 const defaultFallback = `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
@@ -187,7 +187,7 @@ const NovelDetail = () => {
     }
 
     return (
-        <div className='container mx-auto px-4 py-6'>
+        <div className='container mx-auto px-5 py-5'>
             <div className='flex flex-col lg:flex-row gap-8'>
                 {/* Cover Image và Actions */}
                 <div className='flex flex-col w-full lg:w-auto'>
@@ -225,16 +225,6 @@ const NovelDetail = () => {
                                     Chia sẻ
                                 </span>
                             </div></button>
-                        </div>
-
-                        <div className='border-t border-gray-600 my-6'></div>
-                        
-                        {/* Thông tin thống kê */}
-                        <div className='space-y-3'>
-                            <div className='flex items-center gap-2'>
-                                <span className='text-yellow-400'>⭐</span>
-                                <span>{data?.novel.rating ? Number(data.novel.rating).toFixed(1) : '0.0'} / 5</span>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -299,6 +289,11 @@ const NovelDetail = () => {
                                 <Heart className='w-5 h-5 mb-1 text-red-400' />
                                 <span className='text-lg font-bold'>{data?.novel.likes && data.novel.likes > 100 ? data.novel.likes : '9.6K'}</span>
                                 <span className='text-[0.95rem]'>Lượt theo dõi</span>
+                            </div>
+                            <div className='flex flex-col justify-center items-center'>
+                                <Star className='w-5 h-5 mb-1 text-yellow-500' />
+                                <span className='text-lg font-bold'>4.6</span>
+                                <span className='text-[0.95rem]'>Đánh giá</span>
                             </div>
                             <div className='flex flex-col justify-center items-center'>
                                 <Eye className='w-5 h-5 mb-1 text-green-400' />

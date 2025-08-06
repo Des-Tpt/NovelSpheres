@@ -27,7 +27,7 @@ const Header = () => {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<User>();
   const [userImage, setUserImage] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(true); // Thêm loading state
+  const [isLoading, setIsLoading] = useState(true); 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleClick = (buttonId: string) => {

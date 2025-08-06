@@ -77,7 +77,7 @@ const BookCard: React.FC<BookCardProps> = ({ novel, imageUrls, index = 0, showAn
                                 {novel.title}
                             </span>
                             <span className="pl-1 pb-3 pt-1.5 font-inter">của {novel.authorName}</span>
-                            <span className="text-[0.9rem] font-inter sm:line-clamp-3 md:line-clamp-5">{novel.description}</span>
+                            <span className="text-[0.9rem] line-clamp-3 font-inter sm:line-clamp-3 md:line-clamp-4">{novel.description}</span>
                             <div className="flex lg:flex-col justify-between">
                                 <span className="rounded-2xl border px-3 font-sans absolute bottom-3 left-5">
                                     {novel.firstGenreName}
