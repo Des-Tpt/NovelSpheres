@@ -4,6 +4,8 @@ NovelSphere is a small project of mine aimed at building a story-sharing website
 
 <img width="1897" height="923" alt="image" src="https://github.com/user-attachments/assets/fe632bb3-8c5c-497e-83f2-a51a50cad493" />
 
+<img width="1899" height="918" alt="image" src="https://github.com/user-attachments/assets/bc62fed0-3625-486e-b2f2-5cb01fbeb5d1" />
+
 <img width="1896" height="919" alt="image" src="https://github.com/user-attachments/assets/c9422b6e-48d8-4648-9e6c-a1505f1307c5" />
 
 <img width="1898" height="923" alt="image" src="https://github.com/user-attachments/assets/79280691-ea8d-478c-ad98-ab6e946c128e" />
