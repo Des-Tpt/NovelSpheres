@@ -3,6 +3,7 @@ import { ForumPost } from '@/model/PostForum';
 import { connectDB } from '@/lib/db';
 import { User } from '@/model/User';
 import { Comment } from '@/model/Comment';
+import { getCurrentUser } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
     await connectDB();
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
 
     const sortOptions: Record<string, any> = {
         title: { title: 1 },
-        date: { createdAt: -1 },
+        date: { lastCommentAt: -1 },
         views: { views: -1 },
     };
 
@@ -57,7 +58,8 @@ export async function GET(req: NextRequest) {
                     role: post.userId?.role || 'Không rõ',
                     owner: post.userId?.username || 'Vô danh',
                     avatar: post.userId?.profile?.avatar || null,
-                    totalRepiles: totalReplies,    
+                    totalRepiles: totalReplies,
+                    lastCommentAt: post.lastCommentAt,    
                 }
                 })
         )
@@ -74,5 +76,43 @@ export async function GET(req: NextRequest) {
         { error: 'Không thể lấy thông tin bài viết.' },
         { status: 500 }
         );
+    }
+}
+
+type User = {
+    _id: string;
+    username: string;
+    email: string;
+    publicId: string;
+    format: string;
+    role: string;
+}
+
+export async function POST(request: NextRequest) {
+    try {
+        await connectDB();
+
+        const user: User | null = await getCurrentUser();
+
+        if (!user) return NextResponse.json({ error: 'Vui lòng đăng nhập tài khoản để tạo post!' }, { status: 401 });
+        
+        const {title, category, content, novelId} = await request.json();
+
+        const newPost = new ForumPost({
+            userId: user._id,
+            novelId: novelId ?? null,
+            title: title,
+            category: category,
+            content: content,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+        });
+
+        await newPost.save();
+        
+        return NextResponse.json({ success: true, post: newPost })
+    } catch (e) {
+        console.log(e)
+        return NextResponse.json({ error: 'Đã xảy ra lỗi khi tạo post!' }, { status: 500 });
     }
 }

@@ -1,6 +1,6 @@
 'use client'
 import { getGenres, getNovelByFilter } from "@/action/novelActions";
-import { ArrowRightIcon, ArrowTrendingUpIcon, BookmarkIcon, BookOpenIcon, ClockIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { ArrowRightIcon, ArrowTrendingUpIcon, BookmarkIcon, BookOpenIcon, ClockIcon, XMarkIcon, StarIcon, FireIcon, SparklesIcon } from "@heroicons/react/24/outline";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import getImage from "@/action/imageActions";
@@ -65,6 +65,19 @@ const BookFilter = () => {
             case "updatedAt": return "Mới cập nhật";
             case "title": return "Theo thứ tự bảng chữ cái";
             default: return "Tiểu thuyết phổ biến";
+        }
+    }
+
+    const getIconForSort = (sort: string) => {
+        switch (sort) {
+            case "views": 
+                return <FireIcon className="w-8 h-8 md:w-13 md:h-13 p-1.5 text-red-500 rounded-[0.8rem] bg-gray-800" />;
+            case "updatedAt": 
+                return <SparklesIcon className="w-8 h-8 md:w-13 md:h-13 p-1.5 text-green-500 rounded-[0.8rem] bg-gray-800" />;
+            case "title": 
+                return <BookmarkIcon className="w-8 h-8 md:w-13 md:h-13 p-1.5 text-blue-500 rounded-[0.8rem] bg-gray-800" />;
+            default: 
+                return <StarIcon className="w-8 h-8 md:w-13 md:h-13 p-1.5 text-yellow-500 rounded-[0.8rem] bg-gray-800" />;
         }
     }
 
@@ -159,9 +172,19 @@ const BookFilter = () => {
                 {/* Title and View All Section */}
                 <div className="flex flex-col w-full max-w-[1400px] px-4">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-5 md:py-0 gap-3 sm:gap-0">
-                        <h2 className="text-white text-2xl md:text-3xl font-bold flex-shrink-0">
-                            {handleFilterName(sort)}
-                        </h2>
+                        <div className="flex items-center gap-3 md:gap-4">
+                            {getIconForSort(sort)}
+                            <div className="flex flex-col">
+                                <h2 className="text-white text-xl md:text-2xl font-bold flex-shrink-0">
+                                    {handleFilterName(sort)}
+                                </h2>
+                                <span className="text-gray-400 text-sm md:text-base">
+                                    {sort === "views" && "Những tác phẩm được yêu thích nhất"}
+                                    {sort === "updatedAt" && "Cập nhật gần đây nhất"}
+                                    {sort === "title" && "Sắp xếp theo bảng chữ cái"}
+                                </span>
+                            </div>
+                        </div>
                         <button className="flex items-center justify-center sm:justify-start cursor-pointer text-amber-600 font-inter rounded-[10px] px-4 py-1.5 hover:bg-gray-600 transition-colors duration-200 whitespace-nowrap">
                             Xem tất cả <ArrowRightIcon className="pl-2 w-6 h-6" />
                         </button>

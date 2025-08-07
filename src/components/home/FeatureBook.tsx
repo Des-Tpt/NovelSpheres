@@ -48,48 +48,53 @@ const BookCard: React.FC<BookCardProps> = ({ novel, imageUrls, index = 0, showAn
     const router = useRouter();
 
     const cardContent = (
-        <div className="m-4 flex flex-col cursor-pointer rounded-lg shadow-gray-400 shadow-sm border border-gray-400 group hover:scale-105 hover:shadow-gray-400 hover:shadow-2xl duration-300 transition-all"
+        <div className="m-4 flex flex-col cursor-pointer rounded-lg shadow-gray-400 shadow-sm border border-gray-400 group hover:scale-105 hover:shadow-gray-400 hover:shadow-2xl duration-300 transition-all overflow-hidden"
             onClick={() => router.push(`/novels/${novel._id}`)}
         >
-                <div className="relative items-center rounded-lg overflow-hidden">
-                    <Image
-                        src={novel.coverImage?.publicId && imageUrls[novel.coverImage.publicId]
-                            ? imageUrls[novel.coverImage.publicId]
-                            : `https://res.cloudinary.com/${cloudName!}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`
-                        }
-                        width={400}
-                        height={400}
-                        alt={novel.title}
-                        className="w-142 h-100 md:h-80 object-cover"
-                    />
-                    <div className="flex">
-                        <span className="rounded-2xl absolute bg-gray-600 py-0.25 px-2 font-semibold text-[1rem] top-2.5 left-2.5">
-                            {novel.rating ? `⭐ ${novel.rating}` : 'Chưa có đánh giá'}
-                        </span>
-                        <span className="rounded-2xl absolute bg-gray-600 py-0.5 px-4 font-semibold top-2.5 right-2.5">
-                            {handleStatus(novel.status)}
-                        </span>
-                    </div>
+            <div className="relative rounded-t-lg overflow-hidden">
+                <Image
+                    src={novel.coverImage?.publicId && imageUrls[novel.coverImage.publicId]
+                        ? imageUrls[novel.coverImage.publicId]
+                        : `https://res.cloudinary.com/${cloudName!}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`
+                    }
+                    width={400}
+                    height={400}
+                    alt={novel.title}
+                    className="w-full h-64 md:h-72 object-cover object-top"
+                />
+                <div className="flex">
+                    <span className="rounded-2xl absolute bg-gray-800 bg-opacity-90 py-1 px-2 font-semibold text-sm top-3 left-3 text-white">
+                        {novel.rating ? `⭐ ${novel.rating}` : 'Chưa có đánh giá'}
+                    </span>
+                    <span className="rounded-2xl absolute bg-gray-800 bg-opacity-90 py-1 px-2 font-semibold text-sm top-3 right-3 text-white">
+                        {handleStatus(novel.status)}
+                    </span>
+                </div>
+            </div>
 
-                    <div className="bg-black rounded-b-lg h-55 sm:h-60 relative">
-                        <div className="flex flex-col p-3">
-                            <span className="font-bold text-[1.4rem] group-hover:text-amber-600 transition-colors line-clamp-1 duration-300">
-                                {novel.title}
-                            </span>
-                            <span className="pl-1 pb-3 pt-1.5 font-inter">của {novel.authorName}</span>
-                            <span className="text-[0.9rem] line-clamp-3 font-inter sm:line-clamp-3 md:line-clamp-4">{novel.description}</span>
-                            <div className="flex lg:flex-col justify-between">
-                                <span className="rounded-2xl border px-3 font-sans absolute bottom-3 left-5">
-                                    {novel.firstGenreName}
-                                </span>
-                                <span className="rounded-2xl border px-3 flex items-center absolute bottom-3 right-5">
-                                    <BookOpenIcon className="w-5 h-5 pr-1"/>
-                                    {novel.chapterCount ? ` ${novel.chapterCount} ch` : ` ${random(1, 1000)} ch`}
-                                </span>
-                            </div>
-                        </div>
+            <div className="bg-black rounded-b-lg h-[220px] relative">
+                <div className="flex flex-col p-4 h-full">
+                    <h3 className="font-bold text-xl text-white group-hover:text-amber-500 transition-colors line-clamp-2 duration-300 mb-2">
+                        {novel.title}
+                    </h3>
+                    <p className="text-gray-300 font-inter text-sm mb-3">
+                        của {novel.authorName || 'Tác giả không xác định'}
+                    </p>
+                    <p className="text-gray-400 text-sm line-clamp-3 font-inter mb-4 flex-1">
+                        {novel.description}
+                    </p>
+                    
+                    <div className="flex justify-between items-center mt-auto pt-2">
+                        <span className="rounded-full border border-amber-500 text-amber-500 px-3 py-1 text-xs font-medium">
+                            {novel.firstGenreName}
+                        </span>
+                        <span className="rounded-full border border-gray-500 text-gray-300 px-3 py-1 text-xs flex items-center">
+                            <BookOpenIcon className="w-4 h-4 mr-1"/>
+                            {novel.chapterCount ? `${novel.chapterCount}` : `${random(1, 1000)}`} ch
+                        </span>
                     </div>
                 </div>
+            </div>
         </div>
     );
 
@@ -122,50 +127,48 @@ const FeatureBook = () => {
     });
 
     useEffect(() => {
-    if (!data) return;
+        if (!data) return;
 
-    const fetchImages = async () => {
-        for (const novel of data) {
-        const publicId = novel.coverImage?.publicId;
-        const format = novel.coverImage?.format ?? 'jpg';
+        const fetchImages = async () => {
+            for (const novel of data) {
+                const publicId = novel.coverImage?.publicId;
+                const format = novel.coverImage?.format ?? 'jpg';
 
-        if (publicId && !imageUrls[publicId]) {
-            const res = await getImage(publicId, format);
-            if (res) {
-            setImageUrls((prev) => ({ ...prev, [publicId]: res }));
+                if (publicId && !imageUrls[publicId]) {
+                    const res = await getImage(publicId, format);
+                    if (res) {
+                        setImageUrls((prev) => ({ ...prev, [publicId]: res }));
+                    }
+                }
             }
-        }
-        }
-    };
+        };
 
-    fetchImages();
-    }, [data]);
+        fetchImages();
+    }, [data, imageUrls]);
 
-
-    if (isLoading) return (
-        <LoadingComponent />
-    );
-    if (error instanceof Error) return <p>Lỗi: {error.message}</p>;
-    if (!data || data.length === 0) return <p>Không có dữ liệu</p>;
+    if (isLoading) return <LoadingComponent />;
+    if (error instanceof Error) return <p className="text-red-500 text-center">Lỗi: {error.message}</p>;
+    if (!data || data.length === 0) return <p className="text-gray-400 text-center">Không có dữ liệu</p>;
 
     return (
         <div className="flex flex-col pt-7 bg-black px-2.5 md:bg-gradient-to-r md:from-black md:from-20% md:via-gray-950 md:via-75% md:to-black">
             <div className="flex justify-between items-center pt-10 pb-2 md:pt-0 md:px-[14.8%] px-2">
-                <div className="flex items-center gap-5">
-                    <Sparkle className="w-12 h-12 p-1.5 text-yellow-500 rounded-[0.8rem] bg-gray-800" />
+                <div className="flex items-center gap-4 md:gap-5">
+                    <Sparkle className="w-10 h-10 md:w-12 md:h-12 p-1.5 text-yellow-500 rounded-xl bg-gray-800" />
                     <div className="flex flex-col">
-                        <span className="font-bold text-[1.25rem] md:text-[1.75rem]">Có thể bạn sẽ thích?</span>
-                        <span className="text-[1rem] md:text-[1.25rem]">Những tác phẩm được gợi ý ngẫu nhiên...</span>
+                        <h2 className="font-bold text-white text-lg md:text-2xl">Có thể bạn sẽ thích?</h2>
+                        <p className="text-gray-400 text-sm md:text-base">Những tác phẩm được gợi ý ngẫu nhiên...</p>
                     </div>
                 </div>
 
-                <button className="flex cursor-pointer text-amber-600 font-inter rounded-[10px] px-4 py-1.5 hover:bg-gray-600">
-                    Xem tất cả <ArrowRightIcon className="pl-2 w-6 h-6"/>
+                <button className="flex items-center cursor-pointer text-amber-600 font-inter rounded-lg px-4 py-2 hover:bg-gray-800 transition-colors duration-200 whitespace-nowrap">
+                    <span className="hidden sm:inline">Xem tất cả</span>
+                    <ArrowRightIcon className="w-5 h-5 ml-1 sm:ml-2"/>
                 </button>
             </div>
             
-            {/* Giao diện cho Desktop */}
-            <div className="hidden gap md:grid md:grid-cols-4 md:px-[14%]">
+            {/* Desktop Layout */}
+            <div className="hidden md:grid md:grid-cols-4 md:px-[14%] gap-4">
                 {data.map((novel, index) => (
                     <BookCard
                         key={novel._id}
@@ -177,29 +180,31 @@ const FeatureBook = () => {
                 ))}
             </div>
 
-            {/* Giao diện cho Mobile */}
+            {/* Mobile Layout */}
             <div className="md:hidden block py-5">
                 <Swiper
-                modules={[Navigation, Pagination]}
-                spaceBetween={30}
-                slidesPerView={1}
-                navigation
-                pagination={{ clickable: true }}
-                className="mySwiper"
+                    modules={[Navigation, Pagination]}
+                    spaceBetween={20}
+                    slidesPerView={1}
+                    navigation
+                    pagination={{ 
+                        clickable: true,
+                        dynamicBullets: true 
+                    }}
+                    className="mySwiper"
                 >
-                {data.map((novel, index) => (
-                    <SwiperSlide>
-                        <div className="pt-5 pb-10">
-                            <BookCard
-                            key={novel._id}
-                            novel={novel}
-                            imageUrls={imageUrls}
-                            index={index}
-                            showAnimation={true}
-                            />
-                        </div>
-                    </SwiperSlide>
-                ))}
+                    {data.map((novel, index) => (
+                        <SwiperSlide key={novel._id}>
+                            <div className="pt-5 pb-12">
+                                <BookCard
+                                    novel={novel}
+                                    imageUrls={imageUrls}
+                                    index={index}
+                                    showAnimation={false}
+                                />
+                            </div>
+                        </SwiperSlide>
+                    ))}
                 </Swiper>
             </div>
         </div>

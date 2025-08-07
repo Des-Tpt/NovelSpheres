@@ -32,7 +32,7 @@ const CommentSchema = new Schema<IComment>({
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     content: { type: String, required: true },
     parentId: { type: Schema.Types.ObjectId, ref: 'Comment', default: null },
-    replyToUserId: { type: Schema.Types.ObjectId, ref: 'User', default: null }, 
+    replyToUserId: { type: Schema.Types.ObjectId, ref: 'User', default: null },
     sourceType: {
         type: String,
         enum: ['ForumPost', 'NovelChapter', 'Novel'],
@@ -44,5 +44,19 @@ const CommentSchema = new Schema<IComment>({
     },
     createdAt: { type: Date, default: Date.now }
 });
+
+CommentSchema.post('save', async function (doc) {
+    try {
+        if (doc.sourceType === 'ForumPost') {
+            const { ForumPost } = require('./PostForum');
+
+            await ForumPost.findByIdAndUpdate(doc.sourceId, {
+                lastCommentAt: new Date()
+            });
+        }
+    } catch (error) {
+        console.error('Error updating lastCommentAt:', error);
+    }
+})
 
 export const Comment = models.Comment || model<IComment>('Comment', CommentSchema, 'Comment');

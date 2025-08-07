@@ -17,6 +17,7 @@ interface ForumPost {
   };
   totalRepiles: number;
   role: string;
+  lastCommentAt: Date;
 }
 
 interface ForumPostResponse {
@@ -42,6 +43,7 @@ export const useForumPosts = ({ page = 1, category = '', sort = 'date', limit = 
       return res.json();
     },
     staleTime: 1000 * 30 * 5,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -61,3 +63,31 @@ export async function getPostById(id: string) {
     const data = await res.json();
     return data;
 }
+
+export const createPost = async (postData: {
+  novelId?: string;
+  title: string;
+  category: 'general' | 'reviews' | 'recommendations' | 'ask-author' | 'writing' | 'support';
+  content: string;
+}) => {
+  try {
+    const response = await fetch('/api/posts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(postData),
+      credentials: 'include', // Gửi cookies cùng với post
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Lỗi khi đăng bài!');
+    }
+    return await response.json();
+    
+  } catch (error) {
+    console.error('Lỗi khi đăng bài:', error);
+    throw error;
+  }
+};

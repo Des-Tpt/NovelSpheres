@@ -12,11 +12,12 @@ export const createComment = async (commentData: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(commentData),
+      credentials: 'include'
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || 'Lỗi khi tạo bình luận');
+      throw new Error(errorData.error || 'Lỗi khi bình luận!');
     }
     return await response.json();
     

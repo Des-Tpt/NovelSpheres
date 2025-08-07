@@ -12,7 +12,6 @@ import findParentComment from '@/utils/findParentComment';
 import CommentItem from '../ui/CommentItem';
 import handleToProfile from '@/utils/handleToProfile';
 import { AnimatePresence } from 'framer-motion';
-import { Popup } from '../ui/Popup';
 import { motion } from 'framer-motion';
 import countTotalComments from '@/utils/countComment';
 import { toast } from 'sonner';
@@ -398,7 +397,7 @@ const NovelDetail = () => {
                             )}
                             <div className='text-gray-300 flex flex-col'>
                                 <span className='text-blue-400 font-bold text-lg'>
-                                    {data?.novel?.authorId?.username}
+                                    {data?.novel?.authorId?.username ?? 'Vô danh'}
                                 </span>
                                 <span className='text-[0.75rem] flex items-center gap-3'>
                                     <span className='text-[1rem]'>15k người theo dõi</span> ● <span className='text-[1rem]'>{data?.novel?.authorNovelCount || 0} tác phẩm</span>
@@ -463,7 +462,7 @@ const NovelDetail = () => {
                                     : 'border-transparent text-gray-400 hover:text-gray-300'
                                     }`}
                             >
-                                Bình luận ({data?.comments?.length || 0})
+                                Bình luận ({countTotalComments(data.comments) || 0})
                             </button>
                         </nav>
                     </div>
@@ -521,10 +520,9 @@ const NovelDetail = () => {
                         )}
 
                         {activeTab === 'comments' && (
-                            <div className='bg-gray-800 rounded-lg p-6'>
-                                <h3 className='text-xl font-semibold mb-4 text-white'>Bình luận</h3>
+                            <div className='rounded-lg bg-gray-950 border border-gray-600'>
                                 <motion.div
-                                    className="mt-8 bg-gray-950 px-5 py-4 border border-gray-600 rounded-[0.8rem]"
+                                    className="px-5 py-4 rounded-[0.8rem]"
                                     variants={itemVariants}
                                 >
                                     <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
@@ -567,7 +565,8 @@ const NovelDetail = () => {
                                         </div>
                                     </motion.div>
                                 </motion.div>
-                                <div className="space-y-4 border-t-[1px] border-white pt-10 pb-10">
+                                <div className='border-t-[1px] border-white mx-5.5 pb-10'></div>
+                                <div className="space-y-4 mx-5 pb-5">
                                     {(!data?.comments || data.comments.length === 0) ? (
                                         <motion.div
                                             className="text-center py-8 text-gray-400"

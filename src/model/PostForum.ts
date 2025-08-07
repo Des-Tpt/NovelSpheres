@@ -13,6 +13,7 @@ export interface IForumPost extends Document {
   createdAt: Date;
   updatedAt: Date;
   views: number;
+  lastCommentAt: Date;
 }
 
 const ForumPostSchema = new Schema<IForumPost>({
@@ -25,12 +26,18 @@ const ForumPostSchema = new Schema<IForumPost>({
   isLocked: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
-  views: {type: Schema.Types.Number, default: 0}
+  views: {type: Schema.Types.Number, default: 0},
+  lastCommentAt: {type: Schema.Types.Date, default: function() { return this.createdAt || new Date() }},
+}, {
+  timestamps: true
 });
 
 ForumPostSchema.pre('save', function (next) {
   this.updatedAt = new Date();
   next();
 });
+
+ForumPostSchema.index({ lastCommentAt: -1 });
+ForumPostSchema.index({ category: 1, lastCommentAt: -1 });
 
 export const ForumPost = models.ForumPost || model<IForumPost>('ForumPost', ForumPostSchema,'ForumPost');

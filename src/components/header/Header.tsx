@@ -10,6 +10,8 @@ import Image from 'next/image';
 import { ArrowRight, Book, Heart, History, HistoryIcon } from 'lucide-react';
 import handleRole from '@/utils/handleRole';
 import { AnimatePresence, motion } from 'framer-motion';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 interface User {
   _id: string;
@@ -80,9 +82,16 @@ const Header = () => {
     fetchUser();
   }, []);
 
-  const handleLogout = () => {
-    console.log('Logout clicked');
-    setIsUserDropdownOpen(false);
+  const handleLogout = async () => {
+    try {
+      setIsUserDropdownOpen(false);
+
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+      });
+      window.location.href = '/';
+    } catch (e) {
+    }
   };
 
   return (

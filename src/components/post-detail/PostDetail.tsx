@@ -108,6 +108,7 @@ const PostDetail = () => {
     mutationFn: createComment,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['post', id] });
+      queryClient.invalidateQueries({ queryKey: ['forum-posts'] });
       toast.success('Bình luận đã được đăng thành công!');
     },
     onError: (error: Error) => {

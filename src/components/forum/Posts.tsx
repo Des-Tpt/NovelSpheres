@@ -12,6 +12,9 @@ import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/24/outline';
 import LoadingPostComponent from '../ui/LoadingPost';
 import { useSearchParams } from 'next/navigation';
 import { useForumPosts } from '@/action/postActions';
+import { MessageCircle, ThumbsUp, Send } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 
@@ -97,13 +100,15 @@ export default function ForumPage() {
         });
     }, [data]);
 
-    function handleFormatDate(dateInput: Date | string): string {
-        return new Date(dateInput).toLocaleDateString('vi-VN'); 
-    }
+    const getTimeAgo = (updatedAt: string | Date) => {
+        return `Cập nhật ${formatDistanceToNow(new Date(updatedAt), { addSuffix: true, locale: vi })}`;
+    };
 
     const startItem = (page - 1) * limit + 1;
     const endItem = Math.min(page * limit, data?.total || 0);
     const totalItems = data?.total || 0;
+    
+
     
     const handleCategory = (category: String) => {
         switch(category) {
@@ -223,7 +228,7 @@ export default function ForumPage() {
                                                     {post.title}
                                                 </h3>
                                                 <span className="font-bold text-[0.75rem] md:text-[0.8rem] font-sans text-gray-400 md:text-white">
-                                                    {handleFormatDate(post.createdAt)}
+                                                    {getTimeAgo(post.lastCommentAt ?? post.createdAt)}
                                                 </span>
                                             </div>
                                             <div className="flex flex-wrap text-[0.8rem] md:text-[0.85rem] font-inter font-normal text-white gap-2 md:gap-3 py-1.5 items-center">
