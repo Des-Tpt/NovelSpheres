@@ -5,7 +5,7 @@ import { UserIcon, EnvelopeIcon, LockClosedIcon, EyeIcon, EyeSlashIcon, BookOpen
 import './AuthForm.css';
 import { FaGoogle, FaGithub } from "react-icons/fa";
 import ButtonClick from '../ui/ButtonClick';
-import { Popup } from '../ui/Popup';
+import { toast } from 'sonner';
 
 interface Props {
     onClose: () => void;
@@ -18,8 +18,6 @@ export default function AuthForm({ onClose, isOpen }: Props) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [errorMsg, setErrorMsg] = useState('');
-    const [successMsg, setSuccessMsg] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword ] = useState(false);
 
@@ -52,45 +50,29 @@ export default function AuthForm({ onClose, isOpen }: Props) {
                 setUsername('');
                 setPassword('');
                 setConfirmPassword('');
-                setSuccessMsg(tab === 'login' ? 'Đăng nhập thành công!' : 'Đăng ký thành công!');
-                setErrorMsg('');
+                toast.success(tab === 'login' ? 'Đăng nhập thành công!' : 'Đăng ký thành công!');
                 setTimeout(() => {
                     onClose()
                     window.location.reload(); 
                 }, 200);
             } else {
-                setErrorMsg(data.error || '');
+                toast.error(data.error || '');
             }
         },
         onError: (error: any) => {
-            setErrorMsg(error.message || 'Có lỗi xảy ra, vui lòng thử lại!');
+            toast.error(error.message || 'Có lỗi xảy ra, vui lòng thử lại!');
         }
     });
-
-    useEffect(() => {
-    if (errorMsg) {
-        const timeout = setTimeout(() => setErrorMsg(''), 3000); 
-        return () => clearTimeout(timeout);
-    }
-    }, [errorMsg]);
-
-    useEffect(() => {
-    if (successMsg) {
-        const timeout = setTimeout(() => setSuccessMsg(''), 3000);
-        return () => clearTimeout(timeout);
-    }
-    }, [successMsg]);
 
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        setErrorMsg('');
         if (tab === 'register' && password !== confirmPassword) {
-            setErrorMsg('Mật khẩu không khớp.');
+            toast.error('Mật khẩu không khớp.');
             return;
         }
         if (!email.includes('@') || password.length < 6) {
-            setErrorMsg('Email hoặc mật khẩu không hợp lệ.');
+            toast.error('Email hoặc mật khẩu không hợp lệ.');
             return;
         }
         mutation.mutate();
@@ -101,7 +83,6 @@ export default function AuthForm({ onClose, isOpen }: Props) {
         setUsername('');
         setPassword('');
         setConfirmPassword('');
-        setErrorMsg('');
         setShowPassword(false);
         setShowConfirmPassword(false);
     };
@@ -240,22 +221,6 @@ export default function AuthForm({ onClose, isOpen }: Props) {
                     </div>    
                     </motion.div>
                 </motion.div>
-            )}
-        </AnimatePresence>
-        <AnimatePresence>
-            {errorMsg && (
-                <Popup
-                    message={errorMsg}
-                    onClose={() => setErrorMsg('')}
-                    type="error"
-                />
-            )}
-            {successMsg && (
-                <Popup
-                    message={successMsg}
-                    onClose={() => setSuccessMsg('')}
-                    type="success"
-                />
             )}
         </AnimatePresence>
     </>
