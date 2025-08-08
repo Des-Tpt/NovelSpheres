@@ -26,7 +26,7 @@ export default function ForumPage() {
     const [sort, setSort] = useState('date');
     const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
     const [limit, setLimit] = useState(10);
-    
+
     useEffect(() => {
         const queryCategory = searchParams.get('category');
         const querySort = searchParams.get('sort');
@@ -61,9 +61,9 @@ export default function ForumPage() {
     ];
 
     const limitOptions = [
-        { value: 5, label: '5'},
-        { value: 10, label: '10'},
-        { value: 15, label: '15'}
+        { value: 5, label: '5' },
+        { value: 10, label: '10' },
+        { value: 15, label: '15' }
     ];
 
     const postContainerRef = useRef<HTMLDivElement>(null);
@@ -79,20 +79,20 @@ export default function ForumPage() {
                 behavior: 'smooth',
             });
         }
-    },[category, page, sort, limit])
+    }, [category, page, sort, limit])
 
     useEffect(() => {
         setPage(1)
-    },[category, sort, limit])
+    }, [category, sort, limit])
 
     const TotalPages = Math.ceil(data?.total! / limit);
-    
+
     useEffect(() => {
         if (!Array.isArray(data?.data)) return;
 
         data.data.map(async (post) => {
             const publicId = post.avatar?.publicId ?? '';
-            const format = post.avatar?.format?? 'jpg';
+            const format = post.avatar?.format ?? 'jpg';
             const res = await getImage(publicId, format);
             if (res) {
                 setImageUrls((prev) => ({ ...prev, [publicId]: res }));
@@ -107,25 +107,25 @@ export default function ForumPage() {
     const startItem = (page - 1) * limit + 1;
     const endItem = Math.min(page * limit, data?.total || 0);
     const totalItems = data?.total || 0;
-    
 
-    
+
+
     const handleCategory = (category: String) => {
-        switch(category) {
-            case 'general' : return 'Thảo luận chung';
-            case 'reviews' : return 'Đánh giá & Nhận xét'
-            case 'ask-author' : return 'Hỏi đáp tác giả'
-            case 'writing' : return 'Sáng tác & Viết lách'
-            case 'recommendations' : return 'Gợi ý & Đề xuất'
-            case 'support' : return 'Hỗ trợ & Trợ giúp'
+        switch (category) {
+            case 'general': return 'Thảo luận chung';
+            case 'reviews': return 'Đánh giá & Nhận xét'
+            case 'ask-author': return 'Hỏi đáp tác giả'
+            case 'writing': return 'Sáng tác & Viết lách'
+            case 'recommendations': return 'Gợi ý & Đề xuất'
+            case 'support': return 'Hỗ trợ & Trợ giúp'
         }
     }
 
     const handleRole = (role: String) => {
-        switch(role) {
-            case 'admin' : return 'Quản trị viên';
-            case 'Writer' : return 'Tác gia'
-            case 'reader' : return 'Độc giả'
+        switch (role) {
+            case 'admin': return 'Quản trị viên';
+            case 'Writer': return 'Tác gia'
+            case 'reader': return 'Độc giả'
         }
     }
 
@@ -145,14 +145,21 @@ export default function ForumPage() {
 
     const fadeInUp = {
         hidden: { opacity: 0, y: 10 },
-        visible: { 
-            opacity: 1, 
+        visible: {
+            opacity: 1,
             y: 0,
             transition: { duration: 0.2 }
         }
     };
 
-    if (isLoading) return <LoadingPostComponent/>;
+    const stripHtml = (html: string) => {
+        const tmp = document.createElement("DIV");
+        tmp.innerHTML = html;
+        return tmp.textContent || tmp.innerText || "";
+    };
+
+
+    if (isLoading) return <LoadingPostComponent />;
     if (isError) return <p>Có lỗi xảy ra.</p>;
 
     return (
@@ -165,7 +172,7 @@ export default function ForumPage() {
                 <div className="flex gap-10 items-center">
                     <div className="flex gap-2 items-center">
                         <span>Danh sách:</span>
-                        <CustomSelect 
+                        <CustomSelect
                             value={category}
                             onChange={setCategory}
                             options={categoryOptions}
@@ -174,7 +181,7 @@ export default function ForumPage() {
                     </div>
                     <div className="flex gap-2 items-center">
                         <span>Sắp xếp:</span>
-                        <CustomSelect 
+                        <CustomSelect
                             value={sort}
                             onChange={setSort}
                             options={sortOptions}
@@ -184,7 +191,7 @@ export default function ForumPage() {
                 </div>
             </div>
 
-            <div 
+            <div
                 ref={postContainerRef}
                 className="mt-4 w-full border border-gray-600 rounded-[0.8rem] overflow-hidden"
             >
@@ -202,15 +209,15 @@ export default function ForumPage() {
                         variants={staggerContainer}
                     >
                         {data?.data.map((post, index) => (
-                            <motion.div 
-                                key={post._id} 
+                            <motion.div
+                                key={post._id}
                                 className="post-card mb-2 w-full bg-gray-950 py-3 md:py-5 px-3 md:px-5 group hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
                                 variants={fadeInUp}
                                 onClick={() => handlePostClick(post._id)}
                             >
                                 <div className="flex flex-col md:flex-row gap-3 md:gap-5 h-full">
                                     <div className="flex-shrink-0 flex justify-center md:justify-start">
-                                        <Image 
+                                        <Image
                                             src={post?.avatar?.publicId && imageUrls[post.avatar.publicId]
                                                 ? imageUrls[post.avatar.publicId]
                                                 : `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`
@@ -240,7 +247,8 @@ export default function ForumPage() {
                                                     {handleRole(post.role)}
                                                 </span>
                                             </div>
-                                            <p className="font-sans text-[0.9rem] md:text-[0.95rem] line-clamp-2 flex-1"  dangerouslySetInnerHTML={{ __html: post.content }}>
+                                            <p className="font-sans text-[0.9rem] md:text-[0.95rem] line-clamp-2 flex-1">
+                                                {stripHtml(post.content)}
                                             </p>
                                         </div>
                                         <div className="border-b py-2 border-gray-600"></div>
@@ -248,7 +256,7 @@ export default function ForumPage() {
                                             <div className="flex gap-4 md:gap-7 text-[0.8rem] md:text-[0.88rem] font-bold">
                                                 <div className="stat-item flex items-center gap-1.5 transition-all duration-200 hover:scale-105 hover:text-blue-500">
                                                     <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                                                    <span>{post.totalRepiles === 0 ? random(1,10) : post.totalRepiles}</span>
+                                                    <span>{post.totalRepiles === 0 ? random(1, 10) : post.totalRepiles}</span>
                                                 </div>
                                                 <div className="stat-item views-stat flex items-center gap-1.5 transition-all duration-200 hover:scale-105 hover:text-green-500">
                                                     <EyeIcon className="w-4 h-4 md:w-4.5 md:h-4.5" />
@@ -274,7 +282,7 @@ export default function ForumPage() {
                     </p>
                     <div className="flex items-center gap-1.5">
                         <span>Hiển thị: </span>
-                        <CustomSelect 
+                        <CustomSelect
                             value={limit}
                             onChange={setLimit}
                             options={limitOptions}
@@ -284,21 +292,21 @@ export default function ForumPage() {
                     </div>
                 </div>
                 <div className="flex gap-2.5 justify-center">
-                    <button 
-                        disabled={page === 1} 
+                    <button
+                        disabled={page === 1}
                         onClick={() => setPage((p) => p - 1)}
                         className="pagination-btn px-3 border border-gray-600 rounded-md bg-gray-950 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-px hover:bg-gray-800 active:translate-y-0 transition-all duration-200"
                     >
                         Trang trước
                     </button>
-                    
+
                     <div className="flex gap-2.5">
                         {Array.from({ length: TotalPages }, (_, i) => i + 1).map((pageNum) => (
                             <button
                                 key={pageNum}
                                 onClick={() => setPage(pageNum)}
-                                className={`page-number px-3 py-0.5 border border-gray-600 rounded-md text-white ${page === pageNum 
-                                    ? 'bg-blue-600 border-blue-500' 
+                                className={`page-number px-3 py-0.5 border border-gray-600 rounded-md text-white ${page === pageNum
+                                    ? 'bg-blue-600 border-blue-500'
                                     : 'bg-gray-950 hover:bg-gray-800'} hover:-translate-y-px active:translate-y-0 transition-all duration-200`}
                             >
                                 {pageNum}
@@ -314,10 +322,10 @@ export default function ForumPage() {
                     </button>
                 </div>
             </div>
-            
+
             <AnimatePresence>
                 {isFetching && (
-                    <motion.p 
+                    <motion.p
                         className="text-sm text-gray-400 animate-pulse"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
