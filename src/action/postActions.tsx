@@ -1,3 +1,4 @@
+import { notifyError } from '@/utils/notify';
 import { useQuery } from '@tanstack/react-query';
 
 interface ForumPost {
@@ -70,24 +71,17 @@ export const createPost = async (postData: {
   category: 'general' | 'reviews' | 'recommendations' | 'ask-author' | 'writing' | 'support';
   content: string;
 }) => {
-  try {
-    const response = await fetch('/api/posts', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(postData),
-      credentials: 'include', // Gửi cookies cùng với post
-    });
+  const response = await fetch('/api/forum/posts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(postData),
+    credentials: 'include',
+  });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Lỗi khi đăng bài!');
-    }
-    return await response.json();
-    
-  } catch (error) {
-    console.error('Lỗi khi đăng bài:', error);
-    throw error;
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Lỗi khi đăng bài!');
   }
+
+  return await response.json();
 };

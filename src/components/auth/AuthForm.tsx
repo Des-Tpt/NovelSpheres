@@ -5,7 +5,7 @@ import { UserIcon, EnvelopeIcon, LockClosedIcon, EyeIcon, EyeSlashIcon, BookOpen
 import './AuthForm.css';
 import { FaGoogle, FaGithub } from "react-icons/fa";
 import ButtonClick from '../ui/ButtonClick';
-import { toast } from 'sonner';
+import { notifyError, notifySuccess } from '@/utils/notify';
 
 interface Props {
     onClose: () => void;
@@ -50,17 +50,17 @@ export default function AuthForm({ onClose, isOpen }: Props) {
                 setUsername('');
                 setPassword('');
                 setConfirmPassword('');
-                toast.success(tab === 'login' ? 'Đăng nhập thành công!' : 'Đăng ký thành công!');
+                notifySuccess(tab === 'login' ? 'Đăng nhập thành công!' : 'Đăng ký thành công!');
                 setTimeout(() => {
                     onClose()
                     window.location.reload(); 
                 }, 200);
             } else {
-                toast.error(data.error || '');
+                notifyError(data.error || '');
             }
         },
         onError: (error: any) => {
-            toast.error(error.message || 'Có lỗi xảy ra, vui lòng thử lại!');
+            notifyError(error.message || 'Có lỗi xảy ra, vui lòng thử lại!');
         }
     });
 
@@ -68,11 +68,11 @@ export default function AuthForm({ onClose, isOpen }: Props) {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (tab === 'register' && password !== confirmPassword) {
-            toast.error('Mật khẩu không khớp.');
+            notifyError('Mật khẩu không khớp.');
             return;
         }
         if (!email.includes('@') || password.length < 6) {
-            toast.error('Email hoặc mật khẩu không hợp lệ.');
+            notifyError('Email hoặc mật khẩu không hợp lệ.');
             return;
         }
         mutation.mutate();

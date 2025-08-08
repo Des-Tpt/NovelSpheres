@@ -10,8 +10,6 @@ import Image from 'next/image';
 import { ArrowRight, Book, Heart, History, HistoryIcon } from 'lucide-react';
 import handleRole from '@/utils/handleRole';
 import { AnimatePresence, motion } from 'framer-motion';
-import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
 
 interface User {
   _id: string;

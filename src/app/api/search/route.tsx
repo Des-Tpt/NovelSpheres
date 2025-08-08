@@ -7,13 +7,11 @@ import { Novel } from '@/model/Novel';
 import { models } from 'mongoose';
 import { Chapter } from '@/model/Chapter';
 
-
 export const dynamic = 'force-dynamic'; //Sẽ luôn fetch dữ liệu mới nhất vì render server-side, không bị cached lại.
 
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const query = searchParams.get('query');
-
 
     console.log(Genre.modelName);
     console.log(User.modelName);
@@ -21,12 +19,10 @@ export async function GET(req: NextRequest) {
     console.log(Chapter.modelName);
 
     if (!query || query.trim() === '') {
-        console.log("Trống query → trả mảng rỗng");
         return NextResponse.json([]);
     }
     
     try {
-
         await connectDB();
 
         const decodedQuery = decodeURIComponent(query);
@@ -46,7 +42,6 @@ export async function GET(req: NextRequest) {
                 };
             }));
         return NextResponse.json(novelsWithChapterCount);
-
     } catch (error) {
         console.error("Lỗi khi tìm kiếm:", error);
         return NextResponse.json({ error: 'Lỗi khi tìm kiếm' }, { status: 500 });

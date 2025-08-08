@@ -7,6 +7,9 @@ import { Schema } from "mongoose";
 import { PostType } from "@/model/PostForum";
 import { useQuery } from "@tanstack/react-query";
 import Posts from "./Posts";
+import { useState } from "react";
+import NewPostPopup from "./NewPost";
+import { AnimatePresence } from "framer-motion";
 
 interface ForumPost {
     _id: Schema.Types.ObjectId;
@@ -30,6 +33,8 @@ const Introduce = () => {
         staleTime: 1000 * 60 * 5,
     });
 
+    const [isNewPostPageOpen, setIsNewPostPageOpen] = useState<boolean>(false)
+
     if (isLoading) {
         return (
             <div className="flex flex-col pt-7 md:px-[14%] bg-black md:bg-gradient-to-r md:from-black md:from-20% md:via-gray-950 md:via-75% md:to-black">
@@ -43,7 +48,7 @@ const Introduce = () => {
                             type={<PlusIcon className="h-5 w-5" />}
                             text="Tạo bài viết"
                             href="#"
-                            onClick={() => {}}
+                            onClick={() => { setIsNewPostPageOpen(true) }}
                         />
                     </div>
                 </div>
@@ -81,7 +86,7 @@ const Introduce = () => {
                             type={<PlusIcon className="h-5 w-5" />}
                             text="Tạo bài viết"
                             href="#"
-                            onClick={() => {}}
+                            onClick={() => { setIsNewPostPageOpen(true) }}
                         />
                     </div>
                 </div>
@@ -105,7 +110,7 @@ const Introduce = () => {
                             type={<PlusIcon className="h-5 w-5" />}
                             text="Tạo bài viết"
                             href="#"
-                            onClick={() => {}}
+                            onClick={() => setIsNewPostPageOpen(true)}
                         />
                     </div>
                 </div>
@@ -115,7 +120,7 @@ const Introduce = () => {
             </div>
         );
     }
-    
+
     return (
         <div className="flex flex-col pt-7 px-2 md:px-[14%] bg-black md:bg-gradient-to-r md:from-black md:from-20% md:via-gray-950 md:via-75% md:to-black">
             <div className="flex justify-between bg-gray-950 items-center border-gray-600 shadow-sm border rounded-[0.8rem] p-6">
@@ -128,20 +133,28 @@ const Introduce = () => {
                         type={<PlusIcon className="h-5 w-5" />}
                         text="Tạo bài viết"
                         href="#"
-                        onClick={() => {}}
+                        onClick={() => { setIsNewPostPageOpen(true) }}
                     />
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-x-3 gap-y-4 justify-between py-5">
                 {data.map(post => (
-                    <div key={post._id.toString()}> 
-                        <ForumCard data={post}/>
-                    </div>            
+                    <div key={post._id.toString()}>
+                        <ForumCard data={post} />
+                    </div>
                 ))}
             </div>
             <div>
                 <Posts />
             </div>
+            <AnimatePresence>
+                {isNewPostPageOpen && (
+                    <NewPostPopup
+                        isOpen={isNewPostPageOpen}
+                        onClose={() => setIsNewPostPageOpen(false)}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }

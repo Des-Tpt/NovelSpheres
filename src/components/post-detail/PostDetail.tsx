@@ -13,7 +13,7 @@ import handlePostCategory from '@/utils/handleCategory';
 import getImage from '@/action/imageActions';
 import CommentItem from '../ui/CommentItem';
 import findParentComment from '@/utils/findParentComment';
-import { toast } from 'sonner';
+import { notifyError, notifySuccess } from '@/utils/notify';
 
 
 interface Post {
@@ -109,10 +109,10 @@ const PostDetail = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['post', id] });
       queryClient.invalidateQueries({ queryKey: ['forum-posts'] });
-      toast.success('Bình luận đã được đăng thành công!');
+      notifySuccess('Bình luận đã được đăng thành công!');
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      notifyError(error.message);
     }
   });
 
@@ -230,7 +230,10 @@ const PostDetail = () => {
   }
 
   const handleSubmitComment = async () => {
-    if (!newCommentContent.trim()) return;
+    if (!newCommentContent.trim()) 
+    {
+      return
+    }
 
     try {
       await createCommentMutation.mutateAsync({

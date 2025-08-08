@@ -42,3 +42,14 @@ export const getNovelById = async (id: string) => {
     const data = await res.json();
     return data;
 }
+
+export const getNovelForNewPost = async (title: string) => {
+    const res = await fetch(`api/search-in-post?query=${encodeURIComponent(title)}`);
+
+    if (!res.ok) {
+        throw new Error('Không thể lấy tiểu thuyết!');
+    }
+
+    const data = await res.json();
+    return data;
+}

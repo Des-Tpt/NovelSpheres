@@ -27,10 +27,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Footer />
         </QueryClientProvider>
         <Toaster
-          theme="dark"
+          theme="light"
           position="bottom-right"
           toastOptions={{
-            className: "bg-gray-900 text-white shadow-lg rounded-xl",
+            className: "shadow-lg rounded-xl",
             duration: 4000,
             unstyled: false,
           }}
