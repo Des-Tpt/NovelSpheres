@@ -1,17 +1,19 @@
 NovelSphere is a small project of mine aimed at building a story-sharing website. There's no profound reason behind it. I'm doing this project to improve my coding skills and programming mindset while increasing my proficiency with Next.js and TypeScript.
 
-![image](https://github.com/user-attachments/assets/44a6edaa-bccc-414f-9247-c205cce9218c)
+<img width="1899" height="920" alt="image" src="https://github.com/user-attachments/assets/4fdfaae7-5182-4e36-be75-f036408e052a" />
 
-![image](https://github.com/user-attachments/assets/efcc3247-d1c2-49d8-9341-69dd3886504e)
+<img width="1897" height="923" alt="image" src="https://github.com/user-attachments/assets/fe632bb3-8c5c-497e-83f2-a51a50cad493" />
 
-<img width="1919" height="926" alt="image" src="https://github.com/user-attachments/assets/67bcf4af-a6a3-404e-883f-0b6149095f44" />
+<img width="1899" height="918" alt="image" src="https://github.com/user-attachments/assets/bc62fed0-3625-486e-b2f2-5cb01fbeb5d1" />
 
-<img width="1916" height="921" alt="image" src="https://github.com/user-attachments/assets/b29b143c-412d-470d-9c24-206a7bb43d95" />
+<img width="1896" height="919" alt="image" src="https://github.com/user-attachments/assets/c9422b6e-48d8-4648-9e6c-a1505f1307c5" />
+
+<img width="1898" height="923" alt="image" src="https://github.com/user-attachments/assets/79280691-ea8d-478c-ad98-ab6e946c128e" />
+
+<img width="1894" height="927" alt="image" src="https://github.com/user-attachments/assets/a24dfc5b-7ae5-41b5-b475-b0fd3f03bb2d" />
 
 
-
-
-The project is still very rudimentary, with only the homepage and login functions. I’ll likely continue developing more features in the future, like story posting and forum interactions. Maybe even a backend for admin? If I have the time or enough passion...
+The project is still very rudimentary. I’ll likely continue developing more features in the future. If I have the time or enough passion...
 
 ## Getting Started
 
