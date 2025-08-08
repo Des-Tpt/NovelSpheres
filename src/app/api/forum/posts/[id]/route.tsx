@@ -4,7 +4,7 @@ import { Comment } from '@/model/Comment';
 import { connectDB } from '@/lib/db';
 import optimizeComment from '@/utils/handleOptimize';
 
-export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+export async function GET(request: NextRequest, context: { params: { id: string } }) {
     try {
         connectDB();
         

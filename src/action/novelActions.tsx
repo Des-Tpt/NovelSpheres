@@ -5,20 +5,20 @@ type Genre = {
 }
 
 export const getFeatureNovels = async () => {
-    const res  = await fetch(`/api/novels/feature-novels`);
+    const res = await fetch(`/api/novels/feature-novels`);
     if (!res.ok) throw new Error('Lỗi khi fetch dữ liệu');
-  return res.json();
+    return res.json();
 }
 
 export const getGenres = async () => {
-    const res  = await fetch(`/api/genres`);
+    const res = await fetch(`/api/genres`);
     if (!res.ok) throw new Error('Lỗi khi fetch dữ liệu');
-  return res.json();
+    return res.json();
 }
 
-export const getNovelByFilter = async (data: Genre[], sortBy: string ): Promise<INovelWithPopulate[]> => {
-    const query = data.length > 0 
-        ? `?${data.map(genre => `genreIds=${encodeURIComponent(genre._id)}`).join('&')}` 
+export const getNovelByFilter = async (data: Genre[], sortBy: string): Promise<INovelWithPopulate[]> => {
+    const query = data.length > 0
+        ? `?${data.map(genre => `genreIds=${encodeURIComponent(genre._id)}`).join('&')}`
         : '';
 
     const url = `/api/novels/filter-novels${query}${query ? '&' : '?'}sortBy=${encodeURIComponent(sortBy)}`;
@@ -44,7 +44,7 @@ export const getNovelById = async (id: string) => {
 }
 
 export const getNovelForNewPost = async (title: string) => {
-    const res = await fetch(`api/search-in-post?query=${encodeURIComponent(title)}`);
+    const res = await fetch(`/api/search-in-post?query=${encodeURIComponent(title)}`);
 
     if (!res.ok) {
         throw new Error('Không thể lấy tiểu thuyết!');
@@ -52,4 +52,51 @@ export const getNovelForNewPost = async (title: string) => {
 
     const data = await res.json();
     return data;
+}
+
+export const createAct = async (postData: {
+    userId: string;
+    novelId: string;
+    title: string;
+    actNumber: number;
+    publicId?: string | null;
+    format?: string | null;
+}) => {
+    const response = await fetch(`/api/novels/${postData.novelId}?userId=${postData.userId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(postData),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Lỗi khi đăng bài!');
+    }
+
+    return await response.json();
+
+}
+
+
+export const createChapter = async (postData: {
+    userId: string;
+    novelId: string;
+    actId: string;
+    title: string;
+    chapterNumber: string;
+    content: number;
+    wordCount: number;
+}) => {
+    const response = await fetch(`api/novels/${postData.novelId}/${postData.actId}?userId=${postData.userId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(postData),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Lỗi khi đăng bài!');
+    }
+
+    return await response.json();
 }

@@ -35,15 +35,13 @@ export async function POST(request: NextRequest) {
     } 
     else if (sourceType === 'Novel') {
       const novel = await Novel.findById(sourceId);
-      if (!novel)
-        { 
+      if (!novel) { 
           return NextResponse.json({ error: 'Không tìm thấy tiểu thuyết'}, { status: 404 });
         }
     }
     else if (sourceType === 'NovelChapter'){
       const chapter = await Chapter.findById(sourceId);
-      if (!chapter) 
-        {
+      if (!chapter) {
           return NextResponse.json({ error: 'Không tìm thấy chương'}, { status: 404 });
         }
     }
