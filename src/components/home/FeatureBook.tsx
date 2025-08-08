@@ -16,6 +16,7 @@ import LoadingComponent from "../ui/Loading";
 import handleStatus from "@/utils/handleStatus";
 import { Sparkle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import stripHtml from "@/utils/stripHtml";
 
 type Novel = {
     _id: string;
@@ -81,15 +82,15 @@ const BookCard: React.FC<BookCardProps> = ({ novel, imageUrls, index = 0, showAn
                         của {novel.authorName || 'Tác giả không xác định'}
                     </p>
                     <p className="text-gray-400 text-sm line-clamp-3 font-inter mb-4 flex-1">
-                        {novel.description}
+                        {stripHtml(novel.description)}
                     </p>
-                    
+
                     <div className="flex justify-between items-center mt-auto pt-2">
                         <span className="rounded-full border border-amber-500 text-amber-500 px-3 py-1 text-xs font-medium">
                             {novel.firstGenreName}
                         </span>
                         <span className="rounded-full border border-gray-500 text-gray-300 px-3 py-1 text-xs flex items-center">
-                            <BookOpenIcon className="w-4 h-4 mr-1"/>
+                            <BookOpenIcon className="w-4 h-4 mr-1" />
                             {novel.chapterCount ? `${novel.chapterCount}` : `${random(1, 1000)}`} ch
                         </span>
                     </div>
@@ -107,8 +108,8 @@ const BookCard: React.FC<BookCardProps> = ({ novel, imageUrls, index = 0, showAn
             key={novel._id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ 
-                duration: 0.4, 
+            transition={{
+                duration: 0.4,
                 delay: index * 0.15
             }}
         >
@@ -119,7 +120,7 @@ const BookCard: React.FC<BookCardProps> = ({ novel, imageUrls, index = 0, showAn
 
 const FeatureBook = () => {
     const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
-    
+
     const { data, isLoading, error } = useQuery<Novel[] | null>({
         queryKey: ['feature-novels'],
         queryFn: getFeatureNovels,
@@ -163,12 +164,12 @@ const FeatureBook = () => {
 
                 <button className="flex items-center cursor-pointer text-amber-600 font-inter rounded-lg px-4 py-2 hover:bg-gray-800 transition-colors duration-200 whitespace-nowrap">
                     <span className="hidden sm:inline">Xem tất cả</span>
-                    <ArrowRightIcon className="w-5 h-5 ml-1 sm:ml-2"/>
+                    <ArrowRightIcon className="w-5 h-5 ml-1 sm:ml-2" />
                 </button>
             </div>
-            
+
             {/* Desktop Layout */}
-            <div className="hidden md:grid md:grid-cols-4 md:px-[14%] gap-4">
+            <div className="hidden md:grid md:grid-cols-4 md:px-[14%]">
                 {data.map((novel, index) => (
                     <BookCard
                         key={novel._id}
@@ -187,9 +188,9 @@ const FeatureBook = () => {
                     spaceBetween={20}
                     slidesPerView={1}
                     navigation
-                    pagination={{ 
+                    pagination={{
                         clickable: true,
-                        dynamicBullets: true 
+                        dynamicBullets: true
                     }}
                     className="mySwiper"
                 >

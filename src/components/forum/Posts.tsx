@@ -15,6 +15,7 @@ import { useForumPosts } from '@/action/postActions';
 import { MessageCircle, ThumbsUp, Send } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import stripHtml from '@/utils/stripHtml';
 
 const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 
@@ -152,11 +153,7 @@ export default function ForumPage() {
         }
     };
 
-    const stripHtml = (html: string) => {
-        const tmp = document.createElement("DIV");
-        tmp.innerHTML = html;
-        return tmp.textContent || tmp.innerText || "";
-    };
+
 
 
     if (isLoading) return <LoadingPostComponent />;

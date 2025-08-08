@@ -6,7 +6,9 @@ export interface IAct extends Document {
     novelId: Schema.Types.ObjectId,
     title: String,
     actNumber: String,
-    createdAt: Date
+    createdAt: Date,
+    publicId: string,
+    format: string,
 }
 
 const ActSchema = new Schema<IAct>({
@@ -14,7 +16,9 @@ const ActSchema = new Schema<IAct>({
     novelId: { type: Schema.Types.ObjectId, ref: 'Novel', required: true },
     title: { type: String, required: true },
     actNumber: {type: String, required: true},
-    createdAt: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now },
+    publicId: { type: String, required: false},
+    format: {type: String, required: false}
 })
 
 ActSchema.index({ novelId: 1, actNumber: 1});

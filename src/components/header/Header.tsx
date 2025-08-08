@@ -133,7 +133,7 @@ const Header = () => {
         <div className="hidden md:block relative" ref={dropdownRef}>
           {isLoading ? (
             // Hiển thị skeleton loading thay vì nút
-            <div className="flex items-center gap-2 p-2">
+            <div className="hidden md:flex items-center gap-2 p-2">
               <div className="w-8 h-8 bg-gray-600 rounded-full animate-pulse"></div>
               <div className="w-4 h-4 bg-gray-600 rounded animate-pulse"></div>
             </div>
@@ -178,8 +178,8 @@ const Header = () => {
                       )}
                       <div>
                         <p className="text-white font-semibold">{currentUser.username}</p>
-                        <p className='text-gray-100 text-sm capitalize'>{currentUser.email || "user@example.com"}</p>
-                        <p className="text-gray-100 text-sm capitalize">{handleRole(currentUser.role)}</p>
+                        <p className='text-gray-100 text-sm'>{currentUser.email || "user@example.com"}</p>
+                        <p className="text-gray-100 text-sm">{handleRole(currentUser.role)}</p>
                       </div>
                     </div>
                   </div>
@@ -300,7 +300,7 @@ const Header = () => {
               <div>
                 <p className="text-white font-semibold">{currentUser.username}</p>
                 <p className="text-gray-300 text-sm">{currentUser.email || 'user@example.com'}</p>
-                <p className="text-gray-400 text-xs capitalize">{handleRole(currentUser.role)}</p>
+                <p className="text-gray-400 text-xs">{handleRole(currentUser.role)}</p>
               </div>
             </div>
           </div>

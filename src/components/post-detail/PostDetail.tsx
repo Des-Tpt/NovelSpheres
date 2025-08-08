@@ -303,6 +303,7 @@ const PostDetail = () => {
         initial="hidden"
         animate="visible"
       >
+        <title>{post.title}</title>
         <div className="mx-auto p-4 min-h-screen">
           <motion.div
             className='flex font-inter text-[0.92rem] py-3'

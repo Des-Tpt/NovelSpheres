@@ -4,7 +4,8 @@ import FeatureBook from "@/components/home/FeatureBook";
 
 export default function Home() {
     return (
-      <div className="pt-15">
+      <div className="md:pt-15">
+        <title>NovelSpheres</title>
         <Banner/>
         <FeatureBook />
         <BookFilter />

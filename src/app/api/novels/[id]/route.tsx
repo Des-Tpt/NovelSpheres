@@ -46,14 +46,14 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
         const optimizedComments = optimizeComment(comments);
 
         const acts = await Act.find({ novelId: novelId })
-            .select("title actNumber")
-            .sort({ title: 1 })
+            .select("title actNumber publicId formatId")
+            .sort({ actNumber: 1 })
             .lean();
 
         const actsWithChapters = await Promise.all(
             acts.map(async (act) => {
                 const chapters = await Chapter.find({ actId: act._id })
-                    .select("_id title chapterNumber")
+                    .select("_id title chapterNumber wordCount updatedAt")
                     .sort({ name: 1 })
                     .lean();
                 return { ...act, chapters };

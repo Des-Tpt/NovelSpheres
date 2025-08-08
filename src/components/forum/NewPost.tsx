@@ -480,7 +480,7 @@ export default function NewPostPopup({ isOpen, onClose, novels = [] }: NewPostPo
                                 <button
                                     type="button"
                                     onClick={handleClose}
-                                    className="w-full sm:w-auto px-4 py-2 text-sm text-gray-600 hover:text-gray-800 font-medium order-2 sm:order-1"
+                                    className="w-full sm:w-auto px-4 cursor-pointer py-2 text-lg rounded-md bg-red-800 text-white hover:bg-red-200 order-2 transition-colors duration-100 sm:order-1"
                                     disabled={mutation.isPending}
                                 >
                                     Hủy
@@ -488,7 +488,7 @@ export default function NewPostPopup({ isOpen, onClose, novels = [] }: NewPostPo
                                 <button
                                     type="submit"
                                     disabled={!formData.title.trim() || !formData.content.trim() || mutation.isPending}
-                                    className="w-full sm:w-auto px-4 py-2 bg-gray-800 hover:bg-gray-900 disabled:bg-gray-400 text-white text-sm font-medium rounded-md transition-colors order-1 sm:order-2"
+                                    className={`w-full sm:w-auto px-4 py-2 ${(!formData.title.trim() || !formData.content.trim() || mutation.isPending) ? '' : 'cursor-pointer'} bg-gray-800 hover:bg-gray-900 disabled:bg-gray-400 text-white text-lg font-medium rounded-md transition-colors order-1 sm:order-2`}
                                 >
                                     {mutation.isPending ? 'Đang đăng...' : 'Đăng bài'}
                                 </button>
