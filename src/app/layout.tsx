@@ -2,11 +2,11 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import './globals.css';
 import Header from '@/components/header/Header';
 import Footer from '@/components/footer/Footer';
 import { Toaster } from 'sonner';
-
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
@@ -18,11 +18,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     },
   }));
 
+  const pathname = usePathname();
+
+  const hideHeader = pathname.includes('/chapter/');
+
   return (
     <html lang="en">
       <body>
         <QueryClientProvider client={queryClient}>
-          <Header />
+          {!hideHeader && <Header />}
           {children}
           <Footer />
         </QueryClientProvider>
@@ -34,7 +38,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             duration: 4000,
             unstyled: false,
           }}
-          closeButton />
+          closeButton
+        />
       </body>
     </html>
   );

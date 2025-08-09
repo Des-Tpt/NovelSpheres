@@ -657,7 +657,7 @@ const NovelDetail = () => {
                                                                                 initial={{ opacity: 0, x: -20 }}
                                                                                 animate={{ opacity: 1, x: 0 }}
                                                                                 transition={{ duration: 0.2, delay: index * 0.05 }}
-                                                                                onClick={() => router.push(`/chapters/${chapter._id}`)}
+                                                                                onClick={() => router.push(`/chapter/${chapter._id}`)}
                                                                                 className='flex items-center justify-between py-3 px-4 border border-gray-400 hover:bg-gray-700 cursor-pointer transition-colors group rounded-lg hover:border-gray-600'
                                                                             >
                                                                                 <div className='flex flex-col gap-1 flex-1'>
