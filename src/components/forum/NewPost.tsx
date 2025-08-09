@@ -67,7 +67,6 @@ export default function NewPostPopup({ isOpen, onClose, novels = [] }: NewPostPo
     const [selectedNovel, setSelectedNovel] = useState<Novel | null>(null);
     const dragFromInside = useRef(false);
 
-
     // Lock scroll when open Popup
     useScrollLock(isOpen);
 
@@ -460,7 +459,7 @@ export default function NewPostPopup({ isOpen, onClose, novels = [] }: NewPostPo
                                         <JoditEditor
                                             value={formData.content}
                                             config={config}
-                                            onChange={(newContent) => updateFormData('content')(newContent)}
+                                            onBlur={(newContent) => updateFormData('content')(newContent)}
                                         />
                                     ) : (
                                         <div className="min-h-[200px] sm:min-h-[250px] p-3 border border-gray-700 rounded-md bg-gray-900">

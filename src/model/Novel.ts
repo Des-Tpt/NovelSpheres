@@ -1,4 +1,4 @@
-import { Schema, Document, models, model } from 'mongoose';
+import mongoose, { Schema, Document, models, model } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface INovel extends Document {
@@ -20,31 +20,44 @@ export interface INovel extends Document {
 }
 
 const NovelSchema = new Schema<INovel>({
-    _id: {type: Schema.Types.ObjectId, auto: true},
-    title: {type: String, required: true},
+    _id: { type: Schema.Types.ObjectId, auto: true },
+    title: { type: String, required: true },
     authorId: { type: Schema.Types.ObjectId, ref: 'User' },
-    description: {type: String, required: true},
+    description: { type: String, required: true },
     coverImage: {
         publicId: String,
         format: String,
     },
-    genresId: {type: [Schema.Types.ObjectId], ref: 'Genre' },
+    genresId: { type: [Schema.Types.ObjectId], ref: 'Genre' },
     status: { type: String, enum: ['Ongoing', 'Completed', 'Hiatus'], default: 'Ongoing' },
     views: { type: Number, default: 0 },
-    likes: {type: Number, default: 0},
+    likes: { type: Number, default: 0 },
     rating: { type: Number, default: 0 },
     createdAt: Date,
     updatedAt: Date
 })
 
 NovelSchema.index({ title: 1 });
-NovelSchema.index({ genresId: 1 }); 
+NovelSchema.index({ genresId: 1 });
 NovelSchema.index({ status: 1 });
 NovelSchema.index({ views: -1 });
 
 NovelSchema.pre('save', function (next) {
     this.updatedAt = new Date();
     next();
-  });  
+});
+
+NovelSchema.pre('findOneAndDelete', async function (next) {
+    const novelId = this.getQuery()._id;
+
+    await Promise.all([
+        mongoose.model('Act').deleteMany({ novelId }),
+        mongoose.model('Chapter').deleteMany({ novelId }),
+        mongoose.model('Comment').deleteMany({ sourceType: 'Novel', sourceId: novelId }),
+        mongoose.model('Rating').deleteMany({ novelId }),
+    ]);
+
+    next();
+});
 
 export const Novel = models.Novel || model<INovel>('Novel', NovelSchema, 'Novel');

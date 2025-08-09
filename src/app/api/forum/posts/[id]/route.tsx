@@ -4,7 +4,7 @@ import { Comment } from '@/model/Comment';
 import { connectDB } from '@/lib/db';
 import optimizeComment from '@/utils/handleOptimize';
 
-export async function GET(request: NextRequest, context: { params: { id: string } }) {
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
     try {
         connectDB();
         
@@ -51,6 +51,7 @@ export async function GET(request: NextRequest, context: { params: { id: string 
             post,
             comments: newComments
         });
+        
     } catch (error) {
         console.error('Error fetching post:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

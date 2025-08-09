@@ -63,7 +63,7 @@ const Header = () => {
 
   useEffect(() => {
     const fetchUser = async () => {
-        setIsLoading(true); // Bắt đầu loading
+        setIsLoading(true);
         try {
             const response = await getUserFromCookies();
             if (response?.user) {
@@ -74,7 +74,7 @@ const Header = () => {
         } catch (error) {
             console.error('Error fetching user:', error);
         } finally {
-            setIsLoading(false); // Kết thúc loading
+            setIsLoading(false);
         }
     };
     fetchUser();

@@ -16,6 +16,9 @@ import { motion } from 'framer-motion';
 import countTotalComments from '@/utils/countComment';
 import { toast } from 'sonner';
 import { getUserFromCookies } from '@/action/userAction';
+import { notifyError, notifySuccess } from '@/utils/notify';
+import CreateActPopup from './CreateAct';
+import CreateChapterPopup from './CreateChapter';
 
 const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 const defaultFallback = `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
@@ -84,6 +87,7 @@ interface Chapter {
 interface Act {
     _id: string;
     title: string;
+    actType: string;
     actNumber: string;
     chapters: Chapter[];
     publicId?: string;
@@ -117,6 +121,9 @@ const NovelDetail = () => {
     const [showAllReplies, setShowAllReplies] = useState<Set<string>>(new Set());
     const [openActs, setOpenActs] = useState<Set<string>>(new Set());
     const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+    const [isCreateActPopupOpen, setIsCreateActPopupOpen] = useState<boolean>(false);
+    const [isCreateChapterPopupOpen, setIsCreateChapterPopupOpen] = useState<boolean>(false);
+    const [selectedActId, setSelectedActId] = useState<string>('');
 
     const { data, isLoading, error } = useQuery<{ novel: Novel, comments: Comment[], acts: Act[] }>({
         queryKey: ['novelDetail', novelId],
@@ -143,10 +150,10 @@ const NovelDetail = () => {
         mutationFn: createComment,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['novelDetail', novelId] });
-            toast.success('Bình luận thành công!')
+            notifySuccess('Bình luận thành công!')
         },
         onError: (error: Error) => {
-            toast.error('Bình luận thất bại!');
+            notifyError('Bình luận thất bại!');
         }
     })
 
@@ -201,13 +208,13 @@ const NovelDetail = () => {
         }
     }
 
-    // Handler functions for author actions
-    const handleAddChapter = (actId: string, title: string) => {
-        router.push(`/novel/${novelId}/add-chapter`);
+    const handleAddChapter = (actId: string) => {
+        setSelectedActId(actId);
+        setIsCreateChapterPopupOpen(true);
     };
 
     const handleAddAct = () => {
-        router.push(`/novel/${novelId}/add-act`);
+        setIsCreateActPopupOpen(true);
     };
 
     useEffect(() => {
@@ -585,7 +592,7 @@ const NovelDetail = () => {
                                             className='flex items-center cursor-pointer gap-2 px-4 py-2 bg-gray-950 border border-gray-400 hover:bg-gray-800 text-white rounded-lg font-medium transition-colors'
                                         >
                                             <FileText className='w-4 h-4' />
-                                            Thêm Act mới
+                                            Thêm phần mới
                                         </button>
                                     </div>
                                 )}
@@ -601,7 +608,7 @@ const NovelDetail = () => {
                                                 <h3 className='text-[1.15rem] font-semibold text-white flex items-center justify-between'>
                                                     <div className='flex items-center gap-2'>
                                                         <Book className='w-5 h-5' />
-                                                        Act {act.actNumber} - {act.title}
+                                                        {act.actType ? act.actType : 'Act'} {act.actNumber} - {act.title}
                                                     </div>
                                                     <div className={`transform transition-transform duration-200 ${openActs.has(act._id) ? 'rotate-180' : 'rotate-0'
                                                         }`}>
@@ -672,9 +679,9 @@ const NovelDetail = () => {
                                                                             </motion.div>
                                                                         ))}
                                                                         <div className='w-full flex items-center gap-2 justify-center py-3 px-4 border border-gray-400 hover:bg-gray-700 cursor-pointer transition-colors group rounded-lg hover:border-gray-600'
-                                                                            onClick={() => {handleAddChapter(act._id, act.title)}}
+                                                                            onClick={() => { handleAddChapter(act._id) }}
                                                                         >
-                                                                            <CirclePlus className='w-4 h-4'/>
+                                                                            <CirclePlus className='w-4 h-4' />
                                                                             <span className='text-lg'>Thêm chương</span>
                                                                         </div>
                                                                     </div>
@@ -820,6 +827,27 @@ const NovelDetail = () => {
                     </div>
                 </div>
             </div>
+            <AnimatePresence>
+                {isCreateActPopupOpen && currentUser && (
+                    <CreateActPopup
+                        isOpen={isCreateActPopupOpen}
+                        onClose={() => setIsCreateActPopupOpen(false)}
+                        userId={currentUser?._id}
+                        novelId={data.novel._id}
+                    />
+                )}
+            </AnimatePresence>
+            <AnimatePresence>
+                {isCreateChapterPopupOpen && currentUser && (
+                    <CreateChapterPopup
+                        isOpen={isCreateChapterPopupOpen}
+                        onClose={() => setIsCreateChapterPopupOpen(false)}
+                        userId={currentUser._id}
+                        novelId={data.novel._id}
+                        actId={selectedActId}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     )
 }

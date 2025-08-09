@@ -1,3 +1,4 @@
+import cloudinary from "@/lib/cloudinary";
 import { connectDB } from "@/lib/db";
 import { Act } from "@/model/Act";
 import { Chapter } from "@/model/Chapter";
@@ -6,8 +7,8 @@ import { Novel } from "@/model/Novel";
 import optimizeComment from "@/utils/handleOptimize";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: NextRequest, context: { params: { id: string } }) {
-    const { id: novelId } = context.params;
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+    const { id: novelId } = await context.params;
     try {
         if (!novelId) {
             return NextResponse.json({ error: "NovelId là biến bắt buộc" }, { status: 400 });
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest, context: { params: { id: string 
         const optimizedComments = optimizeComment(comments);
 
         const acts = await Act.find({ novelId: novelId })
-            .select("title actNumber publicId formatId")
+            .select("title actNumber actType publicId formatId")
             .sort({ actNumber: 1 })
             .lean();
 
@@ -72,39 +73,87 @@ export async function GET(request: NextRequest, context: { params: { id: string 
     }
 }
 
+interface CloudinaryUploadResult {
+    public_id: string;
+    format: string;
+}
 
-export async function POST(request: NextRequest, context: { params: { id: string } }) {
+export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
     try {
-        const { id: novelId } = context.params;
-        const { searchParams } = new URL(request.url);
-        const userId = searchParams.get('userId');
+        const { id: novelId } = await context.params;
 
         await connectDB();
 
         const novel = await Novel.findById(novelId);
 
-        if (userId !== novel.authorId) {
+        if (!novel) {
+            return NextResponse.json({ error: 'Novel không tồn tại!' }, { status: 404 });
+        }
+
+        const formData = await request.formData();
+        const userId = formData.get('userId') as string;
+        const title = formData.get('title') as string;
+        const actNumberStr = formData.get('actNumber') as string;
+        const actType = formData.get('actType') as string;
+        const file = formData.get('file') as File | null;
+        const actNumber = parseInt(actNumberStr, 10);
+
+        console.log(actType);
+
+        if (userId.toString() !== novel.authorId.toString()) {
             return NextResponse.json({ error: 'Bạn không có quyền thực hiện thao tác này!' }, { status: 403 });
         }
 
-        const { title, actNumber, publicId, format } = await request.json()
-
         if (!title || !actNumber) {
             return NextResponse.json({ error: 'Vui lòng nhập đầy đủ thông tin!' }, { status: 400 });
+        }
+
+        let publicId: string | null = null;
+        let format: string | null = null;
+
+        // Chỉ upload lên cloundinary nếu file tồn tại.
+        if (file) {
+
+            // Chuyển file thành dạng Web Api, sau đó chuyển qua dạng Buffer để gửi vào stream của Cloundinary
+            const arrayBuffer = await file.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+
+            const uploadResult = await new Promise<CloudinaryUploadResult>((resolve, reject) => {
+                cloudinary.uploader
+                    .upload_stream(
+                        { resource_type: 'auto', folder: 'LightNovel/BookCover' },
+                        (err, result) => {
+                            if (err) reject(err);
+                            else resolve(result as CloudinaryUploadResult);
+                        }
+                    )
+                    .end(buffer);
+            });
+
+            publicId = uploadResult.public_id;
+            format = uploadResult.format;
+        }
+
+        const existingAct = await Act.findOne({ novelId: novelId, actNumber: actNumber });
+
+        if (existingAct) {
+            return NextResponse.json({
+                error: `Act số ${existingAct} đã tồn tại trong Act này! Vui lòng chọn số thứ tự khác.`
+            }, { status: 409 });
         }
 
         const newAct = new Act({
             novelId: novelId,
             title: title,
             actNumber: actNumber,
-            publicId: publicId ?? null,
-            format: format ?? null,
+            actType: actType,
+            publicId: publicId,
+            format: format,
             createdAt: Date.now()
-        })
+        });
         await newAct.save();
 
-        return NextResponse.json({ success: true, }, { status: 201 });
-
+        return NextResponse.json({ success: true }, { status: 201 });
     } catch (error) {
         console.error('Lỗi khi tạo act:', error);
         return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });

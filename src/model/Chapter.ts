@@ -20,7 +20,7 @@ const ChapterSchema = new Schema<IChapter>({
     title: { type: String, required: true },
     content: { type: String, required: true },
     chapterNumber: { type: Number, required: true },
-    wordCount: Number,
+    wordCount: {type: Number},
     updatedAt: { type: Date, default: Date.now },
     createdAt: { type: Date, default: Date.now }
 })

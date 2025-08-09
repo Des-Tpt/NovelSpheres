@@ -59,13 +59,23 @@ export const createAct = async (postData: {
     novelId: string;
     title: string;
     actNumber: number;
-    publicId?: string | null;
-    format?: string | null;
+    actType: string;
+    file?: File; 
 }) => {
-    const response = await fetch(`/api/novels/${postData.novelId}?userId=${postData.userId}`, {
+    const formData = new FormData();
+    formData.append('userId', postData.userId);
+    formData.append('novelId', postData.novelId);
+    formData.append('title', postData.title);
+    formData.append('actNumber', String(postData.actNumber));
+    formData.append('actType', String(postData.actType));
+    
+    if (postData.file) {
+        formData.append('file', postData.file)
+    };
+
+    const response = await fetch(`/api/novels/${postData.novelId}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(postData),
+        body: formData, 
     });
 
     if (!response.ok) {
@@ -74,8 +84,7 @@ export const createAct = async (postData: {
     }
 
     return await response.json();
-
-}
+};
 
 
 export const createChapter = async (postData: {
@@ -83,11 +92,11 @@ export const createChapter = async (postData: {
     novelId: string;
     actId: string;
     title: string;
-    chapterNumber: string;
-    content: number;
+    chapterNumber: number;
+    content: string;
     wordCount: number;
 }) => {
-    const response = await fetch(`api/novels/${postData.novelId}/${postData.actId}?userId=${postData.userId}`, {
+    const response = await fetch(`/api/novels/${postData.novelId}/${postData.actId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(postData),

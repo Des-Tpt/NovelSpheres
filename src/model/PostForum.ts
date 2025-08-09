@@ -1,4 +1,4 @@
-import { Schema, Document, models, model, Number } from 'mongoose';
+import mongoose, { Schema, Document, models, model, Number } from 'mongoose';
 
 export type PostType = 'general' | 'reviews' | 'recommendations' | 'ask-author' | 'writing' | 'support';
 
@@ -39,5 +39,15 @@ ForumPostSchema.pre('save', function (next) {
 
 ForumPostSchema.index({ lastCommentAt: -1 });
 ForumPostSchema.index({ category: 1, lastCommentAt: -1 });
+
+ForumPostSchema.pre('findOneAndDelete', async function (next) {
+  const postId = this.getQuery()._id;
+
+  await Promise.all([
+    mongoose.model('Comment').deleteMany({ sourceType: 'PostForum', sourceId: postId }),
+  ]);
+
+  next();
+});
 
 export const ForumPost = models.ForumPost || model<IForumPost>('ForumPost', ForumPostSchema,'ForumPost');
