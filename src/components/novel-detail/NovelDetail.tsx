@@ -397,9 +397,17 @@ const NovelDetail = () => {
     return (
         <div className='container px-5 py-5'>
             <title>{data.novel.title}</title>
-            <div className='flex flex-col lg:flex-row gap-8'>
+            <motion.div
+                className='flex flex-col lg:flex-row gap-8'
+                initial="hidden"
+                animate="visible"
+                variants={itemVariants}
+            >
                 {/* Cover Image và Actions */}
-                <div className='flex flex-col w-full lg:w-auto'>
+                <motion.div
+                    className='flex flex-col w-full lg:w-auto'
+                    variants={itemVariants}
+                >
                     <div className='flex flex-col p-5 justify-center items-center md:items-stretch rounded-lg bg-gray-950 border border-gray-500'>
                         <Image
                             src={coverImage || defaultFallback}
@@ -437,12 +445,18 @@ const NovelDetail = () => {
                             </div></button>
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Thông tin chính */}
-                <div className='flex-1'>
+                <motion.div
+                    className='flex-1'
+                    variants={itemVariants}
+                >
                     {/* Header thông tin */}
-                    <div className='mb-6 bg-gray-950 p-5 border border-gray-500 rounded-lg'>
+                    <motion.div
+                        className='mb-6 bg-gray-950 p-5 border border-gray-500 rounded-lg'
+                        variants={itemVariants}
+                    >
                         <div className='flex gap-2 items-center flex-wrap mb-4'>
                             {data?.novel.genresId && !showAllGenres && data.novel.genresId.length > 3 ? (
                                 data.novel.genresId.slice(0, 3).map((genre) =>
@@ -526,10 +540,13 @@ const NovelDetail = () => {
                                 <span className='text-[1rem]'>Cập nhật</span>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* Tab Navigation */}
-                    <div className='flex w-full mb-6'>
+                    <motion.div
+                        className='flex w-full mb-6'
+                        variants={itemVariants}
+                    >
                         <nav className='flex w-full border border-gray-400 text-lg rounded-lg'>
                             <button
                                 onClick={() => setActiveTab('description')}
@@ -559,10 +576,13 @@ const NovelDetail = () => {
                                 Bình luận
                             </button>
                         </nav>
-                    </div>
+                    </motion.div>
 
                     {/* Tab Content */}
-                    <div className='min-h-[400px]'>
+                    <motion.div
+                        className='min-h-[400px]'
+                        variants={itemVariants}
+                    >
                         {activeTab === 'description' && (
                             <div className='prose prose-invert max-w-none'>
                                 <div className='bg-gray-950 border border-gray-400 rounded-lg p-6'>
@@ -780,7 +800,10 @@ const NovelDetail = () => {
                                     ) : (
                                         <AnimatePresence>
                                             {organizedComments.map(({ parent, replies }) => (
-                                                <div key={parent._id}>
+                                                <motion.div
+                                                    key={parent._id}
+                                                    variants={itemVariants}
+                                                >
                                                     {renderComment(parent, false)}
 
                                                     {replies.length > 0 && (
@@ -817,16 +840,16 @@ const NovelDetail = () => {
                                                             )}
                                                         </div>
                                                     )}
-                                                </div>
+                                                </motion.div>
                                             ))}
                                         </AnimatePresence>
                                     )}
                                 </div>
                             </div>
                         )}
-                    </div>
-                </div>
-            </div>
+                    </motion.div>
+                </motion.div>
+            </motion.div>
             <AnimatePresence>
                 {isCreateActPopupOpen && currentUser && (
                     <CreateActPopup

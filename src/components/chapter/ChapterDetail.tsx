@@ -2,21 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight, Book, Clock, Menu, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Book, Clock, Menu, X, HomeIcon } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getChapterById } from '@/action/chapterAction';
+import Home from '@/app/page';
 
 interface Novel {
     _id: string;
     title: string;
-    coverImage?: {
-        publicId: string;
-        format: string;
-    };
-    author: {
-        _id: string;
-        username: string;
-    };
 }
 
 interface ChapterInAct {
@@ -149,7 +142,7 @@ const ChapterPage = () => {
     // Loading state
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="min-h-screen flex items-center justify-center bg-gray-950">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                     <p className="text-gray-600">Đang tải chương...</p>
@@ -244,6 +237,18 @@ const ChapterPage = () => {
                     <aside className={`fixed left-0 top-16 w-80 h-full overflow-y-auto border-r transition-colors z-40 ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
                         }`}>
                         <div className="p-4">
+                            {/* Nút về trang tiểu thuyết */}
+                            <button
+                                onClick={() => {
+                                    router.push(`/novels/${data.novel._id}`);
+                                    setShowTOC(false);
+                                }}
+                                className="w-full mb-4 p-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors flex items-center justify-center"
+                            >
+                                <HomeIcon size={18} className="mr-2" />
+                                Về trang tiểu thuyết
+                            </button>
+
                             <h3 className="font-semibold mb-4 flex items-center">
                                 <Book size={18} className="mr-2" />
                                 Mục lục
@@ -333,15 +338,6 @@ const ChapterPage = () => {
                                     <ChevronLeft size={20} className="mr-2" />
                                     Chương trước
                                 </button>
-
-                                <div className="text-center">
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                                        Chương {data.chapter.chapterNumber} / {data.chaptersInAct.length}
-                                    </div>
-                                    <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                                        Phím ← → để chuyển trang
-                                    </div>
-                                </div>
 
                                 <button
                                     onClick={goToNextChapter}

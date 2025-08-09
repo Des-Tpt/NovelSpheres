@@ -17,7 +17,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ cha
 
         // Lấy chapter - bao gồm luôn novel và act info thông qua populate
         const chapter = (await Chapter.findById(chapterId)
-            .populate('novelId', '_id title coverImage authorId')
+            .populate('novelId', '_id title')
             .populate('actId', '_id actNumber actType title')
             .lean()) as any;
 
@@ -28,9 +28,6 @@ export async function GET(request: NextRequest, context: { params: Promise<{ cha
         const novel = chapter.novelId;
         const act = chapter.actId;
         const novelId = novel._id;
-
-        const author = await User.findById(novel.authorId)
-            .select('_id username');
 
         // Lấy acts đã sắp xếp (bao gồm _id và actNumber)
         const acts = await Act.find({ novelId })
@@ -148,8 +145,6 @@ export async function GET(request: NextRequest, context: { params: Promise<{ cha
             novel: {
                 _id: String(novel._id),
                 title: novel.title,
-                coverImage : novel.coverImage,
-                author: author,
             },
             act: {
                 _id: String(act._id),
