@@ -17,7 +17,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import stripHtml from '@/utils/stripHtml';
 
-const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
+const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME! as string;
 
 export default function ForumPage() {
     const router = useRouter();

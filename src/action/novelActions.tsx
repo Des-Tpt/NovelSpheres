@@ -122,6 +122,28 @@ export const updateAct = async (postData: {
 };
 
 
+export const deleteAct = async (postData: {
+    actId: string;
+    userId: string;
+    novelId: string;
+}) => {
+    const formData = new FormData();
+    formData.append('actId', postData.actId);
+    formData.append('userId', postData.userId);
+
+    const response = await fetch(`/api/novels/${postData.novelId}`, {
+        method: 'DELETE',
+        body: formData,
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw { message: errorData.error || 'Lỗi khi xóa act!', data: errorData };
+    }
+
+    return await response.json();
+};
+
 
 export const createChapter = async (postData: {
     userId: string;
@@ -178,3 +200,27 @@ export const updateChapter = async (postData: {
 
     return await response.json();
 }
+
+
+export const deleteChapter = async (postData: {
+    actId: string;
+    userId: string;
+    novelId: string;
+    chapterId: string;
+}) => {
+    const formData = new FormData();
+    formData.append('userId', postData.userId);
+    formData.append('chapterId', postData.chapterId);
+
+    const response = await fetch(`/api/novels/${postData.novelId}/${postData.actId}`, {
+        method: 'DELETE',
+        body: formData,
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw { message: errorData.error || 'Lỗi khi xóa chapter!', data: errorData };
+    }
+
+    return await response.json();
+};

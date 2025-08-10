@@ -145,3 +145,38 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
         return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
     }
 }
+
+
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string, actId: string }> }) {
+    try {
+
+        const { id: novelId, actId: actId } = await context.params;
+
+        await connectDB();
+
+        const novel = await Novel.findById(novelId);
+        if (!novel) {
+            return NextResponse.json({ error: 'Novel không tồn tại!' }, { status: 404 });
+        }
+
+        const formData = await request.formData();
+        const userId = formData.get('userId') as string;
+        const chapterId = formData.get('chapterId') as string;
+
+        if (userId.toString() !== novel.authorId.toString()) {
+            return NextResponse.json({ error: 'Bạn không có quyền thực hiện thao tác này!' }, { status: 403 });
+        }
+
+        const act = await Act.findById(actId);
+        if (!act) {
+            return NextResponse.json({ error: 'Act không tồn tại!' }, { status: 404 });
+        }
+
+        await Chapter.findByIdAndDelete(chapterId);
+
+        return NextResponse.json({ success: true }, { status: 200 });
+    } catch (error) {
+        console.error('Lỗi xóa act:', error);
+        return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
+    }
+}

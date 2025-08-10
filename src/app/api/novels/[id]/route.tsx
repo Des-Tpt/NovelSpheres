@@ -98,8 +98,6 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
         const file = formData.get('file') as File | null;
         const actNumber = parseInt(actNumberStr, 10);
 
-        console.log(actType);
-
         if (userId.toString() !== novel.authorId.toString()) {
             return NextResponse.json({ error: 'Bạn không có quyền thực hiện thao tác này!' }, { status: 403 });
         }
@@ -235,6 +233,43 @@ export async function PATCH( request: NextRequest, context: { params: Promise<{ 
         return NextResponse.json({ success: true, data: act }, { status: 200 });
     } catch (error) {
         console.error('Lỗi khi cập nhật act:', error);
+        return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
+    }
+}
+
+export async function DELETE( request: NextRequest, context: { params: Promise<{ id: string }> }) {
+    try {
+        const { id: novelId } = await context.params;
+
+        await connectDB();
+
+        const novel = await Novel.findById(novelId);
+        if (!novel) {
+            return NextResponse.json({ error: 'Novel không tồn tại!' }, { status: 404 });
+        }
+
+        const formData = await request.formData();
+        const actId = formData.get('actId') as string;
+        const userId = formData.get('userId') as string;
+
+        if (userId.toString() !== novel.authorId.toString()) {
+            return NextResponse.json({ error: 'Bạn không có quyền thực hiện thao tác này!' }, { status: 403 });
+        }
+
+        const act = await Act.findById(actId);
+        if (!act) {
+            return NextResponse.json({ error: 'Act không tồn tại!' }, { status: 404 });
+        }
+
+        if (act.publicId) {
+            await cloudinary.uploader.destroy(act.publicId);
+        }
+
+        await Act.findOneAndDelete({ _id: actId })
+    
+        return NextResponse.json({ success: true }, { status: 200 });
+    } catch (error) {
+        console.error('Lỗi xóa act:', error);
         return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
     }
 }

@@ -71,7 +71,6 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
             }, 100);
         },
         onError: (error: any) => {
-            console.error('Error creating chapter:', error);
             notifyError(error?.message || 'Tạo chapter thất bại!');
         }
     });

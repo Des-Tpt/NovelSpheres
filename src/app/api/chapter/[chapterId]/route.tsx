@@ -2,10 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Chapter } from '@/model/Chapter';
 import { Act } from '@/model/Act';
+import { User } from '@/model/User';
 
 export async function GET(request: NextRequest, context: { params: Promise<{ chapterId: string }> }) {
     try {
         const { chapterId: chapterId } = await context.params;
+
+        console.log(Act.modelName);
+        console.log(Chapter.modelName);
+        console.log(User.modelName);
 
         if (!chapterId) {
             return NextResponse.json({ error: 'Không tìm thấy chương!' }, { status: 400 });

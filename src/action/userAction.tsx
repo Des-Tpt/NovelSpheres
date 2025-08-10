@@ -4,7 +4,6 @@ export const getUserFromCookies = async () => {
         const data = await res.json();
         if (res.ok) return data;
     } catch (e) {
-        console.log('Lỗi:', e);
         return null;
     }
 }

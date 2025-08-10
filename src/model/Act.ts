@@ -35,6 +35,5 @@ ActSchema.pre('findOneAndDelete', async function (next) {
     next();
 });
 
-
 export const Act = models.Act || model<IAct>('Act', ActSchema, 'Act');
 

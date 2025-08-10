@@ -8,7 +8,7 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
 cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
@@ -39,16 +39,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (!file || !file.filepath) {
       return NextResponse.json({ error: 'Không có file upload' }, { status: 400 });
     }
-    console.log('📥 Đã nhận file:', file);
     
 
     const result = await cloudinary.uploader.upload(file.filepath, {
       folder: 'LightNovel/BookCover',
       upload_preset: 'LightNovel',
     });
-    await fs.promises.unlink(file.filepath);
-    console.log('☁️ Đã upload lên Cloudinary:', result);
-    
+    await fs.promises.unlink(file.filepath);    
     
     let novel;
 

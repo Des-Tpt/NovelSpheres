@@ -1,3 +1,4 @@
+'use client'
 const getImage = async (publicId?: string, format?: string): Promise<string> => {
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 

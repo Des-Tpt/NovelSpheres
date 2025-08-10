@@ -20,6 +20,8 @@ import CreateActPopup from './CreateAct';
 import CreateChapterPopup from './CreateChapter';
 import EditActPopup from './UpdateAct';
 import EditChapterPopup from './UpdateChapter';
+import DeleteActPopup from './DeteteAct';
+import DeleteChapterPopup from './DeleteChapter';
 
 const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 const defaultFallback = `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
@@ -71,7 +73,7 @@ interface Act {
     _id: string;
     title: string;
     actType: string;
-    actNumber: string;
+    actNumber: number;
     chapters: Chapter[];
     publicId?: string;
     format?: string;
@@ -105,6 +107,7 @@ interface ChapterData {
 }
 
 
+
 const NovelDetail = () => {
     const params = useParams();
     const router = useRouter();
@@ -130,6 +133,10 @@ const NovelDetail = () => {
     const [editActData, setEditActData] = useState<ActData | null>(null);
     const [editChapterData, setEditChapterData] = useState<ChapterData | null>(null);
     const [isShowEditChapterPopup, setIsShowEditChapterPopup] = useState(false);
+    const [isShowDeleteActPopup, setIsShowDeleteActPopup] = useState(false);
+    const [selectedAct, setSelectedAct] = useState<{ actId: string; actNumber: number, userId: string; novelId: string; } | null>(null);
+    const [isShowDeleteChapter, setIsShowDeleteChapter] = useState(false);
+    const [selectedChapter, setSelectedChapter] = useState<{ chapterId: string; chapterNumber: number, chapterTitle: string, actId: string; userId: string, novelId: string; } | null>(null);
 
     const { data, isLoading, error } = useQuery<{ novel: Novel, comments: Comment[], acts: Act[] }>({
         queryKey: ['novelDetail', novelId],
@@ -142,7 +149,6 @@ const NovelDetail = () => {
                 const response = await getUserFromCookies();
                 if (response?.user) setCurrentUser(response?.user);
             } catch (error) {
-                console.error('Lỗi khi lấy thông tin người dùng:', error);
                 setCurrentUser(null);
             }
         };
@@ -225,13 +231,26 @@ const NovelDetail = () => {
             novelId: novelId,
             title: act.title,
             actType: act.actType || '',
-            actNumber: parseInt(act.actNumber) || 1,
+            actNumber: act.actNumber,
             fileUrl: act.publicId && imageUrls[act.publicId] ? imageUrls[act.publicId] : undefined
         };
 
         setEditActData(actData);
         setIsShowEditActPopup(true);
     };
+
+    const handleDeleteAct = (actId: string, currentUserId: string, novelId: string, actNumber: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        setSelectedAct({
+            actId: actId,
+            userId: currentUserId,
+            novelId: novelId,
+            actNumber: actNumber,
+        });
+        setIsShowDeleteActPopup(true);
+    };
+
 
     const handleEditChapter = (chapter: Chapter, actId: string, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -246,6 +265,20 @@ const NovelDetail = () => {
 
         setEditChapterData(chapterData);
         setIsShowEditChapterPopup(true);
+    };
+
+    const handleDeleteChapter = (chapterId: string, chapterTitle: string, chapterNumber: number, actId: string, userId: string, novelId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        setSelectedChapter({
+            chapterId: chapterId,
+            chapterTitle: chapterTitle,
+            chapterNumber: chapterNumber,
+            actId: actId,
+            userId: userId,
+            novelId: novelId,
+        });
+        setIsShowDeleteActPopup(true);
     };
 
     useEffect(() => {
@@ -378,7 +411,7 @@ const NovelDetail = () => {
             return <div className="text-red-500 p-4">{error.message}</div>;
         }
         return <div className="text-red-500 p-4">Đã xảy ra lỗi không xác định.</div>;
-    } 
+    }
     if (!data) return <div className="text-white p-4">Không có dữ liệu</div>;
 
     return (
@@ -470,7 +503,7 @@ const NovelDetail = () => {
                             )}
                         </div>
 
-                        <div className='flex items-center gap-2 sm:gap-3'>
+                        <div className='flex items-center border border-gray-400 p-2 rounded-lg gap-2 sm:gap-3'>
                             {authorImage && (
                                 <Image
                                     src={authorImage}
@@ -648,6 +681,7 @@ const NovelDetail = () => {
                                                                     <Edit2 className='w-4 h-4' />
                                                                 </button>
                                                                 <button
+                                                                    onClick={(e) => handleDeleteAct(act._id, currentUser._id, data.novel._id, act.actNumber, e)}
                                                                     className='p-2 cursor-pointer rounded-lg hover:bg-gray-600 text-gray-400 hover:text-red-400 transition-colors'
                                                                     title='Xóa phần'
                                                                 >
@@ -678,8 +712,8 @@ const NovelDetail = () => {
                                                                     <div className='relative group'>
                                                                         <Image
                                                                             src={act.publicId && imageUrls[act.publicId] ? imageUrls[act.publicId] : defaultFallback}
-                                                                            width={350}
-                                                                            height={350}
+                                                                            width={400}
+                                                                            height={400}
                                                                             alt={`Act ${act.actNumber} Cover`}
                                                                             className="rounded-lg shadow-xl object-cover border border-gray-600 w-full aspect-[3/4] group-hover:scale-105 transition-transform duration-200"
                                                                         />
@@ -737,6 +771,7 @@ const NovelDetail = () => {
                                                                                                 <Edit2 className='w-4 h-4' />
                                                                                             </button>
                                                                                             <button
+                                                                                                onClick={(e) => handleDeleteChapter(chapter._id, chapter.title, chapter.chapterNumber, act._id, currentUser._id, data.novel._id, e)}
                                                                                                 className='p-2 cursor-pointer rounded-lg hover:bg-gray-600 text-gray-400 hover:text-red-400 transition-colors'
                                                                                                 title='Xóa chapter'
                                                                                             >
@@ -956,6 +991,28 @@ const NovelDetail = () => {
                         userId={currentUser._id}
                         novelId={data.novel._id}
                         chapter={editChapterData}
+                    />
+                )}
+
+                {isShowDeleteActPopup && selectedAct && currentUser && (
+                    <DeleteActPopup
+                        isOpen={isShowDeleteActPopup}
+                        onClose={() => {
+                            setIsShowDeleteActPopup(false);
+                            setSelectedAct(null);
+                        }}
+                        actData={selectedAct}
+                    />
+                )}
+
+                {isShowDeleteActPopup && selectedChapter && currentUser && (
+                    <DeleteChapterPopup
+                        isOpen={isShowDeleteActPopup}
+                        onClose={() => {
+                            setIsShowDeleteChapter(false);
+                            setSelectedChapter(null);
+                        }}
+                        chapterData={selectedChapter}
                     />
                 )}
             </AnimatePresence>
