@@ -138,7 +138,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
 
         if (existingAct) {
             return NextResponse.json({
-                error: `Act số ${existingAct} đã tồn tại trong Act này! Vui lòng chọn số thứ tự khác.`
+                error: `Act số ${existingAct.actNumber} đã tồn tại trong tiểu thuyết này! Vui lòng chọn số thứ tự khác.`
             }, { status: 409 });
         }
 
@@ -156,6 +156,85 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
         return NextResponse.json({ success: true }, { status: 201 });
     } catch (error) {
         console.error('Lỗi khi tạo act:', error);
+        return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
+    }
+}
+
+export async function PATCH( request: NextRequest, context: { params: Promise<{ id: string }> }) {
+    try {
+        const { id: novelId } = await context.params;
+
+        await connectDB();
+
+        const novel = await Novel.findById(novelId);
+        if (!novel) {
+            return NextResponse.json({ error: 'Novel không tồn tại!' }, { status: 404 });
+        }
+
+        const formData = await request.formData();
+        const actId = formData.get('actId') as string;
+        const userId = formData.get('userId') as string;
+        const title = formData.get('title') as string;
+        const actNumberStr = formData.get('actNumber') as string;
+        const actType = formData.get('actType') as string;
+        const file = formData.get('file') as File | null;
+        const actNumber = parseInt(actNumberStr, 10);
+
+        if (userId.toString() !== novel.authorId.toString()) {
+            return NextResponse.json({ error: 'Bạn không có quyền thực hiện thao tác này!' }, { status: 403 });
+        }
+
+        const act = await Act.findById(actId);
+        if (!act) {
+            return NextResponse.json({ error: 'Act không tồn tại!' }, { status: 404 });
+        }
+
+        // Nếu đổi số actNumber, kiểm tra trùng
+        if (actNumber && actNumber !== act.actNumber) {
+            const existingAct = await Act.findOne({ novelId, actNumber });
+            if (existingAct) {
+                return NextResponse.json(
+                    { error: `Act số ${actNumber} đã tồn tại!` },
+                    { status: 409 }
+                );
+            }
+            act.actNumber = actNumber;
+        }
+
+        if (title) act.title = title;
+        if (actType) act.actType = actType;
+
+        // Nếu có file mới
+        if (file) {
+            // Nếu có file cũ => xóa trên cloudinary
+            if (act.publicId) {
+                await cloudinary.uploader.destroy(act.publicId);
+            }
+
+            const arrayBuffer = await file.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+
+            const uploadResult = await new Promise<CloudinaryUploadResult>((resolve, reject) => {
+                cloudinary.uploader
+                    .upload_stream(
+                        { resource_type: 'auto', folder: 'LightNovel/BookCover' },
+                        (err, result) => {
+                            if (err) reject(err);
+                            else resolve(result as CloudinaryUploadResult);
+                        }
+                    )
+                    .end(buffer);
+            });
+
+            act.publicId = uploadResult.public_id;
+            act.format = uploadResult.format;
+        }
+
+        await act.save();
+
+        return NextResponse.json({ success: true, data: act }, { status: 200 });
+    } catch (error) {
+        console.error('Lỗi khi cập nhật act:', error);
         return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
     }
 }

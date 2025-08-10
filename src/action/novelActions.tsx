@@ -60,7 +60,7 @@ export const createAct = async (postData: {
     title: string;
     actNumber: number;
     actType: string;
-    file?: File; 
+    file?: File;
 }) => {
     const formData = new FormData();
     formData.append('userId', postData.userId);
@@ -68,23 +68,59 @@ export const createAct = async (postData: {
     formData.append('title', postData.title);
     formData.append('actNumber', String(postData.actNumber));
     formData.append('actType', String(postData.actType));
-    
+
     if (postData.file) {
         formData.append('file', postData.file)
     };
 
     const response = await fetch(`/api/novels/${postData.novelId}`, {
         method: 'POST',
-        body: formData, 
+        body: formData,
     });
 
     if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Lỗi khi đăng bài!');
+        throw { message: errorData.error || 'Lỗi khi tạo act!', data: errorData };
     }
 
     return await response.json();
 };
+
+
+export const updateAct = async (postData: {
+    actId: string;
+    userId: string;
+    novelId: string;
+    title: string;
+    actNumber: number;
+    actType: string;
+    file?: File;
+}) => {
+    const formData = new FormData();
+    formData.append('actId', postData.actId);
+    formData.append('userId', postData.userId);
+    formData.append('novelId', postData.novelId);
+    formData.append('title', postData.title);
+    formData.append('actNumber', String(postData.actNumber));
+    formData.append('actType', String(postData.actType));
+
+    if (postData.file) {
+        formData.append('file', postData.file)
+    };
+
+    const response = await fetch(`/api/novels/${postData.novelId}`, {
+        method: 'PATCH',
+        body: formData,
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw { message: errorData.error || 'Lỗi khi sửa act!', data: errorData };
+    }
+
+    return await response.json();
+};
+
 
 
 export const createChapter = async (postData: {
@@ -104,7 +140,40 @@ export const createChapter = async (postData: {
 
     if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Lỗi khi đăng bài!');
+        throw { message: errorData.error || 'Lỗi khi tạo post!', data: errorData };
+    }
+
+    return await response.json();
+}
+
+export const updateChapter = async (postData: {
+    chapterId: string;
+    userId: string;
+    novelId: string;
+    actId: string;
+    title: string;
+    chapterNumber: number;
+    content?: string;  
+    wordCount?: number;
+}) => {
+    const response = await fetch(`/api/novels/${postData.novelId}/${postData.actId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            chapterId: postData.chapterId,
+            userId: postData.userId,
+            title: postData.title,
+            chapterNumber: postData.chapterNumber,
+            ...(postData.content && postData.content.trim() && {
+                content: postData.content,
+                wordCount: postData.wordCount || 0
+            })
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw { message: errorData.error || 'Lỗi khi cập nhật chapter!', data: errorData };
     }
 
     return await response.json();

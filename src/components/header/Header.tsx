@@ -176,7 +176,7 @@ const Header = () => {
                           className="rounded-full w-12 h-12 object-cover"
                         />
                       )}
-                      <div>
+                      <div className='hidden md:flex'>
                         <p className="text-white font-semibold">{currentUser.username}</p>
                         <p className='text-gray-100 text-sm'>{currentUser.email || "user@example.com"}</p>
                         <p className="text-gray-100 text-sm">{handleRole(currentUser.role)}</p>
@@ -230,15 +230,9 @@ const Header = () => {
           )}
         </div>
 
-        {/* Mobile User Section với Loading */}
+        {/* Mobile User Section - Chỉ hiển thị nút đăng nhập khi chưa đăng nhập */}
         <div className='md:hidden flex items-center gap-2'>
-          {isLoading ? (
-            <div className="w-8 h-8 bg-gray-600 rounded-full animate-pulse"></div>
-          ) : currentUser ? (
-            <div className="hidden items-center gap-2">
-              {/* Mobile user info nếu cần */}
-            </div>
-          ) : (
+          {!isLoading && !currentUser && (
             <Button
               type={<UserIcon className="h-5 w-5" />}
               text="Đăng nhập"

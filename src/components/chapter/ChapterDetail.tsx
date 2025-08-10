@@ -139,6 +139,13 @@ const ChapterPage = () => {
         }
     };
 
+    function removeInlineColors(html: string) {
+        return html
+            .replace(/color\s*:\s*[^;"]+;?/gi, '')
+            .replace(/background-color\s*:\s*[^;"]+;?/gi, '');
+    }
+
+
     // Loading state
     if (isLoading) {
         return (
@@ -154,7 +161,7 @@ const ChapterPage = () => {
     // Error state
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="min-h-screen flex items-center justify-center bg-gray-950">
                 <div className="text-center max-w-md mx-auto">
                     <div className="text-red-500 text-6xl mb-4">⚠️</div>
                     <h2 className="text-2xl font-bold text-gray-800 mb-2">Có lỗi xảy ra</h2>
@@ -321,7 +328,7 @@ const ChapterPage = () => {
                             className={`prose prose-lg max-w-none leading-relaxed transition-all ${theme === 'dark' ? 'prose-invert' : ''
                                 }`}
                             style={{ fontSize: `${fontSize}px` }}
-                            dangerouslySetInnerHTML={{ __html: data.chapter.content }}
+                            dangerouslySetInnerHTML={{ __html: removeInlineColors(data.chapter.content) }}
                         />
 
                         {/* Navigation */}

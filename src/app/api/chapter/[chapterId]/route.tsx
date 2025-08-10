@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
-import { Novel } from '@/model/Novel';
 import { Chapter } from '@/model/Chapter';
 import { Act } from '@/model/Act';
-import { User } from '@/model/User';
 
 export async function GET(request: NextRequest, context: { params: Promise<{ chapterId: string }> }) {
     try {

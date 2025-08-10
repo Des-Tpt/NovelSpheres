@@ -19,17 +19,19 @@ interface CreateChapterPopupProps {
     novelId: string;
     actId: string;
 }
-
 const config = {
     height: 250,
-    style: {
-        background: '#111827',
-        color: '#f9fafb',
-    },
-    editorCssClass: 'jodit-dark-editor',
     readonly: false,
-    placeholder: 'Dáng nội dung của chapter ở đây...'
-}
+    placeholder: 'Dáng nội dung của chapter ở đây...',
+    events: {
+        beforePaste: (html: string) => {
+            // Xoá thuộc tính màu chữ và nền
+            return html.replace(/color\s*:\s*[^;"]+;?/gi, '')
+                .replace(/background(-color)?\s*:\s*[^;"]+;?/gi, '');
+        }
+    }
+
+};
 
 const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose, userId, novelId, actId }) => {
     const [title, setTitle] = useState<string>('');
@@ -64,7 +66,9 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['novelDetail', novelId] });
             notifySuccess('Tạo chapter thành công!');
-            handleClose();
+            setTimeout(() => {
+                onClose();
+            }, 100);
         },
         onError: (error: any) => {
             console.error('Error creating chapter:', error);
@@ -106,6 +110,7 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
         setTitle('');
         setContent('');
         setChapterNumber(1);
+
         onClose();
     };
 
@@ -191,7 +196,7 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
                                     onClick={handleClose}
-                                    className="hover:text-yellow-300 transition-colors text-gray-400 disabled:opacity-50"
+                                    className="hover:text-yellow-300 transition-colors text-gray-400 cursor-pointer disabled:opacity-50"
                                     disabled={createChapterMutation.isPending}
                                 >
                                     <X size={20} />
@@ -292,7 +297,7 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
                                         whileHover={{ scale: createChapterMutation.isPending ? 1 : 1.02 }}
                                         whileTap={{ scale: createChapterMutation.isPending ? 1 : 0.98 }}
                                         onClick={handleClose}
-                                        className="flex-1 px-4 py-2 border border-gray-600 text-white rounded hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="flex-1 px-4 py-2 border border-gray-600 cursor-pointer text-white rounded hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                         disabled={createChapterMutation.isPending}
                                     >
                                         Hủy
@@ -301,7 +306,7 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
                                         whileHover={{ scale: createChapterMutation.isPending ? 1 : 1.02 }}
                                         whileTap={{ scale: createChapterMutation.isPending ? 1 : 0.98 }}
                                         onClick={handleSubmit}
-                                        className="flex-1 px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                        className="flex-1 px-4 py-2 bg-orange-600 cursor-pointer text-white rounded hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                         disabled={createChapterMutation.isPending}
                                     >
                                         {createChapterMutation.isPending ? (
