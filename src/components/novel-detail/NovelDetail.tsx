@@ -373,8 +373,13 @@ const NovelDetail = () => {
     const organizedComments = data?.comments ? formatComment(data.comments) : [];
 
     if (isLoading) return <LoadingComponent />;
-    if (error) return <div className="text-red-500 p-4">{error.message}</div>;
-    if (!data) return <div className="text-white p-4">No data available</div>;
+    if (error) {
+        if (error instanceof Error) {
+            return <div className="text-red-500 p-4">{error.message}</div>;
+        }
+        return <div className="text-red-500 p-4">Đã xảy ra lỗi không xác định.</div>;
+    } 
+    if (!data) return <div className="text-white p-4">Không có dữ liệu</div>;
 
     return (
         <div className='container px-4 py-4 sm:px-5 sm:py-5'>
