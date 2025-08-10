@@ -58,7 +58,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
             acts.map(async (act) => {
                 const chapters = await Chapter.find({ actId: act._id })
                     .select("_id title chapterNumber wordCount updatedAt")
-                    .sort({ name: 1 })
+                    .sort({ chapterNumber: 1 })
                     .lean();
                 return { ...act, chapters };
             })

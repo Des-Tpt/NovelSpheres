@@ -37,6 +37,7 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
     const [title, setTitle] = useState<string>('');
     const [content, setContent] = useState<string>('');
     const [chapterNumber, setChapterNumber] = useState<number>(1);
+    const [chapterNumberStr, setChapterNumberStr] = useState<string>("1");
     const queryClient = useQueryClient();
     const [wordCount, setWordCount] = useState<number>(0);
 
@@ -216,7 +217,7 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
                                         type="text"
                                         value={title}
                                         onChange={(e) => setTitle(e.target.value)}
-                                        placeholder="Ví dụ: Chapter 1: Khởi đầu cuộc hành trình..."
+                                        placeholder="Ví dụ: Khởi đầu cuộc hành trình..."
                                         className="w-full px-3 py-2 bg-black border-2 border-blue-500 rounded text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors disabled:opacity-50"
                                         disabled={createChapterMutation.isPending}
                                     />
@@ -233,13 +234,22 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
                                     </label>
                                     <div className="relative">
                                         <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                                        <input
-                                            type="number"
-                                            value={chapterNumber}
-                                            onChange={(e) => {
-                                                const value = parseInt(e.target.value);
-                                                setChapterNumber(isNaN(value) ? 1 : value);
-                                            }}
+                                       <input
+                                        type="number"
+                                        value={chapterNumberStr}
+                                        onChange={(e) => {
+                                            setChapterNumberStr(e.target.value);
+                                        }}
+                                        onBlur={() => {FileText
+                                            const num = parseInt(chapterNumberStr, 10);
+                                            if (isNaN(num)) {
+                                                setChapterNumberStr("1");
+                                                setChapterNumber(1);
+                                            } else {
+                                                setChapterNumberStr(String(num));
+                                                setChapterNumber(num);
+                                            }
+                                        }}
                                             className="w-full pl-10 pr-3 py-2 bg-black border-2 border-blue-500 rounded text-white focus:outline-none focus:border-blue-400 transition-colors disabled:opacity-50"
                                             disabled={createChapterMutation.isPending}
                                         />

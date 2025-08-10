@@ -43,6 +43,7 @@ const config = {
 const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, userId, novelId, chapter }) => {
     const [title, setTitle] = useState<string>('');
     const [content, setContent] = useState<string>('');
+    const [chapterNumberStr, setChapterNumberStr] = useState<string>("1");
     const [chapterNumber, setChapterNumber] = useState<number>(1);
     const [hasContentChanged, setHasContentChanged] = useState<boolean>(false);
     const queryClient = useQueryClient();
@@ -64,19 +65,18 @@ const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, us
         };
     }, [isOpen]);
 
-    // Load chapter data when popup opens (không load content)
+    // Load chapter data when popup opens
     useEffect(() => {
         if (isOpen && chapter) {
             setTitle(chapter.title || '');
-            setChapterNumber(chapter.chapterNumber || 1);
-            // Không load content, chỉ reset state
+            setChapterNumberStr(chapter.chapterNumber.toString() || "1");
             setContent('');
             setHasContentChanged(false);
             setWordCount(0);
         }
     }, [isOpen, chapter]);
 
-    // Calculate word count from content (chỉ khi có content mới)
+    // Calculate word count from content
     useEffect(() => {
         if (content.trim()) {
             setWordCount(getWordCountFromHtml(content));
@@ -259,7 +259,7 @@ const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, us
                                         type="text"
                                         value={title}
                                         onChange={(e) => setTitle(e.target.value)}
-                                        placeholder="Ví dụ: Chapter 1: Khởi đầu cuộc hành trình..."
+                                        placeholder="Ví dụ: Khởi đầu cuộc hành trình..."
                                         className="w-full px-3 py-2 bg-black border-2 border-blue-500 rounded text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors disabled:opacity-50"
                                         disabled={updateChapterMutation.isPending}
                                     />
@@ -278,10 +278,20 @@ const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, us
                                         <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                                         <input
                                             type="number"
-                                            value={chapterNumber}
+                                            value={chapterNumberStr}
                                             onChange={(e) => {
-                                                const value = parseInt(e.target.value);
-                                                setChapterNumber(isNaN(value) ? 1 : value);
+                                                setChapterNumberStr(e.target.value);
+                                            }}
+                                            onBlur={() => {
+                                                FileText
+                                                const num = parseInt(chapterNumberStr, 10);
+                                                if (isNaN(num)) {
+                                                    setChapterNumberStr("1");
+                                                    setChapterNumber(1);
+                                                } else {
+                                                    setChapterNumberStr(String(num));
+                                                    setChapterNumber(num);
+                                                }
                                             }}
                                             className="w-full pl-10 pr-3 py-2 bg-black border-2 border-blue-500 rounded text-white focus:outline-none focus:border-blue-400 transition-colors disabled:opacity-50"
                                             disabled={updateChapterMutation.isPending}
@@ -387,13 +397,12 @@ const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, us
                                     whileHover={{ scale: updateChapterMutation.isPending ? 1 : 1.02 }}
                                     whileTap={{ scale: updateChapterMutation.isPending ? 1 : 0.98 }}
                                     onClick={handleSubmit}
-                                    className={`flex-1 px-4 py-2 cursor-pointer text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
-                                        hasUnsavedChanges
-                                            ? hasContentChanged
-                                                ? 'bg-blue-600 hover:bg-blue-700'
-                                                : 'bg-green-600 hover:bg-green-700'
-                                            : 'bg-gray-600'
-                                    }`}
+                                    className={`flex-1 px-4 py-2 cursor-pointer text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${hasUnsavedChanges
+                                        ? hasContentChanged
+                                            ? 'bg-blue-600 hover:bg-blue-700'
+                                            : 'bg-green-600 hover:bg-green-700'
+                                        : 'bg-gray-600'
+                                        }`}
                                     disabled={updateChapterMutation.isPending || !hasUnsavedChanges}
                                 >
                                     {updateChapterMutation.isPending ? (

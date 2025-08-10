@@ -16,6 +16,7 @@ const CreateActPopup: React.FC<CreateActPopupProps> = ({ isOpen, onClose, userId
     const [title, setTitle] = useState<string>('');
     const [actType, setActType] = useState<string>('');
     const [actNumber, setActNumber] = useState<number>(1);
+    const [actNumberStr, setActNumberStr] = useState("1");
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const queryClient = useQueryClient();
 
@@ -206,10 +207,19 @@ const CreateActPopup: React.FC<CreateActPopupProps> = ({ isOpen, onClose, userId
                                     </label>
                                     <input
                                         type="number"
-                                        value={actNumber}
+                                        value={actNumberStr}
                                         onChange={(e) => {
-                                            const value = parseInt(e.target.value);
-                                            setActNumber(isNaN(value) ? 1 : value);
+                                            setActNumberStr(e.target.value);
+                                        }}
+                                        onBlur={() => {
+                                            const num = parseInt(actNumberStr, 10);
+                                            if (isNaN(num)) {
+                                                setActNumberStr("1");
+                                                setActNumber(1);
+                                            } else {
+                                                setActNumberStr(String(num));
+                                                setActNumber(num);
+                                            }
                                         }}
                                         className="w-full px-3 py-2 bg-black border-2 border-blue-500 rounded text-white focus:outline-none focus:border-blue-400 transition-colors disabled:opacity-50"
                                         disabled={createActMutation.isPending}

@@ -24,6 +24,7 @@ interface EditActPopupProps {
 const EditActPopup: React.FC<EditActPopupProps> = ({ isOpen, onClose, userId, novelId, actData }) => {
     const [title, setTitle] = useState<string>('');
     const [actType, setActType] = useState<string>('');
+    const [actNumberStr, setActNumberStr] = useState<string>("1");
     const [actNumber, setActNumber] = useState<number>(1);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [removeCurrentFile, setRemoveCurrentFile] = useState<boolean>(false);
@@ -34,7 +35,7 @@ const EditActPopup: React.FC<EditActPopupProps> = ({ isOpen, onClose, userId, no
         if (isOpen && actData) {
             setTitle(actData.title || '');
             setActType(actData.actType || '');
-            setActNumber(actData.actNumber || 1);
+            setActNumberStr(actData.actNumber.toString() || "1");
             setSelectedFile(null);
             setRemoveCurrentFile(false);
         }
@@ -109,7 +110,7 @@ const EditActPopup: React.FC<EditActPopupProps> = ({ isOpen, onClose, userId, no
             ...(selectedFile && { file: selectedFile }),
             ...(removeCurrentFile && { removeFile: true })
         };
-        
+
         try {
             await updateActMutation.mutateAsync(updateData);
         } catch (error) {
@@ -245,13 +246,22 @@ const EditActPopup: React.FC<EditActPopupProps> = ({ isOpen, onClose, userId, no
                                     </label>
                                     <input
                                         type="number"
-                                        value={actNumber}
+                                        value={actNumberStr}
                                         onChange={(e) => {
-                                            const value = parseInt(e.target.value);
-                                            setActNumber(isNaN(value) ? 1 : value);
+                                            setActNumberStr(e.target.value);
                                         }}
-                                        className="w-full px-3 py-2 bg-black border-2 border-blue-500 rounded text-white focus:outline-none focus:border-blue-400 transition-colors disabled:opacity-50"
-                                        disabled={updateActMutation.isPending}
+                                        onBlur={() => {
+                                            const num = parseInt(actNumberStr, 10);
+                                            if (isNaN(num)) {
+                                                setActNumberStr("1");
+                                                setActNumber(1);
+                                            } else {
+                                                setActNumberStr(String(num));
+                                                setActNumber(num);
+                                            }
+                                        }}
+                                    className="w-full px-3 py-2 bg-black border-2 border-blue-500 rounded text-white focus:outline-none focus:border-blue-400 transition-colors disabled:opacity-50"
+                                    disabled={updateActMutation.isPending}
                                     />
                                 </div>
                                 <div className='w-[70%]'>
@@ -315,9 +325,8 @@ const EditActPopup: React.FC<EditActPopupProps> = ({ isOpen, onClose, userId, no
                                         whileHover={{ scale: updateActMutation.isPending ? 1 : 1.02 }}
                                         whileTap={{ scale: updateActMutation.isPending ? 1 : 0.98 }}
                                         htmlFor="file-upload"
-                                        className={`w-full px-3 py-2 bg-black border border-gray-600 rounded text-white cursor-pointer hover:border-blue-400 transition-colors flex items-center gap-2 ${
-                                            updateActMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''
-                                        }`}
+                                        className={`w-full px-3 py-2 bg-black border border-gray-600 rounded text-white cursor-pointer hover:border-blue-400 transition-colors flex items-center gap-2 ${updateActMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''
+                                            }`}
                                     >
                                         <Upload size={16} />
                                         {selectedFile ? selectedFile.name : 'Chọn tệp mới nếu bạn muốn thay đổi ảnh bìa...'}
@@ -336,7 +345,7 @@ const EditActPopup: React.FC<EditActPopupProps> = ({ isOpen, onClose, userId, no
                                     whileHover={{ scale: updateActMutation.isPending ? 1 : 1.02 }}
                                     whileTap={{ scale: updateActMutation.isPending ? 1 : 0.98 }}
                                     onClick={handleClose}
-                                    className="flex-1 px-4 py-2 border border-gray-600 text-white rounded hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex-1 px-4 py-2 border cursor-pointer border-gray-600 text-white rounded hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     disabled={updateActMutation.isPending}
                                 >
                                     Hủy
@@ -345,7 +354,7 @@ const EditActPopup: React.FC<EditActPopupProps> = ({ isOpen, onClose, userId, no
                                     whileHover={{ scale: updateActMutation.isPending ? 1 : 1.02 }}
                                     whileTap={{ scale: updateActMutation.isPending ? 1 : 0.98 }}
                                     onClick={handleSubmit}
-                                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    className="flex-1 px-4 py-2 bg-blue-600 cursor-pointer text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                     disabled={updateActMutation.isPending}
                                 >
                                     {updateActMutation.isPending ? (
