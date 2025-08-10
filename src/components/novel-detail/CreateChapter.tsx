@@ -146,7 +146,7 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="fixed inset-0 bg-black/60 flex items-center justify-center z-100 p-4"
+                    className="fixed inset-0 bg-black/60 flex items-center justify-center z-70 p-4"
                     onClick={handleBackdropClick}
                     style={{
                         backdropFilter: 'blur(2px)',

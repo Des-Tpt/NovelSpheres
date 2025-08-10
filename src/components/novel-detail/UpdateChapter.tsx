@@ -211,7 +211,7 @@ const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, us
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
-                                    className="absolute inset-0 bg-gray-900/80 rounded-lg flex items-center justify-center z-10"
+                                    className="absolute inset-0 bg-gray-900/80 rounded-lg flex items-center justify-center z-70"
                                 >
                                     <div className="flex flex-col items-center gap-3">
                                         <Loader2 className="w-8 h-8 animate-spin text-orange-500" />

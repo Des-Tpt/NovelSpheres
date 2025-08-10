@@ -22,6 +22,7 @@ import EditActPopup from './UpdateAct';
 import EditChapterPopup from './UpdateChapter';
 import DeleteActPopup from './DeteteAct';
 import DeleteChapterPopup from './DeleteChapter';
+import handleStatus from '@/utils/handleStatus';
 
 const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 const defaultFallback = `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
@@ -472,7 +473,9 @@ const NovelDetail = () => {
                         variants={itemVariants}
                     >
                         <div className='flex gap-2 items-center flex-wrap mb-3 sm:mb-4'>
-                            {data?.novel.genresId && !showAllGenres && data.novel.genresId.length > 3 ? (
+                            <span className='bg-gray-950 border-amber-600 border px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm'>
+                                {handleStatus(data.novel.status)}
+                            </span>                            {data?.novel.genresId && !showAllGenres && data.novel.genresId.length > 3 ? (
                                 data.novel.genresId.slice(0, 3).map((genre) =>
                                     <span key={genre._id} className='bg-gray-800 text-blue-300 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm'>
                                         {genre.name}
@@ -495,15 +498,9 @@ const NovelDetail = () => {
 
                         <div className='flex justify-between items-center mb-3 sm:mb-4'>
                             <h1 className='text-2xl sm:text-3xl font-bold text-white'>{data?.novel?.title}</h1>
-                            {isAuthor && (
-                                <div className='flex items-center gap-2 bg-gradient-to-r from-yellow-600 to-orange-600 px-2 sm:px-3 py-1 rounded-full'>
-                                    <Star className='w-3 sm:w-4 h-3 sm:h-4 text-white' />
-                                    <span className='text-white text-xs sm:text-sm font-medium'>Tác giả</span>
-                                </div>
-                            )}
                         </div>
 
-                        <div className='flex items-center border border-gray-400 p-2 rounded-lg gap-2 sm:gap-3'>
+                        <div className='flex items-center border border-gray-400 p-4 rounded-lg gap-2 sm:gap-3'>
                             {authorImage && (
                                 <Image
                                     src={authorImage}
@@ -522,6 +519,12 @@ const NovelDetail = () => {
                                     <span className='text-[0.9rem] sm:text-[1rem]'>{data?.novel?.authorNovelCount || 0} tác phẩm</span>
                                 </span>
                             </div>
+                            {isAuthor && (
+                                <div className='flex items-center ml-auto gap-2 bg-gradient-to-r from-yellow-600 to-orange-600 px-2 sm:px-3 py-1 rounded-full'>
+                                    <Star className='w-3 sm:w-4 h-3 sm:h-4 text-white' />
+                                    <span className='text-white text-xs sm:text-sm font-medium'>Tác giả</span>
+                                </div>
+                            )}
                         </div>
                         <div className='my-4 sm:my-6 border-b-[1px] border-gray-400'></div>
 
@@ -672,7 +675,7 @@ const NovelDetail = () => {
                                                     </div>
                                                     <div className='flex items-center gap-2'>
                                                         {isAuthor && (
-                                                            <div className='flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200'>
+                                                            <div className='flex gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200'>
                                                                 <button
                                                                     onClick={(e) => handleEditAct(act, data.novel._id, currentUser._id, e)}
                                                                     className='p-2 cursor-pointer rounded-lg hover:bg-gray-600 text-gray-400 hover:text-blue-400 transition-colors'
@@ -762,7 +765,7 @@ const NovelDetail = () => {
                                                                                         </div>
                                                                                     </div>
                                                                                     {isAuthor && (
-                                                                                        <div className='flex mr-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200'>
+                                                                                        <div className='flex mr-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200'>
                                                                                             <button
                                                                                                 onClick={(e) => handleEditChapter(chapter, act._id, e)}
                                                                                                 className='p-2 cursor-pointer rounded-lg hover:bg-gray-600 text-gray-400 hover:text-blue-400 transition-colors'

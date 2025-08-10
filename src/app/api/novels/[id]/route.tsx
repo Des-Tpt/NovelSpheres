@@ -3,7 +3,9 @@ import { connectDB } from "@/lib/db";
 import { Act } from "@/model/Act";
 import { Chapter } from "@/model/Chapter";
 import { Comment } from "@/model/Comment";
+import { Genre } from "@/model/Genre";
 import { Novel } from "@/model/Novel";
+import { User } from "@/model/User";
 import optimizeComment from "@/utils/handleOptimize";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -16,8 +18,10 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
 
         await connectDB();
 
-        console.log("modelName:", Novel.modelName);
-        console.log("modelName:", Comment.modelName);
+        console.log(Novel.modelName);
+        console.log(Comment.modelName);
+        console.log(Genre.modelName);
+        console.log(User.modelName);
 
         const novel = await Novel.findById(novelId)
             .populate({ path: "authorId", select: "_id username profile role" })
