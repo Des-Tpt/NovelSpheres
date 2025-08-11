@@ -6,7 +6,7 @@ import LoadingComponent from '../ui/Loading';
 import React, { useEffect, useState } from 'react';
 import getImage from '@/action/imageActions';
 import Image from 'next/image';
-import { Book, BookMarked, Heart, Share2, StepForward, Calendar, Eye, Clock, BookOpenIcon, Star, MessageCircle, Send, ChevronUp, ChevronDown, Plus, FileText, Newspaper, CirclePlus, Edit2, Trash2 } from 'lucide-react';
+import { Book, BookMarked, Heart, Share2, StepForward, Calendar, Eye, Clock, BookOpenIcon, Star, MessageCircle, Send, ChevronUp, ChevronDown, Plus, FileText, Newspaper, CirclePlus, Edit2, Trash2, Settings } from 'lucide-react';
 import { createComment } from '@/action/commentActions';
 import findParentComment from '@/utils/findParentComment';
 import CommentItem from '../ui/CommentItem';
@@ -23,6 +23,7 @@ import EditChapterPopup from './UpdateChapter';
 import DeleteActPopup from './DeteteAct';
 import DeleteChapterPopup from './DeleteChapter';
 import handleStatus from '@/utils/handleStatus';
+import EditNovelPopup from './UpdateNovel';
 
 const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 const defaultFallback = `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
@@ -107,6 +108,17 @@ interface ChapterData {
     wordCount: number;
 }
 
+interface NovelData {
+    _id: string;
+    title: string;
+    description: string;
+    status: string;
+    genresId: Genres[];
+    coverImage: {
+        publicId: string;
+        format: string;
+    };
+}
 
 
 const NovelDetail = () => {
@@ -138,6 +150,9 @@ const NovelDetail = () => {
     const [selectedAct, setSelectedAct] = useState<{ actId: string; actNumber: number, userId: string; novelId: string; } | null>(null);
     const [isShowDeleteChapter, setIsShowDeleteChapter] = useState(false);
     const [selectedChapter, setSelectedChapter] = useState<{ chapterId: string; chapterNumber: number, chapterTitle: string, actId: string; userId: string, novelId: string; } | null>(null);
+    const [isShowEditNovelPopup, setIsShowEditNovelPopup] = useState<boolean>(false);
+    const [selectedNovel, setSelectedNovel] = useState<NovelData | null>(null);
+
 
     const { data, isLoading, error } = useQuery<{ novel: Novel, comments: Comment[], acts: Act[] }>({
         queryKey: ['novelDetail', novelId],
@@ -213,6 +228,38 @@ const NovelDetail = () => {
             toast.error('Gặp lỗi bất thường khi bình luận!');
         }
     };
+
+
+    // interface NovelData {
+    //     _id: string;
+    //     title: string;
+    //     description: string;
+    //     status: string;
+    //     genresId: string[];
+    //     coverImage?: {
+    //         publicId: string;
+    //         format: string;
+    //     };
+    // }
+
+    const handleEditNovel = (novelId: string, title: string, description: string, status: string, genreId: Genres[], publicId: string, format: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        const novelData: NovelData = {
+            _id: novelId,
+            title: title,
+            description: description,
+            status: status,
+            genresId: genreId,
+            coverImage: {
+                publicId: publicId,
+                format: format,
+            }
+        }
+
+        setSelectedNovel(novelData);
+        setIsShowEditNovelPopup(true);
+    }
 
     const handleAddChapter = (actId: string) => {
         setSelectedActId(actId);
@@ -444,7 +491,15 @@ const NovelDetail = () => {
                             <StepForward className='w-4 sm:w-4.5 h-4 sm:h-4.5 align-middle' />
                             Bắt đầu đọc
                         </button>
-
+                        {isAuthor && (
+                            <button
+                                className='mt-2 sm:mt-3 px-3 sm:px-4 py-2 text-base sm:text-lg pl-1 cursor-pointer bg-red-600 font-bold text-white rounded-lg hover:bg-blue-600 transition-colors inline-flex items-center justify-center gap-2'
+                                onClick={(e) => handleEditNovel(data.novel._id, data.novel.title, data.novel.description, data.novel.status, data.novel.genresId!, data?.novel.coverImage?.publicId ?? '', data?.novel.coverImage?.format ?? '', e)}
+                            >
+                                <Settings className='w-4 sm:w-4.5 h-4 sm:h-4.5 align-middle' />
+                                Chỉnh sửa
+                            </button>
+                        )}
                         <div className='flex justify-between gap-2 sm:gap-3 md:gap-1 md:w-full mt-2 sm:mt-3'>
                             <button><div className='cursor-pointer flex px-5 sm:px-6.5 py-2 sm:py-3 border items-center flex-col gap-1 sm:gap-2 rounded-lg bg-gray-950 group hover:bg-gray-500 hover:transition-colors'>
                                 <Heart className='w-4 sm:w-5 h-4 sm:h-5 text-red-500 group-hover:text-yellow-700 transition-colors duration-75' />
@@ -709,26 +764,25 @@ const NovelDetail = () => {
                                                         className='overflow-hidden'
                                                     >
                                                         <div className='border-t border-gray-700 bg-gray-950'>
-                                                            <div className='flex flex-col lg:flex-row gap-6 p-6'>
+                                                            <div className="flex flex-col lg:flex-row gap-6 p-6">
                                                                 {/* Act Cover Section */}
-                                                                <div className='flex-shrink-0 lg:w-48'>
-                                                                    <div className='relative group'>
+                                                                <div className="w-full flex flex-col items-center lg:block lg:w-48">
+                                                                    <div className="relative group w-48"> {/* cố định width để ảnh & box bằng nhau */}
                                                                         <Image
                                                                             src={act.publicId && imageUrls[act.publicId] ? imageUrls[act.publicId] : defaultFallback}
                                                                             width={400}
                                                                             height={400}
                                                                             alt={`Act ${act.actNumber} Cover`}
-                                                                            className="rounded-lg shadow-xl object-cover border border-gray-600 w-full aspect-[3/4] group-hover:scale-105 transition-transform duration-200"
+                                                                            className="rounded-lg shadow-xl w-full object-cover border border-gray-600 aspect-[3/4] group-hover:scale-105 transition-transform duration-200"
                                                                         />
-                                                                        <div className='absolute inset-0 bg-black/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200'></div>
+                                                                        <div className="absolute inset-0 bg-black/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
                                                                     </div>
-                                                                    <div className='mt-3 text-center bg-gray-700 rounded-lg py-2'>
-                                                                        <p className='text-sm font-semibold text-gray-300'>
+                                                                    <div className="mt-3 text-center bg-gray-700 rounded-lg py-2 w-48">
+                                                                        <p className="text-sm font-semibold text-gray-300">
                                                                             {act.chapters.length} chương
                                                                         </p>
                                                                     </div>
                                                                 </div>
-
                                                                 {/* Chapters Section */}
                                                                 <div className='flex-1 min-w-0'>
                                                                     <div className='mb-4'>
@@ -1008,9 +1062,9 @@ const NovelDetail = () => {
                     />
                 )}
 
-                {isShowDeleteActPopup && selectedChapter && currentUser && (
+                {isShowDeleteChapter && selectedChapter && currentUser && (
                     <DeleteChapterPopup
-                        isOpen={isShowDeleteActPopup}
+                        isOpen={isShowDeleteChapter}
                         onClose={() => {
                             setIsShowDeleteChapter(false);
                             setSelectedChapter(null);
@@ -1018,8 +1072,19 @@ const NovelDetail = () => {
                         chapterData={selectedChapter}
                     />
                 )}
+                {isShowEditNovelPopup && currentUser && (
+                    <EditNovelPopup
+                        isOpen={isShowEditNovelPopup}
+                        onClose={() => {
+                            setIsShowEditNovelPopup(false);
+                            setSelectedNovel(null);
+                        }}
+                        novelData={selectedNovel}
+                        userId={currentUser._id}
+                    />
+                )}
             </AnimatePresence>
-        </div>
+        </div >
     );
 };
 

@@ -9,10 +9,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
         connectDB();
         
         const { id: postId } = await context.params;
-
-        console.log(ForumPost.modelName);
-        console.log(Comment.modelName);
-
+        
         const post = await ForumPost.findById(postId)
             .populate({
                 path: 'userId',

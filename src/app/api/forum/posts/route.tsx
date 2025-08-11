@@ -112,7 +112,6 @@ export async function POST(request: NextRequest) {
         
         return NextResponse.json({ success: true, post: newPost })
     } catch (e) {
-        console.log(e)
         return NextResponse.json({ error: 'Đã xảy ra lỗi khi tạo post!' }, { status: 500 });
     }
 }

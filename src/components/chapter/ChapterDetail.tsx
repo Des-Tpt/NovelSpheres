@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight, Book, Clock, Menu, X, HomeIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Book, Clock, Menu, X, HomeIcon, Settings } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getChapterById } from '@/action/chapterAction';
-import Home from '@/app/page';
+import { useSettingChapterStore } from '@/store/settingChapterStore';
+import ChapterSettingPopup from './SettingChapterPopup';
+
 
 interface Novel {
     _id: string;
@@ -73,15 +75,15 @@ const ChapterPage = () => {
     const queryClient = useQueryClient();
 
     const [showTOC, setShowTOC] = useState<boolean>(false);
-    const [fontSize, setFontSize] = useState<number>(16);
-    const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+    const [showSetting, setShowSetting] = useState(false);
+    const { fontSize, fontFamily, lineSpacing, nightMode } = useSettingChapterStore();
 
     const { data, isLoading, error, refetch } = useQuery<ChapterData>({
         queryKey: ['chapter', chapterId],
         queryFn: () => getChapterById(chapterId),
-        enabled: !!chapterId, // Chỉ chạy query khi có chapterId
-        staleTime: 5 * 60 * 1000, // Cache trong 5 phút
-        retry: 2, // Thử lại tối đa 2 lần nếu thất bại
+        enabled: !!chapterId,
+        staleTime: 5 * 60 * 1000,
+        retry: 2,
     });
 
     // Prefetch chapters kế tiếp để tăng performance
@@ -119,18 +121,6 @@ const ChapterPage = () => {
         }
     };
 
-    const toggleFontSize = () => {
-        setFontSize(prev => {
-            if (prev === 16) return 18;
-            if (prev === 18) return 20;
-            return 16;
-        });
-    };
-
-    const toggleTheme = () => {
-        setTheme(prev => prev === 'light' ? 'dark' : 'light');
-    };
-
     const handleKeyDown = (event: React.KeyboardEvent) => {
         if (event.key === 'ArrowLeft' && data?.navigation?.hasPrev) {
             goToPrevChapter();
@@ -139,13 +129,16 @@ const ChapterPage = () => {
         }
     };
 
-    function removeInlineColors(html: string) {
+    function cleanHtml(html: string) {
         return html
-            .replace(/color\s*:\s*[^;"]+;?/gi, '')
-            .replace(/background-color\s*:\s*[^;"]+;?/gi, '');
+            .replace(/color\s*:\s*[^;"]+;?/gi, '')               // Xóa màu chữ
+            .replace(/background-color\s*:\s*[^;"]+;?/gi, '')    // Xóa màu nền
+            .replace(/font-size\s*:\s*[^;"]+;?/gi, '')           // Xóa size
+            .replace(/font-family\s*:\s*[^;"]+;?/gi, '')         // Xóa font
+            .replace(/line-height\s*:\s*[^;"]+;?/gi, '');        // Xóa line height
     }
 
-
+    console.log("Font size from store:", fontSize);
     // Loading state
     if (isLoading) {
         return (
@@ -161,7 +154,7 @@ const ChapterPage = () => {
     // Error state
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-950">
+            <div className={`min-h-screen flex items-center justify-center ${nightMode === 'dark' ? 'bg-gray-950' : 'bg-amber-50'}`}>
                 <div className="text-center max-w-md mx-auto">
                     <div className="text-red-500 text-6xl mb-4">⚠️</div>
                     <h2 className="text-2xl font-bold text-gray-800 mb-2">Có lỗi xảy ra</h2>
@@ -182,7 +175,7 @@ const ChapterPage = () => {
     // No data state
     if (!data) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className={`min-h-screen flex items-center justify-center ${nightMode === 'dark' ? 'bg-gray-950' : 'bg-amber-50'}`}>
                 <div className="text-center">
                     <p className="text-gray-600">Không tìm thấy dữ liệu chương</p>
                 </div>
@@ -192,27 +185,26 @@ const ChapterPage = () => {
 
     return (
         <div
-            className={`min-h-screen transition-colors ${theme === 'dark' ? 'bg-gray-950 text-white' : 'bg-gray-50 text-gray-900'
+            className={`min-h-screen transition-colors ${nightMode === 'dark' ? 'bg-gray-950 text-white' : 'bg-amber-50 text-gray-900'
                 }`}
             onKeyDown={handleKeyDown}
-            tabIndex={0}
         >
             {/* Header */}
-            <header className={`sticky top-0 z-40 border-b transition-colors ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+            <header className={`sticky top-0 z-40 border-b transition-colors ${nightMode === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'
                 }`}>
                 <div className="max-w-4xl mx-auto px-4 py-3">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                             <button
                                 onClick={() => setShowTOC(!showTOC)}
-                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                className={`p-2 rounded-lg hover:bg-gray-100 transition-colors`}
                                 aria-label="Toggle table of contents"
                             >
                                 {showTOC ? <X size={20} /> : <Menu size={20} />}
                             </button>
                             <div>
                                 <h1 className="font-semibold text-lg">{data.novel.title}</h1>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                <p className="text-sm text-gray-600">
                                     {data.act.title} - {data.chapter.title}
                                 </p>
                             </div>
@@ -220,18 +212,11 @@ const ChapterPage = () => {
 
                         <div className="flex items-center space-x-2">
                             <button
-                                onClick={toggleFontSize}
-                                className="px-3 py-1 text-sm rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                                title={`Font size: ${fontSize}px`}
+                                onClick={() => setShowSetting(true)}
+                                className={`px-3 py-1 text-sm rounded-md ${nightMode === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`}
+                                title="Cài đặt hiển thị"
                             >
-                                A{fontSize === 20 ? '+' : fontSize === 18 ? '' : '-'}
-                            </button>
-                            <button
-                                onClick={toggleTheme}
-                                className="px-3 py-1 text-sm rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                                title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-                            >
-                                {theme === 'light' ? '🌙' : '☀️'}
+                                <Settings className={`w-5 h-5 ${nightMode === 'dark' ? 'text-white' : 'text-gray-950'}`} />
                             </button>
                         </div>
                     </div>
@@ -241,7 +226,7 @@ const ChapterPage = () => {
             <div className="flex">
                 {/* Table of Contents Sidebar */}
                 {showTOC && (
-                    <aside className={`fixed left-0 top-16 w-80 h-full overflow-y-auto border-r transition-colors z-40 ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+                    <aside className={`fixed left-0 top-16 w-80 h-full overflow-y-auto border-r transition-colors z-40 ${nightMode === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'
                         }`}>
                         <div className="p-4">
                             {/* Nút về trang tiểu thuyết */}
@@ -265,9 +250,9 @@ const ChapterPage = () => {
                                 <div key={act._id} className="mb-4">
                                     <div className={`font-medium py-2 px-3 rounded-lg mb-2 ${act._id === data.act._id
                                         ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
-                                        : 'bg-gray-50 dark:bg-gray-700'
+                                        : ''
                                         }`}>
-                                        {act.actType ?? 'Act'} {act.actNumber}: {act.title}
+                                        {act.actType === '' ? 'Act' : act.actType} {act.actNumber}: {act.title}
                                     </div>
 
                                     {/* Hiển thị chapters của act này */}
@@ -281,7 +266,7 @@ const ChapterPage = () => {
                                                 }}
                                                 className={`block w-full text-left py-2 px-3 rounded-md text-sm transition-colors ${chapter._id === data.chapter._id
                                                     ? 'bg-blue-500 text-white'
-                                                    : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                                                    : 'hover:bg-gray-100 dark:hover:bg-gray-300'
                                                     }`}
                                             >
                                                 Chương {chapter.chapterNumber}: {chapter.title}
@@ -306,11 +291,11 @@ const ChapterPage = () => {
                     <div className="max-w-4xl mx-auto px-4 py-8">
                         {/* Chapter Header */}
                         <div className="mb-8 text-center">
-                            <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                            <div className="text-sm text-gray-500 mb-2">
                                 _Chương {data.chapter.chapterNumber}_
                             </div>
                             <h1 className="text-3xl font-bold mb-4">{data.chapter.title}</h1>
-                            <div className="flex items-center justify-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                            <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
                                 {data.chapter.wordCount && (
                                     <div className="flex items-center">
                                         <Clock size={16} className="mr-1" />
@@ -325,10 +310,13 @@ const ChapterPage = () => {
 
                         {/* Chapter Content */}
                         <div
-                            className={`prose prose-lg max-w-none leading-relaxed transition-all ${theme === 'dark' ? 'prose-invert' : ''
-                                }`}
-                            style={{ fontSize: `${fontSize}px` }}
-                            dangerouslySetInnerHTML={{ __html: removeInlineColors(data.chapter.content) }}
+                            className={`prose max-w-none leading-relaxed transition-all ${nightMode === 'dark' ? 'bg-gray-950 text-white' : 'bg-amber-50 text-black'}`}
+                            style={{
+                                fontSize: `${fontSize}px`,
+                                fontFamily: fontFamily === 'system-ui' ? 'system-ui, -apple-system, "Segoe UI", Roboto' : fontFamily,
+                                lineHeight: lineSpacing,
+                            }}
+                            dangerouslySetInnerHTML={{ __html: cleanHtml(data.chapter.content) }}
                         />
 
                         {/* Navigation */}
@@ -360,6 +348,7 @@ const ChapterPage = () => {
                             </div>
                         </div>
                     </div>
+                    <ChapterSettingPopup isOpen={showSetting} onClose={() => setShowSetting(false)} />
                 </main>
             </div>
         </div>

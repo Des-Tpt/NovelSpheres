@@ -7,7 +7,6 @@ import { IUser, User } from "@/model/User";
 export async function GET(req: NextRequest) {
     await connectDB();
     try {
-        console.log(ForumPost.modelName);
         
         const data = await ForumPost.aggregate([{ $group: { _id: "$category" , doc: { $first: "$$ROOT" } } }, { $replaceRoot: { newRoot: "$doc"}}]);
         const dataWithUser = await Promise.all(data.map(getPostOwner));
@@ -15,7 +14,6 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json(res);
     } catch (e) {
-        console.log(e);
         return NextResponse.json({error: 'Không thể lấy thông tin.'} , { status: 200 })
     }
 }

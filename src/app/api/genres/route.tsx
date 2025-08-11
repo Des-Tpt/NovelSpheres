@@ -3,7 +3,6 @@ import { Genre } from "@/model/Genre";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
-    console.log(Genre.modelName);
     try {
         await connectDB();
 
@@ -17,7 +16,6 @@ export async function GET(req: NextRequest) {
     }
     catch (error)
     {
-        console.log(error);
         return NextResponse.json( {error: 'Lỗi khi lấy dữ liệu'}, {status: 500});
     }
 }

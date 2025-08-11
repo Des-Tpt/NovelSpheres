@@ -87,6 +87,44 @@ export const createAct = async (postData: {
 };
 
 
+export const updateNovel = async (postData: {
+    userId: string;
+    novelId: string;
+    title: string;
+    file?: File;
+    status: string;
+    description: string;
+    genresId?: string[];
+}) => {
+    const formData = new FormData();
+    formData.append('userId', postData.userId);
+    formData.append('title', postData.title);
+    formData.append('status', postData.status);
+    formData.append('description', postData.description);
+
+    if (postData.genresId) {
+        postData.genresId.forEach(id => {
+            formData.append('genresId', id);
+        });
+    }
+
+    if (postData.file) {
+        formData.append('file', postData.file)
+    };
+
+    const response = await fetch(`/api/novels/${postData.novelId}`, {
+        method: 'PUT',
+        body: formData,
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw { message: errorData.error || 'Lỗi khi tạo act!', data: errorData };
+    }
+
+    return await response.json();
+};
+
 export const updateAct = async (postData: {
     actId: string;
     userId: string;
@@ -175,7 +213,7 @@ export const updateChapter = async (postData: {
     actId: string;
     title: string;
     chapterNumber: number;
-    content?: string;  
+    content?: string;
     wordCount?: number;
 }) => {
     const response = await fetch(`/api/novels/${postData.novelId}/${postData.actId}`, {

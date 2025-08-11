@@ -31,14 +31,18 @@ const config = {
     height: 250,
     readonly: false,
     placeholder: 'Paste nội dung mới vào đây để chỉnh sửa chapter (tùy chọn)...',
+    style: {
+        color: '#000000'
+    },
     events: {
         beforePaste: (html: string) => {
-            // Xoá thuộc tính màu chữ và nền
-            return html.replace(/color\s*:\s*[^;"]+;?/gi, '')
+            return html
+                .replace(/color\s*:\s*[^;"]+;?/gi, '')
                 .replace(/background(-color)?\s*:\s*[^;"]+;?/gi, '');
         }
     }
 };
+
 
 const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, userId, novelId, chapter }) => {
     const [title, setTitle] = useState<string>('');
