@@ -804,7 +804,7 @@ const NovelDetail = () => {
                                                                             >
                                                                                 <div className='flex items-center justify-between'>
                                                                                     <div className='flex-1 min-w-0 mr-4'>
-                                                                                        <h5 className='text-gray-200 font-semibold text-base group-hover:text-white transition-colors mb-2 truncate'>
+                                                                                        <h5 className='text-gray-200 font-semibold text-base group-hover:text-blue-500 transition-colors mb-2 truncate'>
                                                                                             Chương {chapter.chapterNumber}: {chapter.title}
                                                                                         </h5>
                                                                                         <div className='flex flex-wrap gap-4 text-xs text-gray-400'>
@@ -836,7 +836,7 @@ const NovelDetail = () => {
                                                                                             </button>
                                                                                         </div>
                                                                                     )}
-                                                                                    <StepForward className='w-6 h-6 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0' />
+                                                                                    <StepForward className='w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors flex-shrink-0' />
                                                                                 </div>
                                                                             </motion.div>
                                                                         ))}

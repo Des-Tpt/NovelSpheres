@@ -205,6 +205,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
 
         if (title) act.title = title;
         if (actType) act.actType = actType;
+        if (actType === '') act.actType = '';
 
         // Nếu có file mới
         if (file) {

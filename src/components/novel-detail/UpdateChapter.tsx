@@ -287,7 +287,6 @@ const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, us
                                                 setChapterNumberStr(e.target.value);
                                             }}
                                             onBlur={() => {
-                                                FileText
                                                 const num = parseInt(chapterNumberStr, 10);
                                                 if (isNaN(num)) {
                                                     setChapterNumberStr("1");

@@ -118,7 +118,7 @@ const Header = () => {
           />
           <Button
             type={<Book className="h-5 w-5" />}
-            text="Danh sách"
+            text="Thư viện"
             href="/novels"
             onClick={() => handleClick('novels')}
             isActive={activeButton === 'novels'}

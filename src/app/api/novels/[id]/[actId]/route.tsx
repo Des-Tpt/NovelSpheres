@@ -51,6 +51,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
         })
         await newChapter.save();
 
+        await Novel.findByIdAndUpdate(novelId, { updatedAt: new Date() });
         return NextResponse.json({ success: true, }, { status: 201 });
 
     } catch (error) {
@@ -134,6 +135,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
             return NextResponse.json({ error: 'Không thể cập nhật chapter!' }, { status: 500 });
         }
 
+        await Novel.findByIdAndUpdate(novelId, { updatedAt: new Date() });
 
         return NextResponse.json({
             success: true,
@@ -145,7 +147,6 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
         return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
     }
 }
-
 
 export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string, actId: string }> }) {
     try {
