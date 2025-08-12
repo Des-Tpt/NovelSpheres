@@ -482,7 +482,7 @@ const NovelDetail = () => {
                             width={350} // Giảm kích thước ảnh trên mobile
                             height={350}
                             alt={data?.novel?.title || 'Novel Cover'}
-                            className="rounded-lg object-cover shadow-md w-full sm:w-[350px] sm:h-[450px]"
+                            className="rounded-lg object-cover object-top shadow-md w-full sm:w-[350px] sm:h-[450px]"
                         />
                         <button
                             className='mt-3 sm:mt-4 px-3 sm:px-4 py-2 text-base sm:text-lg pl-1 cursor-pointer bg-blue-500 font-bold text-white rounded-lg hover:bg-blue-600 transition-colors inline-flex items-center justify-center gap-2'

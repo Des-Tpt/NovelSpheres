@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
         // Tạo điều kiện query cho Novel
         const query: any = {};
         if (genreId && genreId.length > 0) {
-            query.genresId = { $in: genreId };
+            query.genresId = { $all: genreId };
         }
 
         const total = await Novel.countDocuments(query);
