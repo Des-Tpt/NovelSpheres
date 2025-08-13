@@ -55,7 +55,6 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
         return NextResponse.json({ success: true, }, { status: 201 });
 
     } catch (error) {
-        console.error('Lỗi khi tạo act:', error);
         return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
     }
 }

@@ -153,9 +153,6 @@ export default function ForumPage() {
         }
     };
 
-
-
-
     if (isLoading) return <LoadingPostComponent />;
     if (isError) return <p>Có lỗi xảy ra.</p>;
 

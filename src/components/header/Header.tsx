@@ -107,21 +107,21 @@ const Header = () => {
             text="Trang chủ"
             href="/"
             onClick={() => handleClick('home')}
-            isActive={activeButton === 'home'}
+            isActive={activeButton === '1'}
           />
           <Button
             type={<ChatBubbleLeftIcon className="h-5 w-5" />}
             text="Diễn đàn"
             href="/forum"
             onClick={() => handleClick('forum')}
-            isActive={activeButton === 'forum'}
+            isActive={activeButton === '1'}
           />
           <Button
             type={<Book className="h-5 w-5" />}
             text="Thư viện"
             href="/novels"
             onClick={() => handleClick('novels')}
-            isActive={activeButton === 'novels'}
+            isActive={activeButton === '1'}
           />
         </div>
 
@@ -176,7 +176,7 @@ const Header = () => {
                           className="rounded-full w-12 h-12 object-cover"
                         />
                       )}
-                      <div className='hidden md:flex'>
+                      <div className='hidden md:flex flex-col'>
                         <p className="text-white font-semibold">{currentUser.username}</p>
                         <p className='text-gray-100 text-sm'>{currentUser.email || "user@example.com"}</p>
                         <p className="text-gray-100 text-sm">{handleRole(currentUser.role)}</p>

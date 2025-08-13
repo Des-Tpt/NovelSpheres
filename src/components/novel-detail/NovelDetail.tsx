@@ -6,14 +6,13 @@ import LoadingComponent from '../ui/Loading';
 import React, { useEffect, useState } from 'react';
 import getImage from '@/action/imageActions';
 import Image from 'next/image';
-import { Book, BookMarked, Heart, Share2, StepForward, Calendar, Eye, Clock, BookOpenIcon, Star, MessageCircle, Send, ChevronUp, ChevronDown, Plus, FileText, Newspaper, CirclePlus, Edit2, Trash2, Settings } from 'lucide-react';
+import { Book, BookMarked, Heart, Share2, StepForward, Calendar, Eye, Clock, BookOpenIcon, Star, MessageCircle, Send, ChevronUp, ChevronDown, Plus, FileText, Newspaper, CirclePlus, Edit2, Trash2, Settings, EyeIcon } from 'lucide-react';
 import { createComment } from '@/action/commentActions';
 import findParentComment from '@/utils/findParentComment';
 import CommentItem from '../ui/CommentItem';
 import handleToProfile from '@/utils/handleToProfile';
 import { AnimatePresence, motion } from 'framer-motion';
 import countTotalComments from '@/utils/countComment';
-import { toast } from 'sonner';
 import { getUserFromCookies } from '@/action/userAction';
 import { notifyError, notifySuccess } from '@/utils/notify';
 import CreateActPopup from './CreateAct';
@@ -24,6 +23,7 @@ import DeleteActPopup from './DeteteAct';
 import DeleteChapterPopup from './DeleteChapter';
 import handleStatus from '@/utils/handleStatus';
 import EditNovelPopup from './UpdateNovel';
+import { getLike, Like, UnLike } from '@/action/likeAction';
 
 const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 const defaultFallback = `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
@@ -120,7 +120,6 @@ interface NovelData {
     };
 }
 
-
 const NovelDetail = () => {
     const params = useParams();
     const router = useRouter();
@@ -171,9 +170,19 @@ const NovelDetail = () => {
         fetchCurrentUser();
     }, []);
 
+    const { data: likeData, isLoading: likeIsLoading, error: likeError } = useQuery<{ liked: boolean }>({
+        queryKey: ['likeRes', novelId, currentUser?._id],
+        queryFn: () => getLike(novelId as string, currentUser!._id),
+        enabled: !!currentUser,
+    });
+
+    const isLiked = likeData?.liked || false;
+
+    console.log(isLiked);
+
     const isAuthor = currentUser && data?.novel && currentUser?._id === data.novel.authorId?._id;
 
-    const mutation = useMutation({
+    const createCommentMutation = useMutation({
         mutationFn: createComment,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['novelDetail', novelId] });
@@ -181,6 +190,22 @@ const NovelDetail = () => {
         },
         onError: () => notifyError('Bình luận thất bại!'),
     });
+
+    const likeMutation = useMutation({
+        mutationFn: Like,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['likeRes', novelId, currentUser?._id] });
+            queryClient.invalidateQueries({ queryKey: ['novelDetail', novelId] });
+        },
+    })
+
+    const unLikeMutation = useMutation({
+        mutationFn: UnLike,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['likeRes', novelId, currentUser?._id] });
+            queryClient.invalidateQueries({ queryKey: ['novelDetail', novelId] });
+        },
+    })
 
     const handleReply = (commentId: string, username: string, userId: string) => {
         setReplyingTo(commentId);
@@ -198,7 +223,7 @@ const NovelDetail = () => {
         if (!replyContent.trim() || !replyToUser || !data?.comments) return;
         try {
             const parentId = findParentComment(parentCommentId, data.comments);
-            await mutation.mutateAsync({
+            await createCommentMutation.mutateAsync({
                 sourceId: novelId as string,
                 content: replyContent,
                 sourceType: 'Novel',
@@ -209,14 +234,14 @@ const NovelDetail = () => {
             setReplyContent('');
             setReplyToUser(null);
         } catch (error) {
-            console.error('Gặp lỗi bất thường khi bình luận!');
+            notifyError('Gặp lỗi bất thường khi bình luận!');
         }
     };
 
     const handleSubmitComment = async () => {
         if (!newCommentContent.trim()) return;
         try {
-            await mutation.mutateAsync({
+            await createCommentMutation.mutateAsync({
                 sourceId: novelId as string,
                 content: newCommentContent,
                 sourceType: 'Novel',
@@ -225,22 +250,36 @@ const NovelDetail = () => {
             });
             setNewCommentContent('');
         } catch (error) {
-            toast.error('Gặp lỗi bất thường khi bình luận!');
+            notifyError('Gặp lỗi bất thường khi bình luận!');
         }
     };
 
+    const handleLikeClick = async () => {
+        if (isLiked && currentUser && data) {
+            try {
+                console.log('unLike');
+                await unLikeMutation.mutateAsync({
+                    userId: currentUser?._id,
+                    novelId: data?.novel._id,
+                });
+            } catch (error) {
+                const message = error instanceof Error ? error.message : 'Lỗi không xác định';
+                notifyError(message);
+            }
+        } else if (!isLiked && currentUser && data) {
+            try {
+                console.log('Like');
 
-    // interface NovelData {
-    //     _id: string;
-    //     title: string;
-    //     description: string;
-    //     status: string;
-    //     genresId: string[];
-    //     coverImage?: {
-    //         publicId: string;
-    //         format: string;
-    //     };
-    // }
+                await likeMutation.mutateAsync({
+                    userId: currentUser?._id,
+                    novelId: data?.novel._id,
+                });
+            } catch (error) {
+                const message = error instanceof Error ? error.message : 'Lỗi không xác định';
+                notifyError(message);
+            }
+        }
+    };
 
     const handleEditNovel = (novelId: string, title: string, description: string, status: string, genreId: Genres[], publicId: string, format: string, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -425,7 +464,7 @@ const NovelDetail = () => {
                 replyingTo={replyingTo}
                 replyContent={replyContent}
                 replyToUser={replyToUser}
-                isSubmitting={mutation.isPending}
+                isSubmitting={createCommentMutation.isPending}
                 onReply={handleReply}
                 onReplyContentChange={setReplyContent}
                 onSubmitReply={handleSubmitReply}
@@ -448,8 +487,13 @@ const NovelDetail = () => {
     const formatNumberVN = (num: number) => num.toLocaleString("vi-VN");
     const formatDateVN = (dateInput: string | Date) => {
         const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
-        return date.toLocaleDateString("vi-VN");
+        return date.toLocaleDateString("vi-VN", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+        });
     };
+
 
     const organizedComments = data?.comments ? formatComment(data.comments) : [];
 
@@ -476,17 +520,99 @@ const NovelDetail = () => {
                     className='flex flex-col w-full lg:w-auto'
                     variants={itemVariants}
                 >
-                    <div className='flex flex-col p-4 sm:p-5 justify-center items-center md:items-stretch rounded-lg bg-gray-950 border border-gray-500'>
-                        <Image
-                            src={coverImage || defaultFallback}
-                            width={350} // Giảm kích thước ảnh trên mobile
-                            height={350}
-                            alt={data?.novel?.title || 'Novel Cover'}
-                            className="rounded-lg object-cover object-top shadow-md w-full sm:w-[350px] sm:h-[450px]"
-                        />
+                    <div className='flex flex-col p-4 sm:p-5 rounded-lg bg-gray-950 border border-gray-500'>
+
+                        <div className='flex items-start md:items-center '>
+                            <div className='max-w-2/6 flex-shrink-0 md:max-w-full'>
+                                <Image
+                                    src={coverImage || defaultFallback}
+                                    width={400}
+                                    height={400}
+                                    alt={data?.novel?.title || 'Novel Cover'}
+                                    className="w-50 rounded-lg object-cover object-top shadow-md sm:w-[350px] sm:h-[450px]"
+                                />
+                            </div>
+                            <div className='ml-3 md:ml-0 max-w-4/6 md:hidden'>
+                                <div className='flex flex-wrap gap-2'>
+                                    <span className='bg-gray-950 border-amber-600 border px-2 py-1 rounded-full text-xs'>
+                                        {handleStatus(data.novel.status)}
+                                    </span>
+
+                                    {/* Render genres dựa trên showAllGenres */}
+                                    {data?.novel?.genresId && (
+                                        <>
+                                            {!showAllGenres && data.novel.genresId.length > 2 ? (
+                                                // Hiển thị 3 genres đầu
+                                                data.novel.genresId.slice(0, 2).map((genre) => (
+                                                    <span key={genre._id} className="px-2.5 py-1 bg-gray-800 text-blue-300 border border-purple-500/30 rounded-full text-xs font-medium backdrop-blur-sm">
+                                                        {genre.name}
+                                                    </span>
+                                                ))
+                                            ) : (
+                                                // Hiển thị tất cả genres
+                                                data.novel.genresId.map((genre) => (
+                                                    <span key={genre._id} className="px-2.5 py-1 bg-gray-800 text-blue-300 border border-purple-500/30 rounded-full text-xs font-medium backdrop-blur-sm">
+                                                        {genre.name}
+                                                    </span>
+                                                ))
+                                            )}
+
+                                            {!showAllGenres && data.novel.genresId.length > 2 && (
+                                                <span
+                                                    className="px-2.5 py-1 bg-gradient-to-r bg-gray-800 text-blue-300 border border-purple-500/30 rounded-full text-xs font-medium backdrop-blur-sm cursor-pointer"
+                                                    onClick={() => setShowAllGenres(true)}
+                                                >
+                                                    +{data.novel.genresId.length - 2}
+                                                </span>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
+                                <div className='block md:hidden my-2 text-[1.2rem] font-extrabold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent'>
+                                    {data.novel.title}
+                                </div>
+                                <div className='mt-1 flex items-center gap-2.5'>
+                                    {authorImage && (
+                                        <Image
+                                            src={authorImage}
+                                            width={80}
+                                            height={80}
+                                            alt={data?.novel?.authorId?.username || 'Avatar tác giả'}
+                                            className="rounded-full w-6 h-6 object-cover border border-gray-200"
+                                        />
+
+                                    )}
+                                    <span className='font-extrabold text-blue-400 text-sm'>
+                                        {data?.novel?.authorId?.username ?? 'Vô danh'}
+                                    </span>
+                                </div>
+                                <div className='grid mt-5 text-xs grid-cols-2 gap-y-5'>
+                                    <div className='flex items-center gap-x-1'>
+                                        <BookOpenIcon className='w-4 h-4 text-blue-400' />
+                                        <span className='font-bold'>{data?.novel.chaptersCount}</span>
+                                        <span className=''>chương</span>
+                                    </div>
+                                    <div className='flex items-center gap-x-1'>
+                                        <EyeIcon className='w-4 h-4 text-green-400 gap-x-1' />
+                                        <span className='font-bold'>{data?.novel.views}</span>
+                                        <span className=''>lượt xem</span>
+                                    </div>
+                                    <div className='flex items-center gap-x-1'>
+                                        <Heart className='w-4 h-4 text-red-400' />
+                                        <span className='font-bold'>{data?.novel.likes}</span>
+                                        <span className=''>lượt thích</span>
+                                    </div>
+                                    <div className='flex items-center gap-x-1'>
+                                        <Clock className='w-4 h-4 text-yellow-400' />
+                                        <span className='font-bold'>{data?.novel.updatedAt ? formatDateVN(data.novel.updatedAt) : 'N/A'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <button
                             className='mt-3 sm:mt-4 px-3 sm:px-4 py-2 text-base sm:text-lg pl-1 cursor-pointer bg-blue-500 font-bold text-white rounded-lg hover:bg-blue-600 transition-colors inline-flex items-center justify-center gap-2'
-                            onClick={() => router.push(`/chapters/${data?.acts?.[0]?.chapters?.[0]?._id}`)}
+                            onClick={() => router.push(`/chapter/${data?.acts?.[0]?.chapters?.[0]?._id}`)}
                         >
                             <StepForward className='w-4 sm:w-4.5 h-4 sm:h-4.5 align-middle' />
                             Bắt đầu đọc
@@ -501,18 +627,37 @@ const NovelDetail = () => {
                             </button>
                         )}
                         <div className='flex justify-between gap-2 sm:gap-3 md:gap-1 md:w-full mt-2 sm:mt-3'>
-                            <button><div className='cursor-pointer flex px-5 sm:px-6.5 py-2 sm:py-3 border items-center flex-col gap-1 sm:gap-2 rounded-lg bg-gray-950 group hover:bg-gray-500 hover:transition-colors'>
-                                <Heart className='w-4 sm:w-5 h-4 sm:h-5 text-red-500 group-hover:text-yellow-700 transition-colors duration-75' />
-                                <span className='text-xs sm:text-sm'>Yêu thích</span>
-                            </div></button>
-                            <button><div className='flex cursor-pointer px-6.5 sm:px-7.5 py-2 sm:py-3 border items-center flex-col gap-1 sm:gap-2 rounded-lg bg-gray-950 group hover:bg-gray-500 hover:transition-colors'>
-                                <BookMarked className='w-4 sm:w-5 h-4 sm:h-5 text-blue-500 group-hover:text-yellow-700 transition-colors duration-75' />
-                                <span className='text-xs sm:text-sm'>Đánh dấu</span>
-                            </div></button>
-                            <button><div className='flex cursor-pointer px-7 sm:px-8.5 py-2 sm:py-3 border items-center flex-col gap-1 sm:gap-2 rounded-lg bg-gray-950 group hover:bg-gray-500 hover:transition-colors'>
-                                <Share2 className='w-4 sm:w-5 h-4 sm:h-5 text-blue-500 group-hover:text-yellow-700 transition-colors duration-75' />
-                                <span className='text-xs sm:text-sm'>Chia sẻ</span>
-                            </div></button>
+                            <button onClick={() => handleLikeClick()} disabled={likeIsLoading || !currentUser} className="flex-1">
+                                <div className={`cursor-pointer flex w-full h-[72px] sm:h-[80px] px-3 py-2 border items-center justify-center flex-col gap-1 rounded-lg transition-all duration-300 transform hover:scale-105 ${isLiked
+                                    ? 'bg-red-500 hover:bg-red-600 border-red-400 shadow-lg shadow-red-500/25'
+                                    : 'bg-gray-900 hover:bg-gray-700 border-gray-600 hover:border-red-400'
+                                    }`}>
+                                    <Heart className={`w-4 sm:w-5 h-4 sm:h-5 transition-all duration-300 ${isLiked
+                                        ? 'text-white fill-white animate-pulse'
+                                        : 'text-gray-400 group-hover:text-red-400 hover:fill-red-100'
+                                        }`} />
+                                    <span className={`text-xs sm:text-sm font-medium transition-colors duration-300 text-center ${isLiked
+                                        ? 'text-white'
+                                        : 'text-gray-400 group-hover:text-red-400'
+                                        }`}>
+                                        {isLiked ? 'Đã thích' : 'Yêu thích'}
+                                    </span>
+                                </div>
+                            </button>
+
+                            <button className="flex-1">
+                                <div className='flex cursor-pointer w-full h-[72px] sm:h-[80px] px-3 py-2 border items-center justify-center flex-col gap-1 rounded-lg bg-gray-950 group hover:bg-gray-500 hover:transition-colors'>
+                                    <BookMarked className='w-4 sm:w-5 h-4 sm:h-5 text-blue-500 group-hover:text-yellow-700 transition-colors duration-75' />
+                                    <span className='text-xs sm:text-sm text-center'>Đánh dấu</span>
+                                </div>
+                            </button>
+
+                            <button className="flex-1">
+                                <div className='flex cursor-pointer w-full h-[72px] sm:h-[80px] px-3 py-2 border items-center justify-center flex-col gap-1 rounded-lg bg-gray-950 group hover:bg-gray-500 hover:transition-colors'>
+                                    <Share2 className='w-4 sm:w-5 h-4 sm:h-5 text-blue-500 group-hover:text-yellow-700 transition-colors duration-75' />
+                                    <span className='text-xs sm:text-sm text-center'>Chia sẻ</span>
+                                </div>
+                            </button>
                         </div>
                     </div>
                 </motion.div>
@@ -524,13 +669,14 @@ const NovelDetail = () => {
                 >
                     {/* Header thông tin */}
                     <motion.div
-                        className='mb-4 sm:mb-6 bg-gray-950 p-4 sm:p-5 border border-gray-500 rounded-lg'
+                        className='hidden md:block bg-gray-950 p-4 border border-gray-500 rounded-lg'
                         variants={itemVariants}
                     >
                         <div className='flex gap-2 items-center flex-wrap mb-3 sm:mb-4'>
                             <span className='bg-gray-950 border-amber-600 border px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm'>
                                 {handleStatus(data.novel.status)}
-                            </span>                            {data?.novel.genresId && !showAllGenres && data.novel.genresId.length > 3 ? (
+                            </span>
+                            {data?.novel.genresId && !showAllGenres && data.novel.genresId.length > 3 ? (
                                 data.novel.genresId.slice(0, 3).map((genre) =>
                                     <span key={genre._id} className='bg-gray-800 text-blue-300 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm'>
                                         {genre.name}
@@ -621,7 +767,7 @@ const NovelDetail = () => {
                             </div>
                             <div className='flex flex-col justify-center items-center'>
                                 <Heart className='w-5 h-5 mb-1 text-red-400' />
-                                <span className='text-lg font-bold'>{data?.novel.likes && data.novel.likes > 100 ? data.novel.likes : '9.6K'}</span>
+                                <span className='text-lg font-bold'>{data?.novel.likes}</span>
                                 <span className='text-[1rem]'>Lượt theo dõi</span>
                             </div>
                             <div className='flex flex-col justify-center items-center'>
@@ -631,7 +777,7 @@ const NovelDetail = () => {
                             </div>
                             <div className='flex flex-col justify-center items-center'>
                                 <Eye className='w-5 h-5 mb-1 text-green-400' />
-                                <span className='text-lg font-bold'>{data?.novel.views && data.novel.views > 1 ? data?.novel.views : '1.7M'}</span>
+                                <span className='text-lg font-bold'>{data?.novel.views}</span>
                                 <span className='text-[1rem]'>Lượt xem</span>
                             </div>
                             <div className='flex flex-col justify-center items-center'>
@@ -919,7 +1065,7 @@ const NovelDetail = () => {
                                             placeholder="Viết bình luận của bạn..."
                                             className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
                                             rows={3}
-                                            disabled={mutation.isPending}
+                                            disabled={createCommentMutation.isPending}
                                         />
                                         <div className="flex justify-end mt-2 sm:mt-3">
                                             <motion.button
@@ -927,9 +1073,9 @@ const NovelDetail = () => {
                                                 whileTap={{ scale: 0.95 }}
                                                 onClick={handleSubmitComment}
                                                 className="flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 text-sm sm:text-base"
-                                                disabled={mutation.isPending || !newCommentContent.trim()}
+                                                disabled={createCommentMutation.isPending || !newCommentContent.trim()}
                                             >
-                                                {mutation.isPending ? (
+                                                {createCommentMutation.isPending ? (
                                                     <>
                                                         <div className="w-3 sm:w-4 h-3 sm:h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
                                                         Đang đăng...

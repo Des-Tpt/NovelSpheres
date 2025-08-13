@@ -13,6 +13,9 @@ import Image from "next/image";
 import LoadingComponent from "../ui/Loading";
 import handleStatus from "@/utils/handleStatus";
 import { useRouter } from "next/navigation";
+import getStatusColor from '@/utils/getStatusColor';
+import { Star } from "lucide-react";
+
 
 type Genre = {
     _id: string;
@@ -70,13 +73,13 @@ const BookFilter = () => {
 
     const getIconForSort = (sort: string) => {
         switch (sort) {
-            case "views": 
+            case "views":
                 return <FireIcon className="w-8 h-8 md:w-13 md:h-13 p-1.5 text-red-500 rounded-[0.8rem] bg-gray-800" />;
-            case "updatedAt": 
+            case "updatedAt":
                 return <SparklesIcon className="w-8 h-8 md:w-13 md:h-13 p-1.5 text-green-500 rounded-[0.8rem] bg-gray-800" />;
-            case "title": 
+            case "title":
                 return <BookmarkIcon className="w-8 h-8 md:w-13 md:h-13 p-1.5 text-blue-500 rounded-[0.8rem] bg-gray-800" />;
-            default: 
+            default:
                 return <StarIcon className="w-8 h-8 md:w-13 md:h-13 p-1.5 text-yellow-500 rounded-[0.8rem] bg-gray-800" />;
         }
     }
@@ -121,7 +124,7 @@ const BookFilter = () => {
             {/* Genre Filter Section - Hidden on mobile */}
             <div className="w-full hidden md:flex md:flex-col md:mx-[14%] mx-10 p-4 rounded-2xl group hover:shadow hover:shadow-gray-400 hover:border-gray-400 transition-all duration-300">
                 <h1 className="text-white mb-2 block text-3xl">Lọc theo thể loại</h1>
-                {selectedGenres.length > 0 &&
+                {selectedGenres.length > 0 && (
                     <div className="flex gap-1.5 font-inter py-2.5 flex-wrap items-center pb-5 text-white">
                         Đã chọn:
                         {selectedGenres.map(genre => (
@@ -135,7 +138,7 @@ const BookFilter = () => {
                             Xóa hết tất cả
                         </button>
                     </div>
-                }
+                )}
                 <div className="flex font-bold flex-wrap justify-center gap-3 sm:grid sm:grid-cols-5 sm:gap md:grid md:grid-cols-8 md:gap-2">
                     {genres.map((genre) => (
                         <button key={genre._id}
@@ -204,8 +207,8 @@ const BookFilter = () => {
                                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
                                 </motion.div>
                             ) : (
-                                <motion.div 
-                                    key={animationKey} 
+                                <motion.div
+                                    key={animationKey}
                                     className="grid grid-cols-2 gap-3 md:grid-cols-6 md:gap-3 md:pt-6 max-w-[1400px] w-full"
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
@@ -215,43 +218,51 @@ const BookFilter = () => {
                                     {novels.length > 0 ? novels.map((novel, index) => (
                                         <motion.div
                                             key={novel._id.toString()}
-                                            className="flex flex-col cursor-pointer rounded-lg border border-gray-400 shadow-sm group shadow-gray-400 transition-transform duration-200 hover:-translate-y-1"
+                                            className="flex flex-col cursor-pointer rounded-lg border border-gray-400 group hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 hover:-translate-y-1"
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ duration: 0.4, ease: 'easeOut', delay: 0.05 * index }}
                                             onClick={() => router.push(`/novels/${novel._id}`)}
                                         >
-                                            <div className="relative rounded-lg overflow-hidden">
-                                                <Image
-                                                    src={
-                                                        novel.coverImage?.publicId && imageUrls[novel.coverImage.publicId]
-                                                            ? imageUrls[novel.coverImage.publicId]
-                                                            : `https://res.cloudinary.com/${cloudName!}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`
-                                                    }
-                                                    width={200}
-                                                    height={280}
-                                                    alt={novel.title}
-                                                    className="w-full h-53 object-cover object-top"
-                                                />
-                                                <div className="flex">
-                                                    <span className="rounded-2xl absolute bg-gray-600 bg-opacity-90 py-0.5 px-2 font-semibold text-[0.75rem] top-2.5 left-2 text-white">
-                                                        {novel.rating ? `⭐ ${novel.rating}` : 'Chưa có đánh giá'}
-                                                    </span>
-                                                    <span className="rounded-2xl absolute bg-gray-600 bg-opacity-90 py-0.5 px-2 font-semibold top-2.5 text-[0.75rem] right-2 text-white">
-                                                        {handleStatus(novel.status)}
-                                                    </span>
+                                            <div className=" rounded-lg overflow-hidden">
+                                                <div className="relative">
+                                                    <Image
+                                                        src={
+                                                            novel.coverImage?.publicId && imageUrls[novel.coverImage.publicId]
+                                                                ? imageUrls[novel.coverImage.publicId]
+                                                                : `https://res.cloudinary.com/${cloudName!}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`
+                                                        }
+                                                        width={200}
+                                                        height={280}
+                                                        alt={novel.title}
+                                                        className="w-full h-53 object-cover object-top"
+                                                    />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                                                    <div className="absolute bottom-3 right-3">
+                                                        <span className={`px-2 py-1 rounded-lg text-xs font-semibold backdrop-blur-sm ${getStatusColor(novel.status)}`}>
+                                                            {handleStatus(novel.status)}
+                                                        </span>
+                                                    </div>
+                                                    {/* Rating badge */}
+                                                    <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-lg">
+                                                        <Star size={12} className="text-yellow-400 fill-current" />
+                                                        <span className="text-white text-xs font-semibold">
+                                                            {Number(novel.rating || 0).toFixed(1)}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                                 <div className="bg-black rounded-b-lg relative">
                                                     <div className="flex flex-col p-3 space-y-1">
-                                                        <span className="font-semibold text-[1rem] line-clamp-1 text-white group-hover:text-amber-500 transition-colors leading-tight">
+                                                        <span className="font-semibold text-[1rem] line-clamp-1 text-white group-hover:text-blue-400 transition-colors leading-tight">
                                                             {novel.title}
                                                         </span>
-                                                        <span className="font-inter text-[0.9rem] text-gray-300 line-clamp-1">
-                                                            của {novel.authorName}
+                                                        <span className="text-[0.9rem] line-clamp-1">
+                                                            của <span className="text-blue-400">{novel.authorName}</span>
                                                         </span>
                                                         <div className="flex flex-col space-y-1 pt-2">
                                                             <div className="flex justify-between items-center">
-                                                                <span className="text-[0.85rem] text-amber-500 rounded-2xl border-1 border-gray-100 px-2 font-semibold">
+                                                                <span className="px-2.5 py-1 bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-300 border border-purple-500/30 rounded-full text-xs font-medium backdrop-blur-sm"
+                                                                >
                                                                     {novel.firstGenreName}
                                                                 </span>
                                                                 <span className="text-[0.85rem] text-gray-300 flex items-center">
