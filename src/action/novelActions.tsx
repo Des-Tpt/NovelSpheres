@@ -6,13 +6,13 @@ type Genre = {
 
 export const getFeatureNovels = async () => {
     const res = await fetch(`/api/novels/feature-novels`);
-    if (!res.ok) throw new Error('Lỗi khi fetch dữ liệu');
+    if (!res.ok) throw Error('Lỗi khi fetch dữ liệu');
     return res.json();
 }
 
 export const getGenres = async () => {
     const res = await fetch(`/api/genres`);
-    if (!res.ok) throw new Error('Lỗi khi fetch dữ liệu');
+    if (!res.ok) throw Error('Lỗi khi fetch dữ liệu');
     return res.json();
 }
 
@@ -25,7 +25,7 @@ export const getNovelByFilter = async (data: Genre[], sortBy: string): Promise<I
 
     const res = await fetch(url);
     if (!res.ok) {
-        throw new Error(`Lỗi khi fetch dữ liệu: ${res.status} - ${res.statusText}`);
+        throw Error(`Lỗi khi fetch dữ liệu: ${res.status} - ${res.statusText}`);
     }
 
     const result = await res.json();
@@ -36,7 +36,7 @@ export const getNovelById = async (id: string) => {
     const res = await fetch(`/api/novels/${id}`);
 
     if (!res.ok) {
-        throw new Error('Không thể lấy tiểu thuyết!');
+        throw Error('Không thể lấy tiểu thuyết!');
     }
 
     const data = await res.json();
@@ -47,7 +47,7 @@ export const getNovelForNewPost = async (title: string) => {
     const res = await fetch(`/api/search-in-post?query=${encodeURIComponent(title)}`);
 
     if (!res.ok) {
-        throw new Error('Không thể lấy tiểu thuyết!');
+        throw Error('Không thể lấy tiểu thuyết!');
     }
 
     const data = await res.json();
@@ -86,6 +86,42 @@ export const createAct = async (postData: {
     return await response.json();
 };
 
+export const createNovel = async (postData: {
+    userId: string;
+    title: string;
+    file?: File;
+    status: string;
+    description: string;
+    genresId?: string[];
+}) => {
+    const formData = new FormData();
+    formData.append('userId', postData.userId);
+    formData.append('title', postData.title);
+    formData.append('status', postData.status);
+    formData.append('description', postData.description);
+
+    if (postData.genresId) {
+        postData.genresId.forEach(id => {
+            formData.append('genresId', id);
+        });
+    }
+
+    if (postData.file) {
+        formData.append('file', postData.file)
+    };
+
+    const response = await fetch(`/api/novels/create-novel`, {
+        method: 'POST',
+        body: formData,
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw { message: errorData.error || 'Lỗi khi tạo act!', data: errorData };
+    }
+
+    return await response.json();
+}
 
 export const updateNovel = async (postData: {
     userId: string;
@@ -263,14 +299,14 @@ export const deleteChapter = async (postData: {
     return await response.json();
 };
 
-export async function getNovelsForNovelsPage({ 
-    page = 1, 
-    genreIds = [], 
-    sort = 'date' 
-}: { 
-    page?: number; 
-    genreIds?: string[]; 
-    sort?: 'title' | 'date' | 'views'; 
+export async function getNovelsForNovelsPage({
+    page = 1,
+    genreIds = [],
+    sort = 'date'
+}: {
+    page?: number;
+    genreIds?: string[];
+    sort?: 'title' | 'date' | 'views';
 }) {
     const formData = new FormData();
     formData.append('page', page.toString());
@@ -287,7 +323,7 @@ export async function getNovelsForNovelsPage({
 
     if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.error || 'Lỗi khi tải tiểu thuyết!');
+        throw Error(errorData.error || 'Lỗi khi tải tiểu thuyết!');
     }
 
     return await res.json();

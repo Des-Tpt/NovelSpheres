@@ -6,7 +6,7 @@ import LoadingComponent from '../ui/Loading';
 import React, { useEffect, useState } from 'react';
 import getImage from '@/action/imageActions';
 import Image from 'next/image';
-import { Book, BookMarked, Heart, Share2, StepForward, Calendar, Eye, Clock, BookOpenIcon, Star, MessageCircle, Send, ChevronUp, ChevronDown, Plus, FileText, Newspaper, CirclePlus, Edit2, Trash2, Settings, EyeIcon } from 'lucide-react';
+import { Book, BookMarked, Heart, Share2, StepForward, Calendar, Eye, Clock, BookOpenIcon, Star, MessageCircle, Send, ChevronUp, ChevronDown, Plus, FileText, Newspaper, CirclePlus, Edit2, Trash2, Settings, EyeIcon, StarIcon } from 'lucide-react';
 import { createComment } from '@/action/commentActions';
 import findParentComment from '@/utils/findParentComment';
 import CommentItem from '../ui/CommentItem';
@@ -24,6 +24,7 @@ import DeleteChapterPopup from './DeleteChapter';
 import handleStatus from '@/utils/handleStatus';
 import EditNovelPopup from './UpdateNovel';
 import { getLike, Like, UnLike } from '@/action/likeAction';
+import RatingPopup from './RateNovel';
 
 const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 const defaultFallback = `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
@@ -151,7 +152,7 @@ const NovelDetail = () => {
     const [selectedChapter, setSelectedChapter] = useState<{ chapterId: string; chapterNumber: number, chapterTitle: string, actId: string; userId: string, novelId: string; } | null>(null);
     const [isShowEditNovelPopup, setIsShowEditNovelPopup] = useState<boolean>(false);
     const [selectedNovel, setSelectedNovel] = useState<NovelData | null>(null);
-
+    const [isShowRatingPopup, setIsShowRatingPopup] = useState<boolean>(false);
 
     const { data, isLoading, error } = useQuery<{ novel: Novel, comments: Comment[], acts: Act[] }>({
         queryKey: ['novelDetail', novelId],
@@ -590,17 +591,17 @@ const NovelDetail = () => {
                                     <div className='flex items-center gap-x-1'>
                                         <BookOpenIcon className='w-4 h-4 text-blue-400' />
                                         <span className='font-bold'>{data?.novel.chaptersCount}</span>
-                                        <span className=''>chương</span>
+                                        <span className='font-bold'>chương</span>
                                     </div>
                                     <div className='flex items-center gap-x-1'>
                                         <EyeIcon className='w-4 h-4 text-green-400 gap-x-1' />
                                         <span className='font-bold'>{data?.novel.views}</span>
-                                        <span className=''>lượt xem</span>
+                                        <span className='font-bold'>lượt xem</span>
                                     </div>
                                     <div className='flex items-center gap-x-1'>
                                         <Heart className='w-4 h-4 text-red-400' />
                                         <span className='font-bold'>{data?.novel.likes}</span>
-                                        <span className=''>lượt thích</span>
+                                        <span className='font-bold'>lượt thích</span>
                                     </div>
                                     <div className='flex items-center gap-x-1'>
                                         <Clock className='w-4 h-4 text-yellow-400' />
@@ -652,10 +653,12 @@ const NovelDetail = () => {
                                 </div>
                             </button>
 
-                            <button className="flex-1">
+                            <button className="flex-1"
+                                onClick={() => setIsShowRatingPopup(true)}
+                            >
                                 <div className='flex cursor-pointer w-full h-[72px] sm:h-[80px] px-3 py-2 border items-center justify-center flex-col gap-1 rounded-lg bg-gray-950 group hover:bg-gray-500 hover:transition-colors'>
-                                    <Share2 className='w-4 sm:w-5 h-4 sm:h-5 text-blue-500 group-hover:text-yellow-700 transition-colors duration-75' />
-                                    <span className='text-xs sm:text-sm text-center'>Chia sẻ</span>
+                                    <StarIcon className='w-4 sm:w-5 h-4 sm:h-5 text-blue-500 group-hover:text-yellow-700 transition-colors duration-75' />
+                                    <span className='text-xs sm:text-sm text-center'>Đánh giá</span>
                                 </div>
                             </button>
                         </div>
@@ -743,7 +746,7 @@ const NovelDetail = () => {
                                 </div>
                                 <div className='flex flex-col justify-center items-center bg-gray-900/40 border border-gray-200 rounded-lg p-4 min-w-[80px]'>
                                     <Star className='w-5 h-5 mb-2 text-yellow-500' />
-                                    <span className='text-lg font-bold'>4.6</span>
+                                    <span className='text-lg font-bold'>{data?.novel.rating}</span>
                                     <span className='text-xs text-gray-400 text-center'>Đánh giá</span>
                                 </div>
                                 <div className='flex flex-col justify-center items-center bg-gray-900/40 border border-gray-200 rounded-lg p-4 min-w-[80px]'>
@@ -772,7 +775,7 @@ const NovelDetail = () => {
                             </div>
                             <div className='flex flex-col justify-center items-center'>
                                 <Star className='w-5 h-5 mb-1 text-yellow-500' />
-                                <span className='text-lg font-bold'>4.6</span>
+                                <span className='text-lg font-bold'>{data?.novel.rating}</span>
                                 <span className='text-[1rem]'>Đánh giá</span>
                             </div>
                             <div className='flex flex-col justify-center items-center'>
@@ -1226,6 +1229,14 @@ const NovelDetail = () => {
                             setSelectedNovel(null);
                         }}
                         novelData={selectedNovel}
+                        userId={currentUser._id}
+                    />
+                )}
+                {isShowRatingPopup && currentUser && (
+                    <RatingPopup
+                        isOpen={isShowRatingPopup}
+                        onClose={() => setIsShowRatingPopup(false)}
+                        novelId={data.novel._id}
                         userId={currentUser._id}
                     />
                 )}

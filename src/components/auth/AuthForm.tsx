@@ -40,7 +40,7 @@ export default function AuthForm({ onClose, isOpen }: Props) {
 
             const data = await res.json();
             if (!res.ok) {
-                throw new Error(data.error || 'Có lỗi xảy ra.');
+                throw Error(data.error || 'Có lỗi xảy ra.');
             }
             return data;
         },

@@ -15,6 +15,7 @@ export interface INovel extends Document {
     views: number;
     likes: number;
     rating: number;
+    ratingsCount: number;
     createdAt: Date,
     updatedAt: Date
 }
@@ -33,6 +34,7 @@ const NovelSchema = new Schema<INovel>({
     views: { type: Number, default: 0 },
     likes: { type: Number, default: 0 },
     rating: { type: Number, default: 0 },
+    ratingsCount: { type: Number, default: 0 },
     createdAt: Date,
     updatedAt: Date
 })

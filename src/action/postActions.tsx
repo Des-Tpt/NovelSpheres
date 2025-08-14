@@ -40,7 +40,7 @@ export const useForumPosts = ({ page = 1, category = '', sort = 'date', limit = 
       });
 
       const res = await fetch(`/api/forum/posts?${params.toString()}`);
-      if (!res.ok) throw new Error('Không thể lấy dữ liệu bài viết');
+      if (!res.ok) throw Error('Không thể lấy dữ liệu bài viết');
       return res.json();
     },
     staleTime: 1000 * 30 * 5,
@@ -49,20 +49,20 @@ export const useForumPosts = ({ page = 1, category = '', sort = 'date', limit = 
 };
 
 export const getHeaderForum = async () => {
-    const res  = await fetch(`/api/forum/header-forum`);
-    if (!res.ok) throw new Error('Lỗi khi fetch dữ liệu');
+  const res = await fetch(`/api/forum/header-forum`);
+  if (!res.ok) throw Error('Lỗi khi fetch dữ liệu');
   return res.json();
 }
 
 export async function getPostById(id: string) {
-    const res = await fetch(`/api/forum/posts/${id}`);
+  const res = await fetch(`/api/forum/posts/${id}`);
 
-    if (!res.ok) {
-        throw new Error(`Không thể lấy post!`);
-    }
+  if (!res.ok) {
+    throw Error(`Không thể lấy post!`);
+  }
 
-    const data = await res.json();
-    return data;
+  const data = await res.json();
+  return data;
 }
 
 export const createPost = async (postData: {
@@ -80,7 +80,7 @@ export const createPost = async (postData: {
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.error || 'Lỗi khi đăng bài!');
+    throw Error(errorData.error || 'Lỗi khi đăng bài!');
   }
 
   return await response.json();

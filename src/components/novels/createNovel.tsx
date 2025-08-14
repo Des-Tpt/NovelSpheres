@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Upload, Loader2, AlertTriangle, Info } from 'lucide-react';
-import { getGenres, updateNovel } from '@/action/novelActions';
+import { createNovel } from '@/action/novelActions';
 import { notifyError, notifySuccess } from '@/utils/notify';
 import { motion, AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
@@ -15,36 +15,17 @@ interface Genre {
     name: string;
 }
 
-interface Genres {
-    _id: string;
-    name: string;
-}
-
-interface NovelData {
-    _id: string;
-    title: string;
-    description: string;
-    status: string;
-    genresId: Genres[];
-    coverImage?: {
-        publicId: string;
-        format: string;
-        url?: string;
-    };
-}
-
-interface EditNovelPopupProps {
+interface CreateNovelPopupProps {
     isOpen: boolean;
     onClose: () => void;
-    novelData: NovelData | null;
     userId: string;
+    genres: Genre[];
 }
-
 
 const config = {
     height: 250,
     readonly: false,
-    placeholder: 'Paste nội dung mới của tóm tắt vào đây để chỉnh sửa...',
+    placeholder: 'Nhập mô tả tiểu thuyết của bạn tại đây...',
     style: {
         color: '#000000'
     },
@@ -57,11 +38,11 @@ const config = {
     }
 };
 
-const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelData, userId }) => {
+const CreateNovelPopup: React.FC<CreateNovelPopupProps> = ({ isOpen, onClose, userId, genres = [] }) => {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
-        status: 'draft',
+        status: 'Ongoing',
         genresId: [] as string[]
     });
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -69,26 +50,19 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
 
     const queryClient = useQueryClient();
 
-    // Fetch genres
-    const { data: genres = [], isLoading: genresLoading, error: genresError } = useQuery({
-        queryKey: ['genres-novelDetail'],
-        queryFn: getGenres,
-        staleTime: 5 * 60 * 1000,
-    });
-
-    // Load novel data when popup opens
+    // Reset form when popup opens
     useEffect(() => {
-        if (isOpen && novelData) {
+        if (isOpen) {
             setFormData({
-                title: novelData.title || '',
-                description: novelData.description || '',
-                status: novelData.status || 'draft',
-                genresId: novelData.genresId?.map(genre => genre._id) || []
+                title: '',
+                description: '',
+                status: 'Ongoing',
+                genresId: []
             });
-            setPreviewImage(novelData.coverImage?.url || '');
+            setPreviewImage('');
             setSelectedFile(null);
         }
-    }, [isOpen, novelData]);
+    }, [isOpen]);
 
     // Lock body scroll when popup is open
     useEffect(() => {
@@ -107,18 +81,18 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
     }, [isOpen]);
 
     const mutation = useMutation({
-        mutationFn: updateNovel,
+        mutationFn: createNovel,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['novelDetail', novelData?._id] });
-            notifySuccess('Cập nhật tiểu thuyết thành công!');
+            queryClient.invalidateQueries({ queryKey: ['novels'] });
+            notifySuccess('Tạo tiểu thuyết thành công!');
             resetForm();
             setTimeout(() => {
                 onClose();
             }, 100);
         },
         onError: (error: any) => {
-            console.error('Error updating novel:', error);
-            notifyError(error.message || 'Có lỗi xảy ra khi cập nhật tiểu thuyết!');
+            console.error('Error creating novel:', error);
+            notifyError(error.message || 'Có lỗi xảy ra khi tạo tiểu thuyết!');
         }
     });
 
@@ -126,7 +100,7 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
         setFormData({
             title: '',
             description: '',
-            status: 'draft',
+            status: 'Ongoing',
             genresId: []
         });
         setSelectedFile(null);
@@ -160,13 +134,11 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            // Kiểm tra kích thước file (10MB)
             if (file.size > 10 * 1024 * 1024) {
                 notifyError('Kích thước file không được vượt quá 10MB!');
                 return;
             }
-            
-            // Kiểm tra định dạng file
+
             if (!file.type.startsWith('image/')) {
                 notifyError('Vui lòng chọn file hình ảnh!');
                 return;
@@ -192,15 +164,14 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
             return;
         }
 
-        if (!novelData) {
-            notifyError('Không tìm thấy thông tin tiểu thuyết để cập nhật');
+        if (formData.genresId.length === 0) {
+            notifyError('Vui lòng chọn ít nhất 1 thể loại!');
             return;
         }
 
         try {
             await mutation.mutateAsync({
                 userId,
-                novelId: novelData._id,
                 title: formData.title,
                 description: formData.description,
                 status: formData.status,
@@ -208,7 +179,7 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
                 file: selectedFile || undefined
             });
         } catch (error) {
-            console.error('Error updating novel:', error);
+            console.error('Error creating novel:', error);
         }
     };
 
@@ -280,7 +251,7 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
                                 >
                                     <div className="flex flex-col items-center gap-3">
                                         <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
-                                        <p className="text-sm text-gray-300">Đang cập nhật tiểu thuyết...</p>
+                                        <p className="text-sm text-gray-300">Đang tạo tiểu thuyết...</p>
                                     </div>
                                 </motion.div>
                             )}
@@ -288,7 +259,7 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
 
                         {/* Header */}
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-lg font-semibold text-white">Chỉnh sửa tiểu thuyết</h2>
+                            <h2 className="text-lg font-semibold text-white">Tạo tiểu thuyết mới</h2>
                             <motion.button
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
@@ -306,31 +277,32 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
                             animate={{ opacity: 1, y: 0 }}
                             className="mb-6 space-y-3"
                         >
-                            {/* Lưu ý chung */}
+                            {/* Hướng dẫn tạo novel */}
                             <div className="bg-blue-900/20 border border-blue-600 rounded-lg p-4">
                                 <div className="flex items-start gap-3">
                                     <Info className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
                                     <div>
-                                        <h4 className="text-blue-300 font-medium mb-2">Lưu ý quan trọng:</h4>
+                                        <h4 className="text-blue-300 font-medium mb-2">Hướng dẫn tạo tiểu thuyết:</h4>
                                         <ul className="text-sm text-blue-200 space-y-1">
                                             <li>• Tiêu đề và mô tả là bắt buộc</li>
-                                            <li>• Chỉ thay đổi ảnh bìa nếu cần thiết</li>
-                                            <li>• Nên chọn ít nhất 1-2 thể loại phù hợp</li>
+                                            <li>• Bắt buộc phải chọn ít nhất 1 thể loại</li>
+                                            <li>• Ảnh bìa là tùy chọn, có thể thêm sau</li>
+                                            <li>• Mô tả nên chi tiết để thu hút độc giả</li>
                                         </ul>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Cảnh báo về ảnh */}
+                            {/* Cảnh báo về nội dung */}
                             <div className="bg-amber-900/20 border border-amber-600 rounded-lg p-4">
                                 <div className="flex items-start gap-3">
                                     <AlertTriangle className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" />
                                     <div>
-                                        <h4 className="text-amber-300 font-medium mb-2">Cảnh báo về ảnh bìa:</h4>
+                                        <h4 className="text-amber-300 font-medium mb-2">Lưu ý quan trọng:</h4>
                                         <ul className="text-sm text-amber-200 space-y-1">
-                                            <li>• Chỉ chấp nhận file JPG, PNG</li>
-                                            <li>• Kích thước tối đa 10MB</li>
-                                            <li>• Ảnh không phù hợp có thể bị admin xóa và khóa tài khoản</li>
+                                            <li>• Không được phép đăng nội dung vi phạm pháp luật</li>
+                                            <li>• Ảnh bìa không phù hợp có thể bị xóa và khóa tài khoản</li>
+                                            <li>• Chỉ chấp nhận file ảnh JPG, PNG tối đa 10MB</li>
                                         </ul>
                                     </div>
                                 </div>
@@ -345,7 +317,7 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
                                 transition={{ delay: 0.1 }}
                             >
                                 <label className="block text-sm font-medium mb-2 text-gray-300">
-                                    Tiêu đề *
+                                    Tiêu đề <span className="text-red-400">*</span>
                                 </label>
                                 <input
                                     type="text"
@@ -370,7 +342,7 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
                                 transition={{ delay: 0.2 }}
                             >
                                 <label className="block text-sm font-medium mb-2 text-gray-300">
-                                    Mô tả *
+                                    Mô tả <span className="text-red-400">*</span>
                                 </label>
                                 <JoditEditor
                                     value={formData.description}
@@ -413,26 +385,17 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
                                 transition={{ delay: 0.4 }}
                             >
                                 <label className="block text-sm font-medium mb-2 text-gray-300">
-                                    Thể loại
+                                    Thể loại <span className="text-red-400">*</span>
                                 </label>
-                                {genresLoading ? (
-                                    <div className="flex h-full items-center justify-center py-4">
-                                        <Loader2 className="w-5 h-5 animate-spin text-orange-500" />
-                                        <span className="ml-2 text-sm text-gray-300">Đang tải thể loại...</span>
-                                    </div>
-                                ) : genresError ? (
-                                    <div className="text-red-400 text-sm py-2 bg-red-900/20 rounded border border-red-600 px-3">
-                                        Lỗi khi tải thể loại. Vui lòng thử lại!
-                                    </div>
-                                ) : genres.length === 0 ? (
+                                {genres.length === 0 ? (
                                     <div className="text-gray-400 text-sm py-2 bg-gray-800 rounded border border-gray-600 px-3">
                                         Không có thể loại nào.
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto bg-black border-2 border-blue-500 rounded p-3">
-                                        {genres.map((genre: Genre) => (
+                                        {genres.map((genre) => (
                                             <motion.label
-                                                key={genre._id}
+                                                key={`${genre._id}-createNovelPopup`}
                                                 className="flex items-center space-x-2 cursor-pointer hover:bg-gray-800 p-2 rounded transition-colors"
                                                 whileHover={{ scale: 1.02 }}
                                                 whileTap={{ scale: 0.98 }}
@@ -455,14 +418,14 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
                                         initial={{ opacity: 0, y: -10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                     >
-                                        <span className="text-xs text-blue-400">
+                                        <span className="text-xs text-green-400">
                                             Đã chọn {formData.genresId.length} thể loại
                                         </span>
                                     </motion.div>
                                 )}
                                 {formData.genresId.length === 0 && (
-                                    <p className="text-amber-400 text-xs mt-1">
-                                        Khuyến nghị chọn ít nhất 1 thể loại để giúp độc giả tìm thấy tác phẩm dễ hơn.
+                                    <p className="text-red-400 text-xs mt-1">
+                                        Bắt buộc phải chọn ít nhất 1 thể loại!
                                     </p>
                                 )}
                             </motion.div>
@@ -474,7 +437,7 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
                                 transition={{ delay: 0.5 }}
                             >
                                 <label className="block text-sm font-medium mb-2 text-gray-300">
-                                    Ảnh bìa
+                                    Ảnh bìa (tùy chọn)
                                 </label>
                                 <div className="space-y-3">
                                     {previewImage && (
@@ -488,11 +451,18 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
                                                 alt="Preview"
                                                 className="w-32 h-48 object-cover rounded-lg border-2 border-blue-500"
                                             />
-                                            <div className="absolute top-2 right-2">
-                                                <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded">
-                                                    {selectedFile ? 'Mới' : 'Hiện tại'}
-                                                </span>
-                                            </div>
+                                            <motion.button
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.9 }}
+                                                onClick={() => {
+                                                    setPreviewImage('');
+                                                    setSelectedFile(null);
+                                                }}
+                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
+                                                disabled={mutation.isPending}
+                                            >
+                                                <X size={12} />
+                                            </motion.button>
                                         </motion.div>
                                     )}
                                     <div className="relative">
@@ -513,7 +483,7 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
                                         >
                                             <Upload className="w-8 h-8 text-blue-400" />
                                             <span className="text-sm text-gray-300">
-                                                {selectedFile ? selectedFile.name : 'Chọn ảnh bìa mới (tùy chọn)'}
+                                                {selectedFile ? selectedFile.name : 'Chọn ảnh bìa (tùy chọn)'}
                                             </span>
                                             <span className="text-xs text-gray-500">
                                                 JPG, PNG tối đa 10MB, khuyến nghị 300x450px
@@ -543,16 +513,16 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
                                     whileHover={{ scale: mutation.isPending ? 1 : 1.02 }}
                                     whileTap={{ scale: mutation.isPending ? 1 : 0.98 }}
                                     onClick={handleSubmit}
-                                    className="flex-1 px-4 py-2 bg-blue-600 cursor-pointer text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    className="flex-1 px-4 py-2 bg-green-600 cursor-pointer text-white rounded hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                     disabled={mutation.isPending}
                                 >
                                     {mutation.isPending ? (
                                         <>
                                             <Loader2 className="w-4 h-4 animate-spin" />
-                                            Đang cập nhật...
+                                            Đang tạo...
                                         </>
                                     ) : (
-                                        'Cập nhật tiểu thuyết'
+                                        'Tạo tiểu thuyết'
                                     )}
                                 </motion.button>
                             </motion.div>
@@ -564,4 +534,4 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
     );
 };
 
-export default EditNovelPopup;
+export default CreateNovelPopup;

@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useState } from 'react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { Search, Grid, List, Eye, Heart, Star, BookOpen, Calendar, TrendingUp, Filter, X, RefreshCw } from 'lucide-react';
+import { Search, Grid, List, Eye, Heart, Star, BookOpen, Calendar, TrendingUp, Filter, X, RefreshCw, Plus, Edit3, Sparkles } from 'lucide-react';
 import { getNovelsForNovelsPage, getGenres } from '@/action/novelActions';
 import getImage from '@/action/imageActions';
 import stripHtml from '@/utils/stripHtml';
@@ -10,6 +10,9 @@ import handleStatus from '@/utils/handleStatus';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import getStatusColor from '@/utils/getStatusColor';
+import CreateNovelPopup from './createNovel';
+import { notifyError } from '@/utils/notify';
+import { getUserFromCookies } from '@/action/userAction';
 
 interface Genre {
     _id: string;
@@ -52,6 +55,14 @@ interface ApiResponse {
     hasMore: boolean;
 }
 
+interface CurrentUser {
+    _id: string;
+    username: string;
+    email: string;
+    publicId: string;
+    format: string;
+    role: string;
+}
 
 const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_NAME as string;
 
@@ -69,6 +80,9 @@ const NovelsPage = () => {
     const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
     const [showFilters, setShowFilters] = useState(false);
 
+    const [isCreatePopupOpen, setIsCreatePopupOpen] = useState(false);
+    const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+
     // Check if there are pending changes
     const hasPendingChanges =
         JSON.stringify(pendingGenres.sort()) !== JSON.stringify(selectedGenres.sort()) ||
@@ -79,12 +93,12 @@ const NovelsPage = () => {
 
     // Separate query for genres
     const { data: genresData, isLoading: genresLoading } = useQuery({
-        queryKey: ['genres'],
+        queryKey: ['genres-novelsPage'],
         queryFn: getGenres,
     });
 
     const { data, error, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch } = useInfiniteQuery<ApiResponse>({
-        queryKey: ['novels', selectedGenres, sortBy],
+        queryKey: ['novels'],
         //pageParam là biến của useInfiniteQuery, nó sẽ có tác dụng phụ trách phân trang, thay vì chúng ta phải tự khai báo state và tự xử lý logic.
         queryFn: ({ pageParam = 1 }) => getNovelsForNovelsPage({
             page: pageParam as number,
@@ -98,9 +112,8 @@ const NovelsPage = () => {
         initialPageParam: 1,
     });
 
-    // Extract data from pages
-    // Lưu ý, vì đang dùng useInfiniteQuery, nên Array được trả về sẽ ở trong 1 element được gọi là Page.
-    const novels = data?.pages.flatMap(page => page.novel) || []; //Lấy toàn bộ page trong data lưu vào novels.
+    // Extract data from pages - Fixed: Add fallback and ensure unique keys
+    const novels = data?.pages.flatMap(page => page.novel).filter(novel => novel && novel._id) || [];
     const genres = genresData || [];
 
     // Calculate stats
@@ -121,7 +134,6 @@ const NovelsPage = () => {
         if (!data) return;
         setAnimationKey(prev => prev + 1);
     }, [data]);
-
 
     // Handle pending sort change
     const handlePendingSortChange = (newSort: 'title' | 'date' | 'views') => {
@@ -146,12 +158,6 @@ const NovelsPage = () => {
     const resetPendingChanges = () => {
         setPendingGenres(selectedGenres);
         setPendingSort(sortBy);
-    };
-
-    // Remove single genre filter
-    const removeGenreFilter = (genreId: string) => {
-        setSelectedGenres(prev => prev.filter(id => id !== genreId));
-        setPendingGenres(prev => prev.filter(id => id !== genreId));
     };
 
     // Initialize pending filters
@@ -201,7 +207,30 @@ const NovelsPage = () => {
             }
         };
         fetchImages();
-    }, [novels]);
+    }, [novels, imageUrls]);
+
+    useEffect(() => {
+        const fetchCurrentUser = async () => {
+            try {
+                const response = await getUserFromCookies();
+                if (response?.user) setCurrentUser(response?.user);
+            } catch (error) {
+                setCurrentUser(null);
+            }
+        };
+        fetchCurrentUser();
+    }, []);
+
+    const handleCreateNovel = async () => {
+        if (!currentUser) notifyError('Vui lòng đăng nhập!')
+        else {
+            setIsCreatePopupOpen(true);
+        }
+    }
+
+    const handleRefresh = () => {
+        refetch();
+    };
 
     return (
         <AnimatePresence>
@@ -221,7 +250,28 @@ const NovelsPage = () => {
 
                             {/* Controls */}
                             <div className="flex items-center gap-4">
+                                {/* Create Novel Button - Beautiful Design */}
+                                <motion.button
+                                    onClick={handleCreateNovel}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="relative px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-emerald-500/25 transition-all duration-300 flex items-center gap-2.5 overflow-hidden group"
+                                >
+                                    {/* Animated background sparkle effect */}
+                                    <div className="absolute inset-0 -top-40 -left-20 w-16 h-40 bg-white/20 rotate-45 transition-all duration-700 group-hover:left-full opacity-0 group-hover:opacity-100"></div>
+
+                                    <div className="relative z-10 flex items-center gap-2.5">
+                                        <div className="p-1 bg-white/20 rounded-lg">
+                                            <Edit3 size={16} />
+                                        </div>
+                                        <span className="hidden sm:inline">Tạo tiểu thuyết</span>
+                                        <span className="sm:hidden">Tạo mới</span>
+                                        <Sparkles size={14} className="animate-pulse" />
+                                    </div>
+                                </motion.button>
+
                                 <button
+                                    onClick={handleRefresh}
                                     disabled={isLoading}
                                     className="px-4 py-2 bg-gray-900 hover:bg-gray-700 border border-gray-600 hover:border-gray-500 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
@@ -306,10 +356,7 @@ const NovelsPage = () => {
                                         Bộ lọc
                                     </h3>
                                     <button
-                                        onClick={() => {
-                                            clearFilters
-                                            removeGenreFilter
-                                        }}
+                                        onClick={clearFilters}
                                         className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
                                     >
                                         Đặt lại
@@ -370,7 +417,8 @@ const NovelsPage = () => {
                                     ) : (
                                         <div className="space-y-2 max-h-80 overflow-y-auto custom-scrollbar">
                                             {genres.map((genre: Genre) => (
-                                                <label key={genre._id} className="flex items-center cursor-pointer group hover:bg-gray-800 p-2 rounded-lg transition-colors">
+                                                <label key={`${genre._id}-novelspage`} 
+                                                className="flex items-center cursor-pointer group hover:bg-gray-800 p-2 rounded-lg transition-colors">
                                                     <input
                                                         type="checkbox"
                                                         checked={pendingGenres.includes(genre._id)}
@@ -465,7 +513,7 @@ const NovelsPage = () => {
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, y: 30 }}
                                                 transition={{ duration: index * 0.1, ease: 'easeInOut' }}
-                                                key={novel._id}
+                                                key={`${novel._id}-novelPage-${index}`}
                                                 onClick={() => router.push(`/novels/${novel._id}`)}
                                                 className={`bg-gray-950 backdrop-blur-sm rounded-2xl border border-gray-800/50 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer group ${viewMode === 'list'
                                                     ? 'flex gap-4 p-4 sm:gap-6 sm:p-6'
@@ -539,7 +587,7 @@ const NovelsPage = () => {
                                                     </div>
 
                                                     {/* Description - Only show in list mode or larger screens */}
-                                                    {(viewMode === 'list' || window.innerWidth > 640) && (
+                                                    {(viewMode === 'list' || (typeof window !== 'undefined' && window.innerWidth > 640)) && (
                                                         <p className="text-xs sm:text-sm text-gray-400 line-clamp-2 sm:line-clamp-3 leading-relaxed mb-3">
                                                             {stripHtml(novel.description)}
                                                         </p>
@@ -649,7 +697,15 @@ const NovelsPage = () => {
                     </div>
                 </div>
             </div>
-        </AnimatePresence >
+            {isCreatePopupOpen && currentUser && (
+                <CreateNovelPopup
+                    isOpen={isCreatePopupOpen}
+                    onClose={() => setIsCreatePopupOpen(false)}
+                    userId={currentUser?._id}
+                    genres={genresData}
+                />
+            )}
+        </AnimatePresence>
     );
 }
 

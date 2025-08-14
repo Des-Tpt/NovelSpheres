@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
             })
             .populate({
                 path: 'genresId',
-                select: 'name',
+                select: '_id name',
                 model: Genre,
             })
             .lean();

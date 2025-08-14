@@ -40,7 +40,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     const secret = process.env.JWT_SECRET;
-    if (!secret) throw new Error("JWT_SECRET is not defined");
+    if (!secret) throw Error("JWT_SECRET is not defined");
 
     //Tạo jwt token (về cơ bản là 1 interface chứa các attribute được lưu vào cookies)
     const token = jwt.sign(

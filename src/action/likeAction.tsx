@@ -20,7 +20,7 @@ export async function Like(Like: LikeInput) {
 
     if (!res.ok) {
         const errorData = await res.json(); // Lấy error message từ server
-        throw new Error(errorData.error || `Lỗi khi fetch dữ liệu: ${res.status} - ${res.statusText}`);
+        throw Error(errorData.error || `Lỗi khi fetch dữ liệu: ${res.status} - ${res.statusText}`);
     }
 
     return res.json();
@@ -35,7 +35,7 @@ export async function UnLike(Like: LikeInput) {
 
     if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.error || `Lỗi khi fetch dữ liệu: ${res.status} - ${res.statusText}`);
+        throw Error(errorData.error || `Lỗi khi fetch dữ liệu: ${res.status} - ${res.statusText}`);
     }
 
     return res.json();

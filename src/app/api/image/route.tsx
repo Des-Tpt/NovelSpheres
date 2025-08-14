@@ -101,7 +101,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const url = `https://res.cloudinary.com/${cloudName}/image/upload/${publicId}.${format}`;
     try {
         const response = await fetch(url);
-        if (!response.ok) throw new Error('Lỗi fetch ảnh');
+        if (!response.ok) throw Error('Lỗi fetch ảnh');
         const blob = await response.blob();
         return new NextResponse(blob, {
         status: 200,
