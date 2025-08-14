@@ -53,6 +53,7 @@ export default function RatingPopup({ isOpen, onClose, novelId, userId }: Rating
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['novelDetail', novelId] });
             queryClient.invalidateQueries({ queryKey: ['rating', novelId, userId] });
+            queryClient.invalidateQueries({ queryKey: ['feature-novels'] });
             notifySuccess('Đánh giá đã được gửi thành công!');
             setTimeout(() => {
                 onClose();
@@ -239,11 +240,10 @@ export default function RatingPopup({ isOpen, onClose, novelId, userId }: Rating
                             >
                                 <Star
                                     size={36}
-                                    className={`${
-                                        star <= currentRating
+                                    className={`${star <= currentRating
                                             ? 'fill-yellow-400 text-yellow-400'
                                             : 'text-gray-600 hover:text-gray-500'
-                                    } transition-colors duration-150`}
+                                        } transition-colors duration-150`}
                                 />
                             </button>
                         ))}
@@ -328,11 +328,10 @@ export default function RatingPopup({ isOpen, onClose, novelId, userId }: Rating
                         <button
                             onClick={handleSubmit}
                             disabled={rating === 0 || isSubmitting}
-                            className={`flex-1 px-4 py-2.5 rounded-md transition-all font-medium flex items-center justify-center gap-2 ${
-                                rating > 0 && !isSubmitting
+                            className={`flex-1 px-4 py-2.5 rounded-md transition-all font-medium flex items-center justify-center gap-2 ${rating > 0 && !isSubmitting
                                     ? 'bg-yellow-500 hover:bg-yellow-400 text-black shadow-lg hover:shadow-xl'
                                     : 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                            }`}
+                                }`}
                         >
                             {isSubmitting ? (
                                 <>

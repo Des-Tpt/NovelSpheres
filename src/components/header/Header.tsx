@@ -27,13 +27,13 @@ const Header = () => {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<User>();
   const [userImage, setUserImage] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(true); 
+  const [isLoading, setIsLoading] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleClick = (buttonId: string) => {
     setActiveButton(buttonId);
   };
-  
+
   const handleCloseAuth = () => {
     setIsAuthOpen(false);
     setActiveButton(null);
@@ -63,19 +63,19 @@ const Header = () => {
 
   useEffect(() => {
     const fetchUser = async () => {
-        setIsLoading(true);
-        try {
-            const response = await getUserFromCookies();
-            if (response?.user) {
-                setCurrentUser(response.user);
-                const imageUrl = await getImage(response.user.publicId, response.user.format);
-                setUserImage(imageUrl);
-            }
-        } catch (error) {
-            console.error('Error fetching user:', error);
-        } finally {
-            setIsLoading(false);
+      setIsLoading(true);
+      try {
+        const response = await getUserFromCookies();
+        if (response?.user) {
+          setCurrentUser(response.user);
+          const imageUrl = await getImage(response.user.publicId, response.user.format);
+          setUserImage(imageUrl);
         }
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
     fetchUser();
   }, []);
@@ -99,7 +99,7 @@ const Header = () => {
           <BookOpenIcon className="h-8 w-8" />
           <span className="text-2xl font-semibold pl-4">NovelSphere</span>
         </div>
-        
+
         {/* Giao diện PC */}
         <div className="hidden md:flex gap-4">
           <Button
@@ -139,13 +139,13 @@ const Header = () => {
             </div>
           ) : currentUser ? (
             <div className="relative">
-              <button 
+              <button
                 onClick={handleToggleUserDropdown}
                 className="flex items-center gap-2 hover:bg-gray-800 rounded-lg p-2 transition-colors"
               >
                 {userImage && (
-                  <Image 
-                    src={userImage} 
+                  <Image
+                    src={userImage}
                     alt={currentUser.username || 'avatar người dùng'}
                     width={32}
                     height={32}
@@ -157,63 +157,63 @@ const Header = () => {
 
               {/* User Dropdown */}
               <AnimatePresence initial={false}>
-              {isUserDropdownOpen && (
-                <motion.div 
-                  className="absolute right-0 mt-2 w-64 bg-gray-950 rounded-lg shadow-lg border overflow-hidden border-gray-200 z-70"
-                  initial = {{ opacity: 0, scale: 0.95, y: -10 }}
-                  animate = {{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                  transition={{ duration: 0.1, ease: 'easeOut' }}
-                >
-                  <div className="p-4 border-b border-gray-200">
-                    <div className="flex items-center gap-3">
-                      {userImage && (
-                        <Image 
-                          src={userImage} 
-                          alt={currentUser.username || 'avatar người dùng'}
-                          width={48}
-                          height={48}
-                          className="rounded-full w-12 h-12 object-cover"
-                        />
-                      )}
-                      <div className='hidden md:flex flex-col'>
-                        <p className="text-white font-semibold">{currentUser.username}</p>
-                        <p className='text-gray-100 text-sm'>{currentUser.email || "user@example.com"}</p>
-                        <p className="text-gray-100 text-sm">{handleRole(currentUser.role)}</p>
+                {isUserDropdownOpen && (
+                  <motion.div
+                    className="absolute right-0 mt-2 w-64 bg-gray-950 rounded-lg shadow-lg border overflow-hidden border-gray-200 z-70"
+                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                    transition={{ duration: 0.1, ease: 'easeOut' }}
+                  >
+                    <div className="p-4 border-b border-gray-200">
+                      <div className="flex items-center gap-3">
+                        {userImage && (
+                          <Image
+                            src={userImage}
+                            alt={currentUser.username || 'avatar người dùng'}
+                            width={48}
+                            height={48}
+                            className="rounded-full w-12 h-12 object-cover"
+                          />
+                        )}
+                        <div className='hidden md:flex flex-col'>
+                          <p className="text-white font-semibold">{currentUser.username}</p>
+                          <p className='text-gray-100 text-sm'>{currentUser.email || "user@example.com"}</p>
+                          <p className="text-gray-100 text-sm">{handleRole(currentUser.role)}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="py-2">
-                    <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-gray-100 hover:bg-gray-600 transition-colors">
-                      <UserIcon className="h-5 w-5" />
-                      <span>Hồ sơ</span>
-                    </button>
-                    <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-gray-100 hover:bg-gray-600 transition-colors">
-                      <Heart className="h-5 w-5" />
-                      <span>Yêu thích</span>
-                    </button>
-                    <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-gray-100 hover:bg-gray-600 transition-colors">
-                      <History className="h-5 w-5" />
-                      <span>Lịch sử</span>
-                    </button>
-                    <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-gray-100 hover:bg-gray-600 transition-colors">
-                      <Cog6ToothIcon className="h-5 w-5" />
-                      <span>Cài đặt</span>
-                    </button>
-                  </div>
-                  
-                  <div className="py-2 border-t border-gray-200">
-                    <button 
-                      onClick={handleLogout}
-                      className="w-full flex cursor-pointer items-center gap-3 px-4 py-2 text-red-600 hover:bg-gray-600 transition-colors"
-                    >
-                      <ArrowRight className="h-5 w-5" />
-                      <span>Đăng xuất</span>
-                    </button>
-                  </div>
-                </motion.div>
-              )}
+
+                    <div className="py-2">
+                      <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-gray-100 hover:bg-gray-600 transition-colors">
+                        <UserIcon className="h-5 w-5" />
+                        <span>Hồ sơ</span>
+                      </button>
+                      <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-gray-100 hover:bg-gray-600 transition-colors">
+                        <Heart className="h-5 w-5" />
+                        <span>Yêu thích</span>
+                      </button>
+                      <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-gray-100 hover:bg-gray-600 transition-colors">
+                        <History className="h-5 w-5" />
+                        <span>Lịch sử</span>
+                      </button>
+                      <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-gray-100 hover:bg-gray-600 transition-colors">
+                        <Cog6ToothIcon className="h-5 w-5" />
+                        <span>Cài đặt</span>
+                      </button>
+                    </div>
+
+                    <div className="py-2 border-t border-gray-200">
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex cursor-pointer items-center gap-3 px-4 py-2 text-red-600 hover:bg-gray-600 transition-colors"
+                      >
+                        <ArrowRight className="h-5 w-5" />
+                        <span>Đăng xuất</span>
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
               </AnimatePresence>
             </div>
           ) : (
@@ -283,8 +283,8 @@ const Header = () => {
           <div className="p-4 border-b border-gray-700">
             <div className="flex items-center gap-3 mb-3">
               {userImage && (
-                <Image 
-                  src={userImage} 
+                <Image
+                  src={userImage}
                   alt={currentUser.username || 'avatar người dùng'}
                   width={48}
                   height={48}
@@ -321,7 +321,7 @@ const Header = () => {
             }}
             isActive={activeButton === 'forum'}
           />
-           <Button
+          <Button
             type={<Book className="h-5 w-5" />}
             text="Danh sách"
             href="/novels"
@@ -375,7 +375,7 @@ const Header = () => {
                 }}
                 isActive={activeButton === 'settings'}
               />
-              <button 
+              <button
                 onClick={() => {
                   handleLogout();
                   setIsSidebarOpen(false);
