@@ -84,6 +84,7 @@ const CreateNovelPopup: React.FC<CreateNovelPopupProps> = ({ isOpen, onClose, us
         mutationFn: createNovel,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['novels'] });
+            queryClient.invalidateQueries({ queryKey: ['userNovels'] });
             notifySuccess('Tạo tiểu thuyết thành công!');
             resetForm();
             setTimeout(() => {
@@ -264,7 +265,7 @@ const CreateNovelPopup: React.FC<CreateNovelPopupProps> = ({ isOpen, onClose, us
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
                                 onClick={handleClose}
-                                className="hover:text-yellow-300 transition-colors text-gray-400 disabled:opacity-50"
+                                className="hover:text-yellow-300 cursor-pointer transition-colors text-gray-400 disabled:opacity-50"
                                 disabled={mutation.isPending}
                             >
                                 <X size={20} />
