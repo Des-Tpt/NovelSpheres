@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { deleteChapter } from "@/action/novelActions";
+import { deleteChapter } from "@/action/chapterActions";
 import { notifyError, notifySuccess } from "@/utils/notify";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";

@@ -5,6 +5,7 @@ export interface INotification extends Document {
   userId: Schema.Types.ObjectId;
   type: 'chapter_update' | 'comment_reply' | 'follow_update';
   message: string;
+  href: string;
   isRead: boolean;
   createdAt: Date;
 }
@@ -14,10 +15,11 @@ const NotificationSchema = new Schema<INotification>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   type: { type: String, enum: ['chapter_update', 'comment_reply', 'follow_update'], required: true },
   message: { type: String, required: true },
+  href: { type: String, required: true },
   isRead: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 });
 
-NotificationSchema.index({createdAt: 1});
+NotificationSchema.index({ userId: 1, createdAt: -1 });
 
 export const Notification = models.Notification || model<INotification>('Notification', NotificationSchema, 'Notification');

@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { X, FileText, Loader2, Hash } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createChapter } from '@/action/novelActions';
+import { createChapter } from '@/action/chapterActions';
 import { notifyError, notifySuccess } from '@/utils/notify';
 import { motion, AnimatePresence } from 'framer-motion';
 import dynamic from "next/dynamic";
-import { placeholder } from 'jodit/esm/plugins/placeholder/placeholder';
 import getWordCountFromHtml from '@/utils/getWordCountFromHtml';
 
 const JoditEditor = dynamic(() => import("jodit-react"), {
@@ -21,7 +20,11 @@ interface CreateChapterPopupProps {
 }
 const config = {
     height: 250,
-    readonly: false,
+    readonly: false, 
+    style: {
+        color: '#ffffff',
+        backgroundColor: '#0a0a0a',
+    },
     placeholder: 'Dáng nội dung của chapter ở đây...',
     events: {
         beforePaste: (html: string) => {
@@ -234,22 +237,23 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
                                     </label>
                                     <div className="relative">
                                         <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                                       <input
-                                        type="number"
-                                        value={chapterNumberStr}
-                                        onChange={(e) => {
-                                            setChapterNumberStr(e.target.value);
-                                        }}
-                                        onBlur={() => {FileText
-                                            const num = parseInt(chapterNumberStr, 10);
-                                            if (isNaN(num)) {
-                                                setChapterNumberStr("1");
-                                                setChapterNumber(1);
-                                            } else {
-                                                setChapterNumberStr(String(num));
-                                                setChapterNumber(num);
-                                            }
-                                        }}
+                                        <input
+                                            type="number"
+                                            value={chapterNumberStr}
+                                            onChange={(e) => {
+                                                setChapterNumberStr(e.target.value);
+                                            }}
+                                            onBlur={() => {
+                                                FileText
+                                                const num = parseInt(chapterNumberStr, 10);
+                                                if (isNaN(num)) {
+                                                    setChapterNumberStr("1");
+                                                    setChapterNumber(1);
+                                                } else {
+                                                    setChapterNumberStr(String(num));
+                                                    setChapterNumber(num);
+                                                }
+                                            }}
                                             className="w-full pl-10 pr-3 py-2 bg-black border-2 border-blue-500 rounded text-white focus:outline-none focus:border-blue-400 transition-colors disabled:opacity-50"
                                             disabled={createChapterMutation.isPending}
                                         />

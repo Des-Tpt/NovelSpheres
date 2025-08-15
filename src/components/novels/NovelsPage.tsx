@@ -326,7 +326,7 @@ const NovelsPage = () => {
                                         onClick={handleCreateNovel}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        className="relative px-3 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-emerald-500/25 transition-all duration-300 flex items-center gap-2.5 overflow-hidden group"
+                                        className="relative px-3 py-2 bg-gradient-to-r cursor-pointer from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-emerald-500/25 transition-all duration-300 flex items-center gap-2.5 overflow-hidden group"
                                     >
                                         <div className="absolute inset-0 -top-40 -left-20 w-16 h-40 bg-white/20 rotate-45 transition-all duration-700 group-hover:left-full opacity-0 group-hover:opacity-100"></div>
                                         <div className="relative z-10 flex items-center gap-2.5">

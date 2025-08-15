@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, FileText, Loader2, Hash, Edit3, AlertCircle } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { updateChapter } from '@/action/novelActions';
+import { updateChapter } from '@/action/chapterActions';
 import { notifyError, notifySuccess } from '@/utils/notify';
 import { motion, AnimatePresence } from 'framer-motion';
 import dynamic from "next/dynamic";
@@ -32,7 +32,8 @@ const config = {
     readonly: false,
     placeholder: 'Paste nội dung mới vào đây để chỉnh sửa chapter (tùy chọn)...',
     style: {
-        color: '#000000'
+        color: '#ffffff',
+        backgroundColor: '#0a0a0a',
     },
     events: {
         beforePaste: (html: string) => {
@@ -42,7 +43,6 @@ const config = {
         }
     }
 };
-
 
 const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, userId, novelId, chapter }) => {
     const [title, setTitle] = useState<string>('');

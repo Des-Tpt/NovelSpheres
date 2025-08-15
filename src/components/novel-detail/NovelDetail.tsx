@@ -6,7 +6,7 @@ import LoadingComponent from '../ui/Loading';
 import React, { useEffect, useState } from 'react';
 import getImage from '@/action/imageActions';
 import Image from 'next/image';
-import { Book, BookMarked, Heart, Share2, StepForward, Calendar, Eye, Clock, BookOpenIcon, Star, MessageCircle, Send, ChevronUp, ChevronDown, Plus, FileText, Newspaper, CirclePlus, Edit2, Trash2, Settings, EyeIcon, StarIcon } from 'lucide-react';
+import { Book, BookMarked, Heart, Share2, StepForward, Calendar, Eye, Clock, BookOpenIcon, Star, MessageCircle, Send, ChevronUp, ChevronDown, Plus, FileText, Newspaper, CirclePlus, Edit2, Trash2, Settings, EyeIcon, StarIcon, List, BookOpen } from 'lucide-react';
 import { createComment } from '@/action/commentActions';
 import findParentComment from '@/utils/findParentComment';
 import CommentItem from '../ui/CommentItem';
@@ -521,146 +521,145 @@ const NovelDetail = () => {
                     className='flex flex-col w-full lg:w-auto'
                     variants={itemVariants}
                 >
-                    <div className='flex flex-col p-4 sm:p-5 rounded-lg bg-gray-950 border border-gray-500'>
+                    <div className="p-[1px] bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-lg">
+                        <div className='flex flex-col p-4 sm:p-5 rounded-lg bg-gray-950'>
 
-                        <div className='flex items-start md:items-center '>
-                            <div className='max-w-2/6 flex-shrink-0 md:max-w-full'>
-                                <Image
-                                    src={coverImage || defaultFallback}
-                                    width={400}
-                                    height={400}
-                                    alt={data?.novel?.title || 'Novel Cover'}
-                                    className="w-50 rounded-lg object-cover object-top shadow-md sm:w-[350px] sm:h-[450px]"
-                                />
-                            </div>
-                            <div className='ml-3 md:ml-0 max-w-4/6 md:hidden'>
-                                <div className='flex flex-wrap gap-2'>
-                                    <span className='bg-gray-950 border-amber-600 border px-2 py-1 rounded-full text-xs'>
-                                        {handleStatus(data.novel.status)}
-                                    </span>
+                            <div className='flex items-start md:items-center '>
+                                <div className='max-w-2/6 flex-shrink-0 md:max-w-full'>
+                                    <Image
+                                        src={coverImage || defaultFallback}
+                                        width={400}
+                                        height={400}
+                                        alt={data?.novel?.title || 'Novel Cover'}
+                                        className="w-50 rounded-lg object-cover object-top shadow-md sm:w-[350px] sm:h-[450px]"
+                                    />
+                                </div>
+                                <div className='ml-3 md:ml-0 max-w-4/6 md:hidden'>
+                                    <div className='flex flex-wrap gap-2'>
+                                        <span className='bg-gray-950 border-amber-600 border px-2 py-1 rounded-full text-xs'>
+                                            {handleStatus(data.novel.status)}
+                                        </span>
 
-                                    {/* Render genres dựa trên showAllGenres */}
-                                    {data?.novel?.genresId && (
-                                        <>
-                                            {!showAllGenres && data.novel.genresId.length > 2 ? (
-                                                // Hiển thị 3 genres đầu
-                                                data.novel.genresId.slice(0, 2).map((genre) => (
-                                                    <span key={genre._id} className="px-2.5 py-1 bg-gray-800 text-blue-300 border border-purple-500/30 rounded-full text-xs font-medium backdrop-blur-sm">
-                                                        {genre.name}
+                                        {/* Render genres dựa trên showAllGenres */}
+                                        {data?.novel?.genresId && (
+                                            <>
+                                                {!showAllGenres && data.novel.genresId.length > 2 ? (
+                                                    // Hiển thị 3 genres đầu
+                                                    data.novel.genresId.slice(0, 2).map((genre) => (
+                                                        <span key={genre._id} className="px-2.5 py-1 bg-gray-800 text-blue-300 border border-purple-500/30 rounded-full text-xs font-medium backdrop-blur-sm">
+                                                            {genre.name}
+                                                        </span>
+                                                    ))
+                                                ) : (
+                                                    // Hiển thị tất cả genres
+                                                    data.novel.genresId.map((genre) => (
+                                                        <span key={genre._id} className="px-2.5 py-1 bg-gray-800 text-blue-300 border border-purple-500/30 rounded-full text-xs font-medium backdrop-blur-sm">
+                                                            {genre.name}
+                                                        </span>
+                                                    ))
+                                                )}
+
+                                                {!showAllGenres && data.novel.genresId.length > 2 && (
+                                                    <span
+                                                        className="px-2.5 py-1 bg-gradient-to-r bg-gray-800 text-blue-300 border border-purple-500/30 rounded-full text-xs font-medium backdrop-blur-sm cursor-pointer"
+                                                        onClick={() => setShowAllGenres(true)}
+                                                    >
+                                                        +{data.novel.genresId.length - 2}
                                                     </span>
-                                                ))
-                                            ) : (
-                                                // Hiển thị tất cả genres
-                                                data.novel.genresId.map((genre) => (
-                                                    <span key={genre._id} className="px-2.5 py-1 bg-gray-800 text-blue-300 border border-purple-500/30 rounded-full text-xs font-medium backdrop-blur-sm">
-                                                        {genre.name}
-                                                    </span>
-                                                ))
-                                            )}
+                                                )}
+                                            </>
+                                        )}
+                                    </div>
+                                    <div className='block md:hidden my-2 text-[1.2rem] font-extrabold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent'>
+                                        {data.novel.title}
+                                    </div>
+                                    <div className='mt-1 flex items-center gap-2.5'>
+                                        {authorImage && (
+                                            <Image
+                                                src={authorImage}
+                                                width={80}
+                                                height={80}
+                                                alt={data?.novel?.authorId?.username || 'Avatar tác giả'}
+                                                className="rounded-full w-6 h-6 object-cover border border-gray-200"
+                                            />
 
-                                            {!showAllGenres && data.novel.genresId.length > 2 && (
-                                                <span
-                                                    className="px-2.5 py-1 bg-gradient-to-r bg-gray-800 text-blue-300 border border-purple-500/30 rounded-full text-xs font-medium backdrop-blur-sm cursor-pointer"
-                                                    onClick={() => setShowAllGenres(true)}
-                                                >
-                                                    +{data.novel.genresId.length - 2}
-                                                </span>
-                                            )}
-                                        </>
-                                    )}
-                                </div>
-                                <div className='block md:hidden my-2 text-[1.2rem] font-extrabold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent'>
-                                    {data.novel.title}
-                                </div>
-                                <div className='mt-1 flex items-center gap-2.5'>
-                                    {authorImage && (
-                                        <Image
-                                            src={authorImage}
-                                            width={80}
-                                            height={80}
-                                            alt={data?.novel?.authorId?.username || 'Avatar tác giả'}
-                                            className="rounded-full w-6 h-6 object-cover border border-gray-200"
-                                        />
-
-                                    )}
-                                    <span className='font-extrabold text-blue-400 text-sm'>
-                                        {data?.novel?.authorId?.username ?? 'Vô danh'}
-                                    </span>
-                                </div>
-                                <div className='grid mt-5 text-xs grid-cols-2 gap-y-5'>
-                                    <div className='flex items-center gap-x-1'>
-                                        <BookOpenIcon className='w-4 h-4 text-blue-400' />
-                                        <span className='font-bold'>{data?.novel.chaptersCount}</span>
-                                        <span className='font-bold'>chương</span>
+                                        )}
+                                        <span className='font-extrabold text-blue-400 text-sm'>
+                                            {data?.novel?.authorId?.username ?? 'Vô danh'}
+                                        </span>
                                     </div>
-                                    <div className='flex items-center gap-x-1'>
-                                        <EyeIcon className='w-4 h-4 text-green-400 gap-x-1' />
-                                        <span className='font-bold'>{data?.novel.views}</span>
-                                        <span className='font-bold'>lượt xem</span>
-                                    </div>
-                                    <div className='flex items-center gap-x-1'>
-                                        <Heart className='w-4 h-4 text-red-400' />
-                                        <span className='font-bold'>{data?.novel.likes}</span>
-                                        <span className='font-bold'>lượt thích</span>
-                                    </div>
-                                    <div className='flex items-center gap-x-1'>
-                                        <Clock className='w-4 h-4 text-yellow-400' />
-                                        <span className='font-bold'>{data?.novel.updatedAt ? formatDateVN(data.novel.updatedAt) : 'N/A'}</span>
+                                    <div className='grid mt-5 text-xs grid-cols-2 gap-y-5'>
+                                        <div className='flex items-center gap-x-1'>
+                                            <BookOpenIcon className='w-4 h-4 text-blue-400' />
+                                            <span className='font-bold'>{data?.novel.chaptersCount}</span>
+                                            <span className='font-bold'>chương</span>
+                                        </div>
+                                        <div className='flex items-center gap-x-1'>
+                                            <EyeIcon className='w-4 h-4 text-green-400 gap-x-1' />
+                                            <span className='font-bold'>{data?.novel.views}</span>
+                                            <span className='font-bold'>lượt xem</span>
+                                        </div>
+                                        <div className='flex items-center gap-x-1'>
+                                            <Heart className='w-4 h-4 text-red-400' />
+                                            <span className='font-bold'>{data?.novel.likes}</span>
+                                            <span className='font-bold'>lượt thích</span>
+                                        </div>
+                                        <div className='flex items-center gap-x-1'>
+                                            <Clock className='w-4 h-4 text-yellow-400' />
+                                            <span className='font-bold'>{data?.novel.updatedAt ? formatDateVN(data.novel.updatedAt) : 'N/A'}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <button
-                            className='mt-3 sm:mt-4 px-3 sm:px-4 py-2 text-base sm:text-lg pl-1 cursor-pointer bg-blue-500 font-bold text-white rounded-lg hover:bg-blue-600 transition-colors inline-flex items-center justify-center gap-2'
-                            onClick={() => router.push(`/chapter/${data?.acts?.[0]?.chapters?.[0]?._id}`)}
-                        >
-                            <StepForward className='w-4 sm:w-4.5 h-4 sm:h-4.5 align-middle' />
-                            Bắt đầu đọc
-                        </button>
-                        {isAuthor && (
                             <button
-                                className='mt-2 sm:mt-3 px-3 sm:px-4 py-2 text-base sm:text-lg pl-1 cursor-pointer bg-red-600 font-bold text-white rounded-lg hover:bg-blue-600 transition-colors inline-flex items-center justify-center gap-2'
-                                onClick={(e) => handleEditNovel(data.novel._id, data.novel.title, data.novel.description, data.novel.status, data.novel.genresId!, data?.novel.coverImage?.publicId ?? '', data?.novel.coverImage?.format ?? '', e)}
+                                className='mt-3 sm:mt-4 px-3 sm:px-4 py-2 text-base sm:text-lg pl-1 cursor-pointer bg-gradient-to-r from-blue-600 via-blue-600 to-blue-400 font-bold text-white rounded-lg transform hover:scale-105 transition-all duration-200 inline-flex items-center justify-center gap-2'
+                                onClick={() => router.push(`/chapter/${data?.acts?.[0]?.chapters?.[0]?._id}`)}
                             >
-                                <Settings className='w-4 sm:w-4.5 h-4 sm:h-4.5 align-middle' />
-                                Chỉnh sửa
+                                <StepForward className='w-4 sm:w-4.5 h-4 sm:h-4.5 align-middle' />
+                                Bắt đầu đọc
                             </button>
-                        )}
-                        <div className='flex justify-between gap-2 sm:gap-3 md:gap-1 md:w-full mt-2 sm:mt-3'>
-                            <button onClick={() => handleLikeClick()} disabled={likeIsLoading || !currentUser} className="flex-1">
-                                <div className={`cursor-pointer flex w-full h-[72px] sm:h-[80px] px-3 py-2 border items-center justify-center flex-col gap-1 rounded-lg transition-all duration-300 transform hover:scale-105 ${isLiked
-                                    ? 'bg-red-500 hover:bg-red-600 border-red-400 shadow-lg shadow-red-500/25'
-                                    : 'bg-gray-900 hover:bg-gray-700 border-gray-600 hover:border-red-400'
-                                    }`}>
-                                    <Heart className={`w-4 sm:w-5 h-4 sm:h-5 transition-all duration-300 ${isLiked
-                                        ? 'text-white fill-white animate-pulse'
-                                        : 'text-gray-400 group-hover:text-red-400 hover:fill-red-100'
-                                        }`} />
-                                    <span className={`text-xs sm:text-sm font-medium transition-colors duration-300 text-center ${isLiked
-                                        ? 'text-white'
-                                        : 'text-gray-400 group-hover:text-red-400'
+                            {isAuthor && (
+                                <button
+                                    className='mt-2 sm:mt-3 px-3 sm:px-4 py-2 text-base sm:text-lg pl-1 cursor-pointer bg-gradient-to-r from-red-600 via-red-600 to-red-400 font-bold text-white rounded-lg transform hover:scale-105 transition-all duration-200 inline-flex items-center justify-center gap-2'
+                                    onClick={(e) => handleEditNovel(data.novel._id, data.novel.title, data.novel.description, data.novel.status, data.novel.genresId!, data?.novel.coverImage?.publicId ?? '', data?.novel.coverImage?.format ?? '', e)}
+                                >
+                                    <Settings className='w-4 sm:w-4.5 h-4 sm:h-4.5 align-middle' />
+                                    Chỉnh sửa
+                                </button>
+                            )}
+                            <div className='flex justify-between gap-2 sm:gap-3 md:gap-1 md:w-full mt-2 sm:mt-3'>
+                                <button onClick={() => handleLikeClick()} disabled={likeIsLoading || !currentUser} className="flex-1">
+                                    <div className={`cursor-pointer flex w-full h-[72px] sm:h-[80px] px-3 py-2 border items-center justify-center flex-col gap-1 rounded-lg transition-all duration-300 transform hover:scale-105 ${isLiked
+                                        ? 'bg-red-500 hover:bg-red-600 border-red-400 shadow-lg shadow-red-500/25'
+                                        : 'hover:bg-gray-700 hover:border-red-400'
                                         }`}>
-                                        {isLiked ? 'Đã thích' : 'Yêu thích'}
-                                    </span>
-                                </div>
-                            </button>
+                                        <Heart className={`w-4 sm:w-5 h-4 sm:h-5 transition-all duration-300 ${isLiked
+                                            ? 'text-white fill-white animate-pulse'
+                                            : 'text-red-400 group-hover:text-red-400 hover:fill-red-100'
+                                            }`} />
+                                        <span className={`text-xs sm:text-sm font-medium transition-colors duration-300 text-center}`}>
+                                            {isLiked ? 'Đã thích' : 'Yêu thích'}
+                                        </span>
+                                    </div>
+                                </button>
 
-                            <button className="flex-1">
-                                <div className='flex cursor-pointer w-full h-[72px] sm:h-[80px] px-3 py-2 border items-center justify-center flex-col gap-1 rounded-lg bg-gray-950 group hover:bg-gray-500 hover:transition-colors'>
-                                    <BookMarked className='w-4 sm:w-5 h-4 sm:h-5 text-blue-500 group-hover:text-yellow-700 transition-colors duration-75' />
-                                    <span className='text-xs sm:text-sm text-center'>Đánh dấu</span>
-                                </div>
-                            </button>
+                                <button className="flex-1">
+                                    <div className='flex cursor-pointer w-full h-[72px] sm:h-[80px] px-3 py-2 border items-center justify-center flex-col gap-1 rounded-lg bg-gray-950 transition-all group duration-300 transform hover:scale-105 hover:bg-gray-800'>
+                                        <BookMarked className='w-4 sm:w-5 h-4 sm:h-5 text-blue-500 group-hover:text-blue-700 transition-colors duration-300' />
+                                        <span className='text-xs sm:text-sm text-center'>Đánh dấu</span>
+                                    </div>
+                                </button>
 
-                            <button className="flex-1"
-                                onClick={() => setIsShowRatingPopup(true)}
-                            >
-                                <div className='flex cursor-pointer w-full h-[72px] sm:h-[80px] px-3 py-2 border items-center justify-center flex-col gap-1 rounded-lg bg-gray-950 group hover:bg-gray-500 hover:transition-colors'>
-                                    <StarIcon className='w-4 sm:w-5 h-4 sm:h-5 text-blue-500 group-hover:text-yellow-700 transition-colors duration-75' />
-                                    <span className='text-xs sm:text-sm text-center'>Đánh giá</span>
-                                </div>
-                            </button>
+                                <button className="flex-1"
+                                    onClick={() => setIsShowRatingPopup(true)}
+                                >
+                                    <div className='flex cursor-pointer w-full h-[72px] sm:h-[80px] px-3 py-2 border items-center justify-center flex-col gap-1 rounded-lg bg-gray-950 transition-all group duration-300 transform hover:scale-105 hover:bg-gray-800'>
+                                        <StarIcon className='w-4 sm:w-5 h-4 sm:h-5 text-yellow-500 group-hover:text-yellow-700 transition-colors duration-300' />
+                                        <span className='text-xs sm:text-sm text-center'>Đánh giá</span>
+                                    </div>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </motion.div>
@@ -672,7 +671,7 @@ const NovelDetail = () => {
                 >
                     {/* Header thông tin */}
                     <motion.div
-                        className='hidden md:block bg-gray-950 p-4 border border-gray-500 rounded-lg'
+                        className='hidden md:block bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 py-4 px-5 border border-blue-600 rounded-lg'
                         variants={itemVariants}
                     >
                         <div className='flex gap-2 items-center flex-wrap mb-3 sm:mb-4'>
@@ -701,10 +700,10 @@ const NovelDetail = () => {
                         </div>
 
                         <div className='flex justify-between items-center mb-3 sm:mb-4'>
-                            <h1 className='text-2xl sm:text-3xl font-bold text-white'>{data?.novel?.title}</h1>
+                            <h1 className='text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent'>{data?.novel?.title}</h1>
                         </div>
 
-                        <div className='flex items-center border border-gray-400 p-4 rounded-lg gap-2 sm:gap-3'>
+                        <div className='flex items-center gap-2 sm:gap-3'>
                             {authorImage && (
                                 <Image
                                     src={authorImage}
@@ -724,13 +723,13 @@ const NovelDetail = () => {
                                 </span>
                             </div>
                             {isAuthor && (
-                                <div className='flex items-center ml-auto gap-2 bg-gradient-to-r from-yellow-600 to-orange-600 px-2 sm:px-3 py-1 rounded-full'>
+                                <div className='flex items-center ml-auto gap-2 bg-gradient-to-r font-extrabold from-yellow-600 to-orange-600 px-2 sm:px-3 py-1 rounded-full'>
                                     <Star className='w-3 sm:w-4 h-3 sm:h-4 text-white' />
                                     <span className='text-white text-xs sm:text-sm font-medium'>Tác giả</span>
                                 </div>
                             )}
                         </div>
-                        <div className='my-4 sm:my-6 border-b-[1px] border-gray-400'></div>
+                        <div className='my-4 sm:my-6 border-b-[1px] border-blue-600' />
 
                         <div className='block sm:hidden overflow-x-auto pb-2'>
                             <div className='flex gap-4 px-4 min-w-max'>
@@ -792,36 +791,36 @@ const NovelDetail = () => {
                     </motion.div>
 
                     {/* Tab Navigation */}
-                    <motion.div
-                        className='flex w-full mb-4 sm:mb-6'
-                        variants={itemVariants}
-                    >
-                        <nav className='flex w-full border border-gray-400 text-base sm:text-lg rounded-lg'>
+                    <motion.div className='flex w-full my-4 sm:my-6' variants={itemVariants}>
+                        <nav className='flex w-full bg-gray-900 border border-blue-600 text-base sm:text-lg rounded-lg p-1'>
                             <button
                                 onClick={() => setActiveTab('description')}
-                                className={`flex-1 cursor-pointer py-2 sm:py-3 px-3 sm:px-4 font-medium transition-all duration-200 rounded-l-lg ${activeTab === 'description'
-                                    ? 'bg-gray-900 text-white'
-                                    : 'bg-gray-950 text-gray-300 hover:bg-gray-700'
+                                className={`flex-1 flex items-center justify-center gap-2 py-2 sm:py-3 px-3 sm:px-4 font-medium transition-all duration-200 rounded-md ${activeTab === 'description'
+                                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg'
+                                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
                                     }`}
                             >
+                                <BookOpen size={16} />
                                 Mô tả
                             </button>
                             <button
                                 onClick={() => setActiveTab('chapters')}
-                                className={`flex-1 cursor-pointer py-2 sm:py-3 px-3 sm:px-4 font-medium transition-all duration-200 border-l border-r border-gray-600 ${activeTab === 'chapters'
-                                    ? 'bg-gray-900 text-white'
-                                    : 'bg-gray-950 text-gray-300 hover:bg-gray-700'
+                                className={`flex-1 flex items-center justify-center gap-2 py-2 sm:py-3 px-3 sm:px-4 font-medium transition-all duration-200 rounded-md ${activeTab === 'chapters'
+                                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg'
+                                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
                                     }`}
                             >
+                                <List size={16} />
                                 Chương
                             </button>
                             <button
                                 onClick={() => setActiveTab('comments')}
-                                className={`flex-1 cursor-pointer py-2 sm:py-3 px-3 sm:px-4 font-medium transition-all duration-200 rounded-r-lg ${activeTab === 'comments'
-                                    ? 'bg-gray-900 text-white'
-                                    : 'bg-gray-950 text-gray-300 hover:bg-gray-700'
+                                className={`flex-1 flex items-center justify-center gap-2 py-2 sm:py-3 px-3 sm:px-4 font-medium transition-all duration-200 rounded-md ${activeTab === 'comments'
+                                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg'
+                                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
                                     }`}
                             >
+                                <MessageCircle size={16} />
                                 Bình luận
                             </button>
                         </nav>
@@ -833,8 +832,13 @@ const NovelDetail = () => {
                         variants={itemVariants}
                     >
                         {activeTab === 'description' && (
-                            <div className='prose prose-invert max-w-none'>
-                                <div className='bg-gray-950 border border-gray-400 rounded-lg p-4 sm:p-6'>
+                            <motion.div
+                                initial={{ y: -20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                exit={{ y: -20, opacity: 0 }}
+                                transition={{ duration: 0.3, ease: 'easeInOut' }} className='prose prose-invert max-w-none'
+                            >
+                                <div className='bg-gray-950 border border-blue-600 rounded-lg p-4 sm:p-6'>
                                     <h3 className='text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-white'>Cốt truyện tổng quan</h3>
                                     <div className='text-gray-300 text-sm sm:text-[1.2rem] whitespace-pre-wrap'>
                                         {data.novel.description ? (
@@ -844,38 +848,62 @@ const NovelDetail = () => {
                                         )}
                                     </div>
                                 </div>
-                            </div>
+                            </motion.div>
                         )}
 
                         {activeTab === 'chapters' && (
-                            <div className='space-y-2 bg-gray-950 border border-gray-400 rounded-lg overflow-hidden'>
+                            <motion.div
+                                initial={{ y: -20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                exit={{ y: -20, opacity: 0 }}
+                                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                                className='space-y-2 bg-gray-950 border border-blue-600 rounded-lg overflow-hidden'
+                            >
                                 {isAuthor && (
-                                    <div className='py-3 sm:py-4 px-4 sm:px-6 flex bg-gray-950 border-b justify-between items-center border-gray-600 rounded-t-lg'>
-                                        <h3 className='text-base sm:text-lg font-semibold text-white flex items-center gap-2'>
-                                            <Star className='w-4 sm:w-5 h-4 sm:h-5 text-yellow-500' />
-                                            Quản lý tác phẩm
-                                        </h3>
-                                        <button
-                                            onClick={handleAddAct}
-                                            className='flex items-center cursor-pointer gap-2 px-3 sm:px-4 py-1 sm:py-2 bg-gray-950 border border-gray-400 hover:bg-gray-800 text-white rounded-lg font-medium text-sm sm:text-base transition-colors'
+                                    <div className='py-3 sm:py-4 px-4 sm:px-6 flex bg-gray-950 border-b justify-between items-center border-blue-600 rounded-t-lg'>
+                                        <motion.h3
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.3, ease: 'easeOut' }}
+                                            whileHover={{ scale: 1.02 }}
+                                            className="text-base sm:text-lg font-semibold flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-text text-transparent"
                                         >
-                                            <FileText className='w-3 sm:w-4 h-3 sm:h-4' />
-                                            Thêm phần
-                                        </button>
+                                            <div className="p-1 bg-white/20 rounded-lg">
+                                                <Star className="w-4 sm:w-5 h-4 sm:h-5 text-yellow-400" />
+                                            </div>
+                                            Quản lý tác phẩm
+                                        </motion.h3>
+
+                                        <motion.button
+                                            onClick={handleAddAct}
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            className="relative px-3 sm:px-4 py-1 sm:py-2 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-medium rounded-lg shadow-lg hover:shadow-blue-500/25 transition-all duration-300 flex items-center gap-2 overflow-hidden group text-sm sm:text-base"
+                                        >
+                                            {/* Hiệu ứng quét sáng */}
+                                            <div className="absolute inset-0 -top-40 -left-20 w-16 h-40 bg-white/20 rotate-45 transition-all duration-700 group-hover:left-full opacity-0 group-hover:opacity-100"></div>
+
+                                            <div className="relative z-10 flex items-center gap-2">
+                                                <div className="p-1 bg-white/20 rounded-md">
+                                                    <FileText className="w-3 sm:w-4 h-3 sm:h-4" />
+                                                </div>
+                                                <span>Thêm phần</span>
+                                            </div>
+                                        </motion.button>
                                     </div>
                                 )}
 
                                 {data?.acts && data.acts.length > 0 ? (
                                     data.acts.map((act) => (
-                                        <div key={act._id} className='overflow-hidden border-b border-gray-600 last:border-b-0 bg-gray-950'>
+                                        <div key={act._id} className='overflow-hidden border-b border-blue-600 last:border-b-0 bg-gray-950'>
                                             <div
                                                 onClick={() => toggleShowChapter(act._id)}
                                                 className='p-4 sm:p-6 cursor-pointer hover:bg-gray-750 transition-all duration-200 group'
                                             >
-                                                <h3 className='text-lg sm:text-xl font-semibold text-white flex items-center justify-between'>
+                                                <h3 className='text-lg sm:text-xl font-semibold flex items-center justify-between'>
                                                     <div className='flex items-center gap-3'>
-                                                        <Book className='w-5 sm:w-6 h-5 sm:h-6 text-gray-400' />
-                                                        <span className='mb-1'>{act.actType ? act.actType : 'Act'} {act.actNumber} - {act.title}</span>
+                                                        <Book className='w-5 sm:w-6 h-5 sm:h-6 text-white' />
+                                                        <span className='mb-1 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400'>{act.actType ? act.actType : 'Act'} {act.actNumber} - {act.title}</span>
                                                     </div>
                                                     <div className='flex items-center gap-2'>
                                                         {isAuthor && (
@@ -912,7 +940,7 @@ const NovelDetail = () => {
                                                         transition={{ duration: 0.3, ease: 'easeInOut' }}
                                                         className='overflow-hidden'
                                                     >
-                                                        <div className='border-t border-gray-700 bg-gray-950'>
+                                                        <div className='border-t border-blue-600 bg-gray-950'>
                                                             <div className="flex flex-col lg:flex-row gap-6 p-6">
                                                                 {/* Act Cover Section */}
                                                                 <div className="w-full flex flex-col items-center lg:block lg:w-48">
@@ -922,11 +950,11 @@ const NovelDetail = () => {
                                                                             width={400}
                                                                             height={400}
                                                                             alt={`Act ${act.actNumber} Cover`}
-                                                                            className="rounded-lg shadow-xl w-full object-cover border border-gray-600 aspect-[3/4] group-hover:scale-105 transition-transform duration-200"
+                                                                            className="rounded-lg shadow-xl w-full object-cover border border-blue-600 aspect-[3/4] group-hover:scale-105 transition-transform duration-200"
                                                                         />
                                                                         <div className="absolute inset-0 bg-black/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
                                                                     </div>
-                                                                    <div className="mt-3 text-center bg-gray-700 rounded-lg py-2 w-48">
+                                                                    <div className="mt-3 text-center border-blue-600 rounded-lg py-2 w-48">
                                                                         <p className="text-sm font-semibold text-gray-300">
                                                                             {act.chapters.length} chương
                                                                         </p>
@@ -949,11 +977,11 @@ const NovelDetail = () => {
                                                                                 animate={{ opacity: 1, x: 0 }}
                                                                                 transition={{ duration: 0.2, delay: index * 0.05 }}
                                                                                 onClick={() => router.push(`/chapter/${chapter._id}`)}
-                                                                                className='bg-gray-950 hover:bg-gray-650 cursor-pointer transition-all duration-200 group rounded-lg border border-gray-600 hover:border-white p-4'
+                                                                                className='bg-gray-950 hover:bg-gray-650 cursor-pointer transition-all duration-200 group rounded-lg border border-blue-600 hover:border-white p-4'
                                                                             >
                                                                                 <div className='flex items-center justify-between'>
                                                                                     <div className='flex-1 min-w-0 mr-4'>
-                                                                                        <h5 className='text-gray-200 font-semibold text-base group-hover:text-blue-500 transition-colors mb-2 truncate'>
+                                                                                        <h5 className='text-blue-400 font-semibold text-base group-hover:text-blue-500 transition-colors mb-2 truncate'>
                                                                                             Chương {chapter.chapterNumber}: {chapter.title}
                                                                                         </h5>
                                                                                         <div className='flex flex-wrap gap-4 text-xs text-gray-400'>
@@ -971,14 +999,14 @@ const NovelDetail = () => {
                                                                                         <div className='flex mr-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200'>
                                                                                             <button
                                                                                                 onClick={(e) => handleEditChapter(chapter, act._id, e)}
-                                                                                                className='p-2 cursor-pointer rounded-lg hover:bg-gray-600 text-gray-400 hover:text-blue-400 transition-colors'
+                                                                                                className='p-2 cursor-pointer rounded-lg hover:bg-gray-600 text-gray-400 md:text-blue-400 hover:text-blue-500 transition-colors'
                                                                                                 title='Sửa chapter'
                                                                                             >
                                                                                                 <Edit2 className='w-4 h-4' />
                                                                                             </button>
                                                                                             <button
                                                                                                 onClick={(e) => handleDeleteChapter(chapter._id, chapter.title, chapter.chapterNumber, act._id, currentUser._id, data.novel._id, e)}
-                                                                                                className='p-2 cursor-pointer rounded-lg hover:bg-gray-600 text-gray-400 hover:text-red-400 transition-colors'
+                                                                                                className='p-2 cursor-pointer rounded-lg hover:bg-gray-600 text-gray-400 md:text-red-400 hover:text-red-500 transition-colors'
                                                                                                 title='Xóa chapter'
                                                                                             >
                                                                                                 <Trash2 className='w-4 h-4' />
@@ -1044,11 +1072,11 @@ const NovelDetail = () => {
                                         </div>
                                     </div>
                                 )}
-                            </div>
+                            </motion.div>
                         )}
 
                         {activeTab === 'comments' && (
-                            <div className='rounded-lg bg-gray-950 border border-gray-600'>
+                            <div className='rounded-lg bg-gray-950 border border-blue-600'>
                                 <motion.div
                                     className="px-4 sm:px-5 py-3 sm:py-4 rounded-[0.8rem]"
                                     variants={itemVariants}
@@ -1066,7 +1094,7 @@ const NovelDetail = () => {
                                             value={newCommentContent}
                                             onChange={(e) => setNewCommentContent(e.target.value)}
                                             placeholder="Viết bình luận của bạn..."
-                                            className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                                            className="w-full p-3 bg-gray-900 border border-blue-600 rounded-md text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
                                             rows={3}
                                             disabled={createCommentMutation.isPending}
                                         />
@@ -1080,7 +1108,7 @@ const NovelDetail = () => {
                                             >
                                                 {createCommentMutation.isPending ? (
                                                     <>
-                                                        <div className="w-3 sm:w-4 h-3 sm:h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                                        <div className="w-3 sm:w-4 h-3 sm:h-4 border-2 border-blue-600 border-t-white rounded-full animate-spin" />
                                                         Đang đăng...
                                                     </>
                                                 ) : (
@@ -1093,7 +1121,7 @@ const NovelDetail = () => {
                                         </div>
                                     </motion.div>
                                 </motion.div>
-                                <div className='border-t-[1px] border-white mx-4 sm:mx-5.5 pb-4 sm:pb-5'></div>
+                                <div className='border-t-[1px] border-blue-600 mx-4 sm:mx-5.5 pb-4 sm:pb-5'></div>
                                 <div className="space-y-3 sm:space-y-4 mx-4 sm:mx-5 pb-4 sm:pb-5">
                                     {(!data?.comments || data.comments.length === 0) ? (
                                         <motion.div

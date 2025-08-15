@@ -10,6 +10,7 @@ import Image from 'next/image';
 import { ArrowRight, Book, Heart, History, HistoryIcon } from 'lucide-react';
 import handleRole from '@/utils/handleRole';
 import { AnimatePresence, motion } from 'framer-motion';
+import NotificationComponent from '../notification/NotificationComponent';
 
 interface User {
   _id: string;
@@ -68,6 +69,8 @@ const Header = () => {
         const response = await getUserFromCookies();
         if (response?.user) {
           setCurrentUser(response.user);
+          console.log('header responsive: ', response)
+
           const imageUrl = await getImage(response.user.publicId, response.user.format);
           setUserImage(imageUrl);
         }
@@ -130,7 +133,11 @@ const Header = () => {
         </div>
 
         {/* Desktop Auth Section với Loading */}
-        <div className="hidden md:block relative" ref={dropdownRef}>
+        <div className="hidden md:flex items-center gap-5 relative" ref={dropdownRef}>
+          {currentUser?._id &&
+            <NotificationComponent userId={currentUser._id} />
+          }
+
           {isLoading ? (
             // Hiển thị skeleton loading thay vì nút
             <div className="hidden md:flex items-center gap-2 p-2">
@@ -154,7 +161,6 @@ const Header = () => {
                 )}
                 <ChevronDownIcon className="h-4 w-4" />
               </button>
-
               {/* User Dropdown */}
               <AnimatePresence initial={false}>
                 {isUserDropdownOpen && (
@@ -217,16 +223,18 @@ const Header = () => {
               </AnimatePresence>
             </div>
           ) : (
-            <Button
-              type={<UserIcon className="h-5 w-5" />}
-              text="Đăng nhập"
-              href="#"
-              onClick={() => {
-                handleClick('login');
-                setIsAuthOpen(true);
-              }}
-              isActive={activeButton === 'login'}
-            />
+            <div>
+              <Button
+                type={<UserIcon className="h-5 w-5" />}
+                text="Đăng nhập"
+                href="#"
+                onClick={() => {
+                  handleClick('login');
+                  setIsAuthOpen(true);
+                }}
+                isActive={activeButton === 'login'}
+              />
+            </div>
           )}
         </div>
 

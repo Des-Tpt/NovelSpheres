@@ -1,6 +1,10 @@
+import { Like } from "@/action/likeAction";
 import { connectDB } from "@/lib/db";
+import { pusherServer } from "@/lib/pusher-server";
 import { Act } from "@/model/Act";
 import { Chapter } from "@/model/Chapter";
+import { Likes } from "@/model/Likes";
+import { Notification } from "@/model/Notification";
 import { Novel } from "@/model/Novel";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -52,6 +56,34 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
         await newChapter.save();
 
         await Novel.findByIdAndUpdate(novelId, { updatedAt: new Date() });
+
+        const likes = await Likes.find({ novelId })
+            .select('userId')
+
+        const notifPromises = likes.map(async (like) => {
+            const message = `Tiểu thuyết bạn theo dõi vừa có chương mới: ${title}`;
+            const href = `/novel/${novelId.toString()}`;
+
+            // 1. Lưu vào DB
+            const notif = await Notification.create({
+                userId: like.userId,
+                type: 'chapter_update',
+                message,
+                href,
+                createdAt: Date.now(),
+            });
+
+            // 2. Bắn realtime qua Pusher
+            await pusherServer.trigger(`private-user-${like.userId.toString()}`, "new-notification", {
+                id: notif._id,
+                message,
+                href,
+                createdAt: notif.createdAt
+            });
+        });
+
+        await Promise.all(notifPromises);
+
         return NextResponse.json({ success: true, }, { status: 201 });
 
     } catch (error) {

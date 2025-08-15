@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Book, Clock, Menu, X, HomeIcon, Settings } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getChapterById } from '@/action/chapterAction';
+import { getChapterById } from '@/action/chapterActions';
 import { useSettingChapterStore } from '@/store/settingChapterStore';
 import ChapterSettingPopup from './SettingChapterPopup';
 
