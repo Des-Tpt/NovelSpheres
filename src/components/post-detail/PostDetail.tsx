@@ -42,9 +42,22 @@ interface Post {
 
 interface Comment {
   _id: string;
-  userId: { _id: string; username: string; role: string; profile?: { avatar?: { publicId: string; format: string } } };
+  userId: {
+    _id: string;
+    username: string;
+    role: string;
+    profile?: {
+      avatar?: {
+        publicId: string;
+        format: string
+      }
+    }
+  };
   content: string;
-  replyToUserId?: { username: string; _id: string };
+  replyToUserId?: {
+    username: string;
+    _id: string
+  };
   replies: Comment[];
   createdAt: string;
 }
@@ -70,20 +83,6 @@ const itemVariants = {
   }
 };
 
-const commentVariants = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 0.3 }
-  },
-  exit: {
-    opacity: 0,
-    scale: 0.95,
-    transition: { duration: 0.2 }
-  }
-};
-
 const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 
 const PostDetail = () => {
@@ -106,8 +105,42 @@ const PostDetail = () => {
 
   const createCommentMutation = useMutation({
     mutationFn: createComment,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['post', id] });
+    onSuccess: (response) => {
+      const newComment = response.comment;
+      queryClient.setQueryData(['post', id], (oldData: any) => {
+        if (!oldData) return oldData;
+        if (!newComment.parentId) {
+          return {
+            ...oldData,
+            comments: [...oldData.comments, newComment],
+          };
+        }
+        else {
+          const updateComments = (comments: Comment[]): Comment[] => {
+            return comments.map(comment => {
+              if (comment._id === newComment.parentId) {
+                return {
+                  ...comment,
+                  replies: [...(comment.replies || []), newComment]
+                };
+              }
+              // Recursively check nested replies
+              if (comment.replies?.length > 0) {
+                return {
+                  ...comment,
+                  replies: updateComments(comment.replies)
+                };
+              }
+              return comment;
+            });
+          };
+
+          return {
+            ...oldData,
+            comments: updateComments(oldData.comments)
+          };
+        }
+      });
       queryClient.invalidateQueries({ queryKey: ['forum-posts'] });
       notifySuccess('Bình luận đã được đăng thành công!');
     },
@@ -230,8 +263,7 @@ const PostDetail = () => {
   }
 
   const handleSubmitComment = async () => {
-    if (!newCommentContent.trim()) 
-    {
+    if (!newCommentContent.trim()) {
       return
     }
 

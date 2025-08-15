@@ -13,8 +13,8 @@ export async function GET(req: NextRequest) {
     const skip = (page - 1) * limit;
     
     // Filter params
-    const status = searchParams.get('status'); // 'read', 'unread', 'all'
-    const type = searchParams.get('type'); // notification type filter
+    const status = searchParams.get('status');
+    const type = searchParams.get('type');
     
     // Validation
     if (!userId) {
@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
         // Parallel queries for better performance
         const [notifies, total, unreadCount] = await Promise.all([
             Notification.find(filter)
-                .select('title message type isRead createdAt updatedAt') // Only needed fields
+                .select('message type href isRead createdAt') // Only needed fields
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit)

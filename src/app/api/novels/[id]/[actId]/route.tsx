@@ -61,8 +61,8 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
             .select('userId')
 
         const notifPromises = likes.map(async (like) => {
-            const message = `Tiểu thuyết bạn theo dõi vừa có chương mới: ${title}`;
-            const href = `/novel/${novelId.toString()}`;
+            const message = `Tiểu thuyết ${novel.title} vừa có chương mới: ${title}`;
+            const href = `/novels/${novelId.toString()}`;
 
             // 1. Lưu vào DB
             const notif = await Notification.create({

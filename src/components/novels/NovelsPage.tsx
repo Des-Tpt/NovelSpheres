@@ -88,9 +88,6 @@ const NovelsPage = () => {
         JSON.stringify(pendingGenres.sort()) !== JSON.stringify(selectedGenres.sort()) ||
         pendingSort !== sortBy;
 
-    // State for animation load NovelCard
-    const [animationKey, setAnimationKey] = useState(0);
-
     // Separate query for genres
     const { data: genresData, isLoading: genresLoading } = useQuery({
         queryKey: ['genres'],
@@ -129,11 +126,6 @@ const NovelsPage = () => {
                 : [...prev, genreId]
         );
     };
-
-    useEffect(() => {
-        if (!data) return;
-        setAnimationKey(prev => prev + 1);
-    }, [data]);
 
     // Handle pending sort change
     const handlePendingSortChange = (newSort: 'title' | 'date' | 'views') => {

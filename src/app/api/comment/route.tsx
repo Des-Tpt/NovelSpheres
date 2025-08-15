@@ -5,6 +5,8 @@ import { ForumPost } from '@/model/PostForum';
 import { getCurrentUser } from '@/lib/auth';
 import { Novel } from '@/model/Novel';
 import { Chapter } from '@/model/Chapter';
+import { Notification } from '@/model/Notification';
+import { pusherServer } from '@/lib/pusher-server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,29 +27,33 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    //Kiểm tra xem sourceType có tồn tại hay không
-    if (sourceType === 'ForumPost'){
+    // Kiểm tra xem sourceType có tồn tại hay không
+    let sourceTitle = '';
+    if (sourceType === 'ForumPost') {
       const post = await ForumPost.findById(sourceId);
-      if (!post) 
-        {
-          return NextResponse.json({ error: 'Không tìm thấy bài đăng' }, { status: 404 });
-        }
-    } 
+      if (!post) {
+        return NextResponse.json({ error: 'Không tìm thấy bài đăng' }, { status: 404 });
+      }
+      sourceTitle = post.title;
+    }
     else if (sourceType === 'Novel') {
       const novel = await Novel.findById(sourceId);
-      if (!novel) { 
-          return NextResponse.json({ error: 'Không tìm thấy tiểu thuyết'}, { status: 404 });
-        }
+      if (!novel) {
+        return NextResponse.json({ error: 'Không tìm thấy tiểu thuyết' }, { status: 404 });
+      }
+      sourceTitle = novel.title;
     }
-    else if (sourceType === 'NovelChapter'){
-      const chapter = await Chapter.findById(sourceId);
+    else if (sourceType === 'NovelChapter') {
+      const chapter = await Chapter.findById(sourceId).populate('novelId', 'title');
       if (!chapter) {
-          return NextResponse.json({ error: 'Không tìm thấy chương'}, { status: 404 });
-        }
+        return NextResponse.json({ error: 'Không tìm thấy chương' }, { status: 404 });
+      }
+      sourceTitle = `${chapter.novelId.title} - ${chapter.title}`;
     }
 
+    let parentComment = null;
     if (parentId) {
-      const parentComment = await Comment.findById(parentId);
+      parentComment = await Comment.findById(parentId).populate('userId', 'username _id');
       if (!parentComment) {
         return NextResponse.json({ error: 'Không tìm thấy comment gốc' }, { status: 404 });
       }
@@ -65,15 +71,59 @@ export async function POST(request: NextRequest) {
     });
 
     await newComment.save();
-    
-    await newComment.populate('userId', 'username role profile');
+
+    await newComment.populate('userId', '_id username role profile');
     if (replyToUserId) {
       await newComment.populate('replyToUserId', 'username _id');
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      comment: newComment 
+    if (replyToUserId && replyToUserId.toString() !== user._id.toString()) {
+      try {
+        let message, href;
+
+        if (sourceType === 'ForumPost') {
+          message = `${user.username} đã trả lời bình luận của bạn trong "${sourceTitle}"`;
+          href = `/forum/post/${sourceId.toString()}`;
+        } else if (sourceType === 'Novel') {
+          message = `${user.username} đã trả lời bình luận của bạn trong tiểu thuyết "${sourceTitle}"`;
+          href = `/novels/${sourceId.toString()}`;
+        } else if (sourceType === 'NovelChapter') {
+          message = `${user.username} đã trả lời bình luận của bạn trong "${sourceTitle}"`;
+          href = `/chapter/${sourceId.toString()}`;
+        }
+
+        // 1. Lưu vào DB
+        const notif = await Notification.create({
+          userId: replyToUserId,
+          type: 'comment_reply',
+          message,
+          href,
+          createdAt: Date.now(),
+        });
+
+        // 2. Bắn realtime qua Pusher
+        await pusherServer.trigger(`private-user-${replyToUserId.toString()}`, "new-notification", {
+          id: notif._id,
+          message,
+          href,
+          createdAt: notif.createdAt
+        });
+
+      } catch (notificationError) {
+        console.error('Lỗi khi gửi notification:', notificationError);
+      }
+    }
+
+    const commentResponse = {
+      ...newComment.toObject(),
+      replies: [],
+    };
+
+    console.log(commentResponse);
+
+    return NextResponse.json({
+      success: true,
+      comment: commentResponse
     }, { status: 201 });
 
   } catch (error) {

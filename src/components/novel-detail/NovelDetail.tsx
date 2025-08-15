@@ -179,14 +179,44 @@ const NovelDetail = () => {
 
     const isLiked = likeData?.liked || false;
 
-    console.log(isLiked);
-
     const isAuthor = currentUser && data?.novel && currentUser?._id === data.novel.authorId?._id;
 
     const createCommentMutation = useMutation({
         mutationFn: createComment,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['novelDetail', novelId] });
+        onSuccess: (response) => {
+            const newComment = response.comment;
+
+            queryClient.setQueryData(['novelDetail', novelId], (oldData: any) => {
+                if (!oldData) return oldData;
+                if (!newComment.parentId) {
+                    return {
+                        ...oldData,
+                        comments: [...oldData.comments, newComment],
+                    };
+                } else {
+                    const updateComments = (comments: Comment[]): Comment[] => {
+                        return comments.map(comment => {
+                            if (comment._id === newComment.parentId) {
+                                return {
+                                    ...comment,
+                                    replies: [...(comment.replies || []), newComment]
+                                };
+                            }
+                            if (comment.replies?.length > 0) {
+                                return {
+                                    ...comment,
+                                    replies: updateComments(comment.replies)
+                                };
+                            }
+                            return comment;
+                        });
+                    };
+                    return {
+                        ...oldData,
+                        comments: updateComments(oldData.comments)
+                    };
+                }
+            });
             notifySuccess('Bình luận thành công!');
         },
         onError: () => notifyError('Bình luận thất bại!'),
@@ -196,7 +226,16 @@ const NovelDetail = () => {
         mutationFn: Like,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['likeRes', novelId, currentUser?._id] });
-            queryClient.invalidateQueries({ queryKey: ['novelDetail', novelId] });
+            queryClient.setQueryData(['novelDetail', novelId], (oldData: any) => {
+                if (!oldData) return oldData;
+                return {
+                    ...oldData,
+                    novel: {
+                        ...oldData.novel,
+                        likes: (oldData.novel.likes ?? 0) + 1,
+                    },
+                };
+            })
         },
     })
 
@@ -204,7 +243,16 @@ const NovelDetail = () => {
         mutationFn: UnLike,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['likeRes', novelId, currentUser?._id] });
-            queryClient.invalidateQueries({ queryKey: ['novelDetail', novelId] });
+            queryClient.setQueryData(['novelDetail', novelId], (oldData: any) => {
+                if (!oldData) return oldData;
+                return {
+                    ...oldData,
+                    novel: {
+                        ...oldData.novel,
+                        likes: Math.max((oldData.novel.likes ?? 0) - 1, 0)
+                    },
+                };
+            })
         },
     })
 
