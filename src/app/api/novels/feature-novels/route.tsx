@@ -12,11 +12,6 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
 
-    console.log(Genre.modelName);
-    console.log(User.modelName);
-    console.log(Novel.modelName);
-    console.log(Chapter.modelName);
-
     try {
         await connectDB();
 

@@ -7,8 +7,6 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const query = searchParams.get('query');
 
-    console.log(Novel.modelName);
-
     if (!query || query.trim() === '') {
         return NextResponse.json([])
     }

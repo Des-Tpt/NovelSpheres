@@ -1,5 +1,6 @@
 import { Schema, Document, model, models } from 'mongoose';
 import { Novel } from './Novel';
+import { Profile } from './Profile';
 
 export interface ILikeSchema extends Document {
     userId: Schema.Types.ObjectId;
@@ -16,12 +17,23 @@ const LikesSchema = new Schema<ILikeSchema>({
 LikesSchema.post('save', async function (doc) {
     const count = await Likes.countDocuments({ novelId: doc.novelId });
     await Novel.findByIdAndUpdate(doc.novelId, { likes: count });
+
+    await Profile.findOneAndUpdate(
+        { userId: doc.userId },
+        { $addToSet: { favorites: doc._id } }
+    );
+
 });
 
 LikesSchema.post('findOneAndDelete', async function (doc) {
     if (doc) {
         const count = await Likes.countDocuments({ novelId: doc.novelId });
         await Novel.findByIdAndUpdate(doc.novelId, { likes: count });
+        
+        await Profile.findOneAndUpdate(
+            { userId: doc.userId },
+            { $pull: { favorites: doc._id } }
+        );
     }
 });
 

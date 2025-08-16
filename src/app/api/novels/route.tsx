@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
         });
 
     } catch (e) {
-        console.log(e);
+
         return NextResponse.json({ e: "Lỗi khi lấy dữ liệu" });
     }
 }

@@ -1,6 +1,7 @@
 import cloudinary from "@/lib/cloudinary";
 import { connectDB } from "@/lib/db";
 import { Novel } from "@/model/Novel";
+import { User } from "@/model/User";
 import { NextRequest, NextResponse } from "next/server";
 
 interface CloudinaryUploadResult {
@@ -59,6 +60,8 @@ export async function POST(request: NextRequest) {
         })
         
         await newNovel.save();
+
+        await User.findByIdAndUpdate(userId, { $set: { role: 'writer' }});
 
         return NextResponse.json({ success: true }, { status: 201 });
     } catch (e) {

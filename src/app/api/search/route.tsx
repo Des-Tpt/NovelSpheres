@@ -13,11 +13,6 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const query = searchParams.get('query');
 
-    console.log(Genre.modelName);
-    console.log(User.modelName);
-    console.log(Novel.modelName);
-    console.log(Chapter.modelName);
-
     if (!query || query.trim() === '') {
         return NextResponse.json([]);
     }

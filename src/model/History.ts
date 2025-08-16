@@ -16,5 +16,5 @@ const ReadingHistorySchema = new Schema<IReadingHistory>({
     lastReadAt: { type: Date, default: Date.now }
 });
   
-  export const ReadingHistory = models.ReadingHistory || model<IReadingHistory>('ReadingHistory', ReadingHistorySchema, 'ReadingHistory');
+export const History = models.ReadingHistory || model<IReadingHistory>('ReadingHistory', ReadingHistorySchema, 'ReadingHistory');
   

@@ -119,8 +119,6 @@ export async function POST(request: NextRequest) {
       replies: [],
     };
 
-    console.log(commentResponse);
-
     return NextResponse.json({
       success: true,
       comment: commentResponse

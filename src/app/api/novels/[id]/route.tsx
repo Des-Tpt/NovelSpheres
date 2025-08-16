@@ -18,11 +18,6 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
 
         await connectDB();
 
-        console.log(Novel.modelName);
-        console.log(Comment.modelName);
-        console.log(Genre.modelName);
-        console.log(User.modelName);
-
         const novel = await Novel.findById(novelId)
             .populate({ path: "authorId", select: "_id username profile role" })
             .populate({ path: "genresId", select: "_id name" })

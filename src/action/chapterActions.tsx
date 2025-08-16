@@ -1,8 +1,12 @@
-export async function getChapterById(ChapterId: string) {
-    const res = await fetch(`/api/chapter//${ChapterId}`);
+export async function getChapterById(chapterId: string, userId?: string) {
+    const url = userId
+        ? `/api/chapter/${chapterId}?userId=${userId}`
+        : `/api/chapter/${chapterId}`;
+
+    const res = await fetch(url);
 
     if (!res.ok) {
-        throw Error(`Không thể lấy post!`);
+        throw Error(`Không thể lấy chapter!`);
     }
 
     const data = await res.json();

@@ -7,6 +7,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getChapterById } from '@/action/chapterActions';
 import { useSettingChapterStore } from '@/store/settingChapterStore';
 import ChapterSettingPopup from './SettingChapterPopup';
+import { getUserFromCookies } from '@/action/userAction';
 
 
 interface Novel {
@@ -68,6 +69,16 @@ interface ChapterData {
     chaptersInAct: ChapterInAct[];
 }
 
+interface CurrentUser {
+    _id: string;
+    username: string;
+    email: string;
+    publicId: string;
+    format: string;
+    role: string;
+}
+
+
 const ChapterPage = () => {
     const router = useRouter();
     const params = useParams();
@@ -77,16 +88,48 @@ const ChapterPage = () => {
     const [showTOC, setShowTOC] = useState<boolean>(false);
     const [showSetting, setShowSetting] = useState(false);
     const { fontSize, fontFamily, lineSpacing, nightMode } = useSettingChapterStore();
+    const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
+    const [initComplete, setInitComplete] = useState(false);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchCurrentUser = async () => {
+            try {
+                const response = await getUserFromCookies();
+                if (isMounted) {
+                    setCurrentUser(response?.user || null);
+                }
+            } catch (error) {
+                if (isMounted) {
+                    setCurrentUser(null);
+                }
+            } finally {
+                if (isMounted) {
+                    setInitComplete(true); // Đánh dấu hoàn thành sau khi set user
+                }
+            }
+        };
+
+        fetchCurrentUser();
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    console.log(currentUser?._id);
 
     const { data, isLoading, error, refetch } = useQuery<ChapterData>({
-        queryKey: ['chapter', chapterId],
-        queryFn: () => getChapterById(chapterId),
-        enabled: !!chapterId,
+        queryKey: ['chapter', chapterId, currentUser?._id || 'guest'],
+        queryFn: () => {
+            const userId = currentUser?._id;
+            return getChapterById(chapterId, userId);
+        },
+        enabled: !!chapterId && !!initComplete,
         staleTime: 5 * 60 * 1000,
         retry: 2,
     });
 
-    // Prefetch chapters kế tiếp để tăng performance
     useEffect(() => {
         if (data?.navigation?.nextChapter) {
             queryClient.prefetchQuery({
@@ -142,7 +185,7 @@ const ChapterPage = () => {
     // Loading state
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-950">
+            <div className={`min-h-screen flex items-center justify-center ${nightMode === 'dark' ? 'bg-gray-950' : 'bg-amber-50'}`}>
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                     <p className="text-gray-600">Đang tải chương...</p>
