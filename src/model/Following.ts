@@ -1,14 +1,20 @@
 
-import { Schema, model, models } from "mongoose";
+import { Document, Schema, model, models } from "mongoose";
 
-const FollowSchema = new Schema(
+interface IFollow extends Document {
+    followerUserId: Schema.Types.ObjectId,
+    followingUserId: Schema.Types.ObjectId,
+    createdAt: Date;
+};
+
+const FollowSchema = new Schema<IFollow>(
     {
-        followerId: { type: Schema.Types.ObjectId, ref: "Profile", required: true }, 
-        followingId: { type: Schema.Types.ObjectId, ref: "Profile", required: true }, 
+        followerUserId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        followingUserId: { type: Schema.Types.ObjectId, ref: "User", required: true },
         createdAt: { type: Date, default: Date.now },
     }
 );
 
-FollowSchema.index({ followerId: 1, followingId: 1 }, { unique: true }); 
+FollowSchema.index({ followerUserId: 1, followingUserId: 1 }, { unique: true });
 
-export default models.Follow || model("Follow", FollowSchema);
+export const Follow = models.Follow || model<IFollow>("Follow", FollowSchema, "Follow");

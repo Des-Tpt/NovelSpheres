@@ -8,7 +8,7 @@ export interface IUser extends Document {
   password: string;
   role: 'reader' | 'admin' | 'writer';
   profile?: {
-    bio?: string;
+    profileId?: string;
     avatar?: {
       publicId: string;
       format: string;
@@ -24,7 +24,7 @@ const UserSchema = new Schema<IUser>({
   password: { type: String, required: true },
   role: { type: String, enum: ['reader', 'writer', 'admin'], default: 'reader' },
   profile: {
-    profile: { type: String, require: false, ref: 'Profile' },
+    profileId: { type: Schema.Types.ObjectId, require: false, ref: 'Profile' },
     avatar: {
       publicId: { type: String },
       format: { type: String },
@@ -59,11 +59,8 @@ UserSchema.post('save', async function (doc) {
         totalViews: 0,
         totalNovels: 0,
       },
-      favorites: [],
-      novelsPosted: []
     });
   }
 });
-
 
 export const User = models.User || model<IUser>('User', UserSchema, 'User');

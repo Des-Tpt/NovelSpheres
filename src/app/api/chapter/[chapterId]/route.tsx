@@ -27,13 +27,42 @@ export async function GET(request: NextRequest, context: { params: Promise<{ cha
             return NextResponse.json({ error: 'Chương không tồn tại!' }, { status: 404 });
         }
 
+        let lastTrackedChapter = null;
+
         if (chapter && userId && userId !== '') {
-            await History.findOneAndUpdate(
-                { userId, novelId: chapter.novelId._id, chapterId: chapter._id },
-                { $set: { lastReadAt: new Date() } },
-                { upsert: true }
-            );
+            const currentChapterId = chapter._id.toString();
+
+            // Chỉ xử lý khi thay đổi chapter
+            if (lastTrackedChapter !== currentChapterId) {
+                lastTrackedChapter = currentChapterId;
+
+                // Cập nhật ngay khi vào chapter mới
+                await History.findOneAndUpdate(
+                    { userId, novelId: chapter.novelId._id, chapterId: chapter._id },
+                    { $set: { lastReadAt: new Date() } },
+                    { upsert: true }
+                );
+            } else {
+                // Debounce cho cùng 1 chapter
+                const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
+
+                const existingHistory = await History.findOne({
+                    userId,
+                    novelId: chapter.novelId._id,
+                    chapterId: chapter._id,
+                    lastReadAt: { $gte: threeMinutesAgo }
+                });
+
+                if (!existingHistory) {
+                    await History.findOneAndUpdate(
+                        { userId, novelId: chapter.novelId._id, chapterId: chapter._id },
+                        { $set: { lastReadAt: new Date() } },
+                        { upsert: true }
+                    );
+                }
+            }
         }
+
 
         const novel = chapter.novelId;
         const act = chapter.actId;
