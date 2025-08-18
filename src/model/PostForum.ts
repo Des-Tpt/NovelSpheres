@@ -21,13 +21,13 @@ const ForumPostSchema = new Schema<IForumPost>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   novelId: { type: Schema.Types.ObjectId, ref: 'Novel', required: false },
   title: { type: String, required: true },
-  category: {type: String, enum: ['general', 'reviews', 'recommendations', 'ask-author', 'writing', 'support'], default: 'general', required: true },
+  category: { type: String, enum: ['general', 'reviews', 'recommendations', 'ask-author', 'writing', 'support'], default: 'general', required: true },
   content: { type: String, required: true },
   isLocked: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
-  views: {type: Schema.Types.Number, default: 0},
-  lastCommentAt: {type: Schema.Types.Date, default: function() { return this.createdAt || new Date() }},
+  views: { type: Schema.Types.Number, default: 0 },
+  lastCommentAt: { type: Schema.Types.Date, default: function () { return this.createdAt || new Date() } },
 }, {
   timestamps: true
 });
@@ -50,4 +50,4 @@ ForumPostSchema.pre('findOneAndDelete', async function (next) {
   next();
 });
 
-export const ForumPost = models.ForumPost || model<IForumPost>('ForumPost', ForumPostSchema,'ForumPost');
+export const ForumPost = models.ForumPost || model<IForumPost>('ForumPost', ForumPostSchema, 'ForumPost');
