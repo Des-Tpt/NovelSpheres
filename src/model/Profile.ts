@@ -19,6 +19,10 @@ export interface IProfile extends Document {
     birthday: Date,
     occupation: string,
     favorites: string,
+    coverImage?: {
+        publicId: string,
+        format: string,
+    }
 }
 
 const ProfileSchema = new Schema<IProfile>(
@@ -40,17 +44,14 @@ const ProfileSchema = new Schema<IProfile>(
         birthday: { type: Date },
         occupation: String,
         favorites: String,
+        coverImage: {
+            publicId: { type: String, require: false },
+            format: { type: String, require: false },
+        }
     },
     { timestamps: true }
 );
 
 ProfileSchema.index({ userId: 1 });
-
-ProfileSchema.post("save", async function (doc) {
-    if (!doc) return doc;
-    if (doc.bio) {
-        await User.findByIdAndUpdate(doc.userId, { bio: doc.bio });
-    }
-});
 
 export const Profile = models.Profile || model<IProfile>("Profile", ProfileSchema, "Profile");

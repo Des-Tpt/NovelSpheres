@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState } from 'react';
+import React, { ReactElement, useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     User, Book, Heart, Eye, Users, Calendar, Globe, MessageCircle,
@@ -8,17 +8,20 @@ import {
     CakeIcon,
     PenTool,
     Shield,
-    BookOpen
+    BookOpen,
+    Trophy
 } from 'lucide-react';
 import { getProfile } from '@/action/profileAction';
 import { getUserFromCookies } from '@/action/userAction';
 import getImage from '@/action/imageActions';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import stripHtml from '@/utils/stripHtml';
 import handleStatus from '@/utils/handleStatus';
 import getStatusColor from '@/utils/getStatusColor';
 import { useRouter } from 'next/navigation';
+import stripHtml from '@/utils/stripHtml';
+import UpdateProfilePopup from './UpdateProfile';
+import CustomImage from '../ui/CustomImage';
 
 const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 const defaultFallback = `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
@@ -56,6 +59,10 @@ interface IProfile {
     birthday: string;
     occupation: string;
     favorites: string;
+    coverImage?: {
+        publicId: string;
+        format: string;
+    };
     createdAt: string;
     updatedAt: string;
 }
@@ -86,13 +93,6 @@ interface ILike {
     createdAt: string;
 }
 
-interface IHistory {
-    _id: string;
-    userId: string;
-    novelId: INovel;
-    createdAt: string;
-}
-
 interface ProfileData {
     user: IUser;
     profile: IProfile;
@@ -117,13 +117,12 @@ interface PageProps {
 const ProfilePage: React.FC<PageProps> = ({ userId }) => {
     const router = useRouter();
     const [activeSection, setActiveSection] = useState<string>('overview');
-    const [isEditingBio, setIsEditingBio] = useState(false);
-    const [editedBio, setEditedBio] = useState('');
     const [isFollowing, setIsFollowing] = useState(false);
     const queryClient = useQueryClient();
     const [avatar, setAvatar] = useState<string>('');
     const [coverImage, setCoverImage] = useState<string>('');
     const [novelImageUrls, setNovelImageUrls] = useState<Record<string, string>>({});
+    const [isOpenEditProfile, setIsOpenEditProfile] = useState(false);
 
     const { data: profileData, isLoading: profileLoading, error: profileError, refetch: refetchProfile } = useQuery<ProfileData>({
         queryKey: ['profile', userId],
@@ -147,31 +146,6 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
         },
         staleTime: 10 * 60 * 1000,
         gcTime: 15 * 60 * 1000,
-    });
-
-    // Update bio mutation
-    const updateBioMutation = useMutation({
-        mutationFn: async (newBio: string) => {
-            // Replace with actual API call
-            // return await updateProfile(userId, { bio: newBio });
-            return Promise.resolve({ bio: newBio });
-        },
-        onSuccess: () => {
-            queryClient.setQueryData(['profile', userId], (oldData: ProfileData | undefined) => {
-                if (!oldData) return oldData;
-                return {
-                    ...oldData,
-                    profile: {
-                        ...oldData.profile,
-                        bio: editedBio
-                    }
-                };
-            });
-            setIsEditingBio(false);
-        },
-        onError: (error) => {
-            console.error('Failed to update bio:', error);
-        }
     });
 
     // Follow/Unfollow mutation
@@ -200,13 +174,6 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
         }
     });
 
-    // Initialize bio when profile loads
-    useEffect(() => {
-        if (profileData?.profile.bio && !isEditingBio) {
-            setEditedBio(profileData.profile.bio);
-        }
-    }, [profileData?.profile.bio, isEditingBio]);
-
     // Load avatar
     useEffect(() => {
         const avatarData = profileData?.user.profile?.avatar;
@@ -214,10 +181,17 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
             getImage(avatarData.publicId, avatarData.format)
                 .then(setAvatar)
                 .catch(() => setAvatar(defaultFallback));
-        } else {
-            setAvatar(defaultFallback);
         }
-    }, [profileData]);
+    }, [profileData?.user.profile?.avatar]);
+
+    useEffect(() => {
+        const coverImage = profileData?.profile.coverImage;
+        if (coverImage?.publicId && coverImage?.format) {
+            getImage(coverImage.publicId, coverImage.format)
+                .then(setCoverImage)
+                .catch(() => setCoverImage(defaultFallback));
+        }
+    }, [profileData?.profile.coverImage])
 
     // Load novel cover images
     useEffect(() => {
@@ -225,7 +199,6 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
 
         const allNovels = [
             ...profileData.novels,
-            ...profileData.history,
             ...profileData.likes.map(like => like.novelId)
         ];
 
@@ -271,92 +244,105 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
         return date.toLocaleDateString('vi-VN');
     };
 
-    const handleBioSave = () => {
-        updateBioMutation.mutate(editedBio.trim());
-    };
-
-    const handleBioCancel = () => {
-        setIsEditingBio(false);
-        if (profileData?.profile.bio) {
-            setEditedBio(profileData.profile.bio);
-        }
-    };
-
     const handleFollowToggle = () => {
         const action = isFollowing ? 'unfollow' : 'follow';
         followMutation.mutate(action);
     };
 
+    const handleOpenEditProfile = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setIsOpenEditProfile(true);
+    }
+
     const isOwnProfile = currentUser?._id === profileData?.user._id;
 
     // Enhanced Novel Card Component
-    const NovelCard: React.FC<{ novel: INovel; index: number; showAuthor?: boolean }> = ({
-        novel,
-        index,
-        showAuthor = false
-    }) => (
+    const NovelCard: React.FC<{ novel: INovel; index: number; showAuthor?: boolean }> = ({ novel, index, showAuthor = false }) => (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: index * 0.1 }}
+            exit={{ opacity: 0, y: 30 }}
+            transition={{ duration: index * 0.1, ease: 'easeInOut' }}
+            key={`${novel._id}-${index}`}
             onClick={() => router.push(`/novels/${novel._id}`)}
-            className="group bg-gray-800/50 hover:bg-gray-700/60 backdrop-blur-sm rounded-xl transition-all duration-300 cursor-pointer p-4 border border-gray-700/30 hover:border-gray-600/50 hover:shadow-xl hover:shadow-blue-500/10"
+            className="bg-gray-950 backdrop-blur-sm rounded-2xl border border-gray-800/50 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer group flex gap-4 p-4 sm:gap-6 sm:p-6"
         >
-            <div className="flex gap-4">
-                {/* Cover Image */}
-                <div className="relative w-16 h-24 flex-shrink-0 rounded-lg overflow-hidden">
-                    <Image
-                        src={novel.coverImage?.publicId && novelImageUrls[novel.coverImage.publicId]
-                            ? novelImageUrls[novel.coverImage.publicId]
-                            : defaultFallback
-                        }
-                        fill
-                        alt={novel.title || 'Novel cover'}
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
+            {/* Cover Image */}
+            <div className="w-30 h-40 sm:w-32 sm:h-55 flex-shrink-0">
+                <CustomImage
+                    src={novel.coverImage?.publicId && novelImageUrls[novel.coverImage.publicId]
+                        ? novelImageUrls[novel.coverImage.publicId]
+                        : defaultFallback
+                    }
+                    height={300}
+                    width={200}
+                    alt={novel.title || 'Novel cover'}
+                />
+            </div>
 
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                    {/* Status Badge */}
-                    <div className="mb-2">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(novel.status)}`}>
+            {/* Content */}
+            <div className="flex-1 flex flex-col justify-between min-h-0">
+                {/* Header */}
+                <div className="space-y-2 mb-3">
+                    <div className="flex items-center justify-between gap-2">
+                        <h3 className="font-bold text-white group-hover:text-blue-400 transition-colors leading-tight text-lg line-clamp-2">
+                            {novel.title}
+                        </h3>
+                        <span className={`px-2 py-1 rounded-lg text-sm font-semibold whitespace-nowrap flex-shrink-0 ${getStatusColor(novel.status)}`}>
                             {handleStatus(novel.status)}
                         </span>
                     </div>
 
-                    {/* Title */}
-                    <h3 className="text-white font-semibold text-sm mb-2 line-clamp-2 group-hover:text-blue-400 transition-colors">
-                        {novel.title}
-                    </h3>
-
-                    {/* Author */}
-                    {showAuthor && novel.authorId && (
-                        <p className="text-gray-400 text-xs mb-2">
-                            by {novel.authorId.username}
-                        </p>
-                    )}
-
-                    {/* Stats */}
-                    <div className="flex items-center gap-4 text-xs text-gray-400">
-                        <div className="flex items-center gap-1">
-                            <Eye className="w-3 h-3" />
-                            <span>{formatNumber(novel.views)}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <Heart className="w-3 h-3" />
-                            <span>{formatNumber(novel.likes)}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                            <span>{novel.rating.toFixed(1)}</span>
-                        </div>
+                    <div className="flex items-center gap-2 text-[1rem]">
+                        <span className="text-gray-500">của</span>
+                        <span className="text-blue-400 font-medium truncate">
+                            {novel.authorId?.username || 'Ẩn danh'}
+                        </span>
                     </div>
+                </div>
 
-                    {/* Last Update */}
-                    <div className="mt-2 text-xs text-gray-500">
-                        Cập nhật: {formatDate(novel.updatedAt)}
+                {/* Description */}
+                <p className="text-xs sm:text-sm text-gray-400 line-clamp-2 sm:line-clamp-3 leading-relaxed mb-3">
+                    {stripHtml(novel.description)}
+                </p>
+
+                {/* Genres - Max 2 genres */}
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                    {novel.genresId?.slice(0, 2).map((genre) => (
+                        <span
+                            key={genre._id}
+                            className="px-2.5 py-1 bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-300 border border-purple-500/30 rounded-full text-xs font-medium backdrop-blur-sm"
+                        >
+                            {genre.name}
+                        </span>
+                    ))}
+                    {novel.genresId && novel.genresId.length > 2 && (
+                        <span className="px-2.5 py-1 bg-gray-700/50 text-gray-400 rounded-full text-xs backdrop-blur-sm">
+                            +{novel.genresId.length - 2}
+                        </span>
+                    )}
+                </div>
+
+                {/* Stats - Always at bottom */}
+                <div className="mt-auto pt-3 border-t border-gray-800/50">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 text-xs">
+                            <div className="flex items-center gap-1 text-emerald-400">
+                                <Eye size={12} />
+                                <span className="font-medium">{formatNumber(novel.views || 0)}</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-rose-400">
+                                <Heart size={12} />
+                                <span className="font-medium">{formatNumber(novel.likes || 0)}</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-yellow-400">
+                                <Star size={12} />
+                                <span className="font-medium">{Number(novel.rating || 0).toFixed(1)}</span>
+                            </div>
+                        </div>
+                        <div className="text-xs text-gray-500 font-medium">
+                            {formatDate(novel.updatedAt)}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -368,11 +354,10 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
         { id: 'overview', label: 'Tổng quan', icon: User },
         { id: 'novels', label: 'Truyện đã đăng', icon: Book, count: profileData?.novels.length },
         { id: 'likes', label: 'Yêu thích', icon: Heart, count: profileData?.likes.length },
-        { id: 'history', label: 'Lịch sử', icon: History, count: profileData?.history.length }
     ];
 
-    const getRoleStyle = () => {
-        switch (user.role) {
+    const getRoleStyle = (role: string) => {
+        switch (role) {
             case "writer":
                 return "bg-green-900/40 border-green-500 text-green-300";
             case "admin":
@@ -382,8 +367,8 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
         }
     };
 
-    const getRoleIcon = () => {
-        switch (user.role) {
+    const getRoleIcon = (role: string) => {
+        switch (role) {
             case "writer":
                 return <PenTool className="w-4 h-4" />;
             case "admin":
@@ -392,7 +377,6 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                 return <BookOpen className="w-4 h-4" />;
         }
     };
-
 
     // Loading state
     if (profileLoading || currentUserLoading) {
@@ -453,35 +437,23 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
         );
     }
 
-    const { user, profile, novels, likes, history } = profileData;
+    const { user, profile, novels, likes } = profileData;
 
     return (
         <div className="min-h-screen bg-gray-950">
             {/* Cover Section */}
             <div className="border flex flex-col mt-4 mx-4 border-gray-800 rounded-sm">
                 {/* Cover Photo */}
-                <div className="relative group h-60 md:h-96 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 overflow-hidden">
-                    <img
-                        src={"https://images6.alphacoders.com/130/thumb-1920-1308597.jpg"}
-                        alt="Cover"
-                        className="object-cover"
+                <div className="relative group h-50 md:h-96 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 overflow-hidden">
+                    <CustomImage
+                        src={coverImage}
+                        alt="Cover Image"
+                        width={2000}
+                        height={1000}
+                        className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                     />
-
-                    {isOwnProfile && (
-                        <div className="absolute right-5 bottom-5 z-20">
-                            <button
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg transition-all duration-200 opacity-100 md:opacity-0 md:group-hover:opacity-100 "
-                            >
-                                <Camera className="w-5 h-5 inline-block mr-2" />
-                                <span className="hidden md:inline">Thay đổi ảnh bìa</span>
-                                <span className="md:hidden">Thay</span>
-                            </button>
-                        </div>
-                    )}
-
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                 </div>
-
 
                 {/* Profile Header */}
                 <div className="max-w-full md:px-5">
@@ -490,7 +462,7 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                         <div className='flex flex-col md:flex-row md:mb-2.5 gap-3 md:gap-6 items-center'>
                             <div className="relative -mt-16">
                                 <div className={`w-35 h-35 rounded-full overflow-hidden border-2 border-gray-700 shadow-2xl bg-gray-800 ${isOwnProfile ? 'ml-1' : 'ml-0'}`}>
-                                    <Image
+                                    <CustomImage
                                         src={avatar}
                                         alt="Avatar"
                                         width={160}
@@ -508,8 +480,8 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                                 <div>
                                     <h1 className="text-4xl font-bold text-white">{user.username}</h1>
                                 </div>
-                                <div className={`flex items-center gap-2 px-3 py-0.5 mt-1 border rounded-full ${getRoleStyle()}`} >
-                                    {getRoleIcon()}
+                                <div className={`flex items-center gap-2 px-3 py-0.5 mt-1 border rounded-full ${getRoleStyle(user.role)}`} >
+                                    {getRoleIcon(user.role)}
                                     <span className="font-medium">
                                         {user.role === "writer" ? "Tác giả" : user.role === "admin" ? "Quản trị" : "Độc giả"}
                                     </span>
@@ -520,7 +492,9 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                         <div className="flex flex-col md:flex-row mb-6 md:mb-0 gap-3 items-center justify-center w-full md:w-auto">
                             {isOwnProfile ? (
                                 <>
-                                    <button className="w-50 px-4 py-2 md:px-6 md:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-blue-500/25">
+                                    <button className="w-50 px-4 py-2 md:px-6 md:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-blue-500/25"
+                                        onClick={(e) => handleOpenEditProfile(e)}
+                                    >
                                         <Edit3 className="w-5 h-5" />
                                         <span>Chỉnh sửa profile</span>
                                     </button>
@@ -531,8 +505,8 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                                         onClick={handleFollowToggle}
                                         disabled={followMutation.isPending}
                                         className={`w-50 px-4 py-2 md:px-6 md:py-3 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg disabled:opacity-50 ${isFollowing
-                                                ? "bg-green-400 hover:bg-green-600 text-white hover:shadow-green-400/25"
-                                                : "bg-green-500 hover:bg-green-700 text-white hover:shadow-green-500/25"
+                                            ? "bg-green-400 hover:bg-green-600 text-white hover:shadow-green-400/25"
+                                            : "bg-green-500 hover:bg-green-700 text-white hover:shadow-green-500/25"
                                             }`}
                                     >
                                         {followMutation.isPending ? (
@@ -552,49 +526,142 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                                 </>
                             )}
                         </div>
+
+                    </div>
+                </div>
+            </div>
+
+            {/* Stats Dashboard */}
+            <div className="max-w-full mx-4 mt-4 mb-8 border border-gray-800 rounded-sm">
+                <div className="backdrop-blur-sm rounded-xl p-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {/* Truyện đã đăng */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                            className="relative group"
+                        >
+                            <div className="bg-gradient-to-br from-blue-500/20 to-blue-700/20 backdrop-blur-sm rounded-2xl border border-blue-400/30 p-6 hover:border-blue-400/50 transition-all duration-300">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg">
+                                        <Book className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-2xl font-bold text-white">{formatNumber(profile.stats.totalNovels)}</div>
+                                        <div className="text-xs text-blue-300">Truyện</div>
+                                    </div>
+                                </div>
+                                <div className="text-sm text-blue-200/80">Đã đăng</div>
+                                {/* Progress bar effect */}
+                                <div className="mt-3 h-1 bg-blue-900/30 rounded-full overflow-hidden">
+                                    <motion.div
+                                        className="h-full bg-gradient-to-r from-blue-400 to-blue-600"
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${Math.min(profile.stats.totalNovels * 10, 100)}%` }}
+                                        transition={{ delay: 0.5, duration: 1 }}
+                                    />
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        {/* Lượt xem */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="relative group"
+                        >
+                            <div className="bg-gradient-to-br from-purple-500/20 to-purple-700/20 backdrop-blur-sm rounded-2xl border border-purple-400/30 p-6 hover:border-purple-400/50 transition-all duration-300">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg">
+                                        <Eye className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-2xl font-bold text-white">{formatNumber(profile.stats.totalViews)}</div>
+                                        <div className="text-xs text-purple-300">Views</div>
+                                    </div>
+                                </div>
+                                <div className="text-sm text-purple-200/80">Lượt xem</div>
+                                <div className="mt-3 h-1 bg-purple-900/30 rounded-full overflow-hidden">
+                                    <motion.div
+                                        className="h-full bg-gradient-to-r from-purple-400 to-purple-600"
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${Math.min(profile.stats.totalViews / 1000, 100)}%` }}
+                                        transition={{ delay: 0.7, duration: 1 }}
+                                    />
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        {/* Người theo dõi */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="relative group"
+                        >
+                            <div className="bg-gradient-to-br from-green-500/20 to-green-700/20 backdrop-blur-sm rounded-2xl border border-green-400/30 p-6 hover:border-green-400/50 transition-all duration-300">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg">
+                                        <Users className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-2xl font-bold text-white">{formatNumber(profile.stats.followers)}</div>
+                                        <div className="text-xs text-green-300">Followers</div>
+                                    </div>
+                                </div>
+                                <div className="text-sm text-green-200/80">Theo dõi</div>
+                                <div className="mt-3 h-1 bg-green-900/30 rounded-full overflow-hidden">
+                                    <motion.div
+                                        className="h-full bg-gradient-to-r from-green-400 to-green-600"
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${Math.min(profile.stats.followers / 10, 100)}%` }}
+                                        transition={{ delay: 0.9, duration: 1 }}
+                                    />
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        {/* Đang theo dõi */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4 }}
+                            className="relative group"
+                        >
+                            <div className="bg-gradient-to-br from-pink-500/20 to-pink-700/20 backdrop-blur-sm rounded-2xl border border-pink-400/30 p-6 hover:border-pink-400/50 transition-all duration-300">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="p-3 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl shadow-lg">
+                                        <Heart className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-2xl font-bold text-white">{formatNumber(profile.stats.following)}</div>
+                                        <div className="text-xs text-pink-300">Following</div>
+                                    </div>
+                                </div>
+                                <div className="text-sm text-pink-200/80">Đang theo dõi</div>
+                                <div className="mt-3 h-1 bg-pink-900/30 rounded-full overflow-hidden">
+                                    <motion.div
+                                        className="h-full bg-gradient-to-r from-pink-400 to-pink-600"
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${Math.min(profile.stats.following / 5, 100)}%` }}
+                                        transition={{ delay: 1.1, duration: 1 }}
+                                    />
+                                </div>
+                            </div>
+                        </motion.div>
                     </div>
                 </div>
             </div>
 
             {/* Main Content */}
-            <div className="max-w-full mx-auto px-4 py-8">
-                {/* Stats Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    {[
-                        { label: 'Truyện', value: formatNumber(profile.stats.totalNovels), icon: Book, color: 'blue' },
-                        { label: 'Lượt xem', value: formatNumber(profile.stats.totalViews), icon: TrendingUp, color: 'green' },
-                        { label: 'Theo dõi', value: formatNumber(profile.stats.followers), icon: Users, color: 'purple' },
-                        { label: 'Đang theo dõi', value: formatNumber(profile.stats.following), icon: Heart, color: 'pink' }
-                    ].map((stat, index) => {
-                        const Icon = stat.icon;
-                        const colorClasses = {
-                            blue: 'from-blue-500/20 to-blue-600/20 border-blue-500/30 text-blue-400',
-                            green: 'from-green-500/20 to-green-600/20 border-green-500/30 text-green-400',
-                            purple: 'from-purple-500/20 to-purple-600/20 border-purple-500/30 text-purple-400',
-                            pink: 'from-pink-500/20 to-pink-600/20 border-pink-500/30 text-pink-400'
-                        };
-
-                        return (
-                            <motion.div
-                                key={stat.label}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                                className={`bg-gradient-to-br ${colorClasses[stat.color as keyof typeof colorClasses]} backdrop-blur-sm rounded-xl border p-6 text-center hover:scale-105 transition-transform duration-300`}
-                            >
-                                <Icon className="w-8 h-8 mx-auto mb-3" />
-                                <div className="text-2xl font-bold text-white mb-1">{stat.value}</div>
-                                <div className="text-sm text-gray-300">{stat.label}</div>
-                            </motion.div>
-                        );
-                    })}
-                </div>
-
+            <div className="max-w-full mx-auto px-4">
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Sidebar */}
                     <div className="lg:w-80 space-y-6">
                         {/* Navigation */}
-                        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 p-6">
+                        <div className="bg-gray-950 backdrop-blur-sm rounded-sm border border-gray-700/50 p-6">
                             <h3 className="text-white font-semibold mb-4">Điều hướng</h3>
                             <nav className="space-y-2">
                                 {sections.map(section => {
@@ -624,17 +691,29 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                         </div>
 
                         {/* Profile Info */}
-                        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 p-6">
-                            <h3 className="text-white font-semibold mb-4">Thông tin</h3>
+                        <div className="bg-gray-950 backdrop-blur-sm rounded-sm border border-gray-700/50 p-6">
+                            <h3 className="text-white font-semibold mb-4">Thông tin cá nhân</h3>
                             <div className="space-y-3 text-sm">
                                 <div className="flex items-center gap-3">
                                     <Calendar className="w-4 h-4 text-gray-400" />
                                     <span className="text-gray-300">Tham gia {formatDate(user.createdAt)}</span>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <CakeIcon className="w-4 h-4 text-gray-400" />
-                                    <span className="text-gray-300">Sinh nhật {formatDate(profile.birthday)}</span>
-                                </div>
+
+                                {profile.birthday && (
+                                    <div className="flex items-center gap-3">
+                                        <CakeIcon className="w-4 h-4 text-gray-400" />
+                                        <span className="text-gray-300">Sinh nhật {formatDate(profile.birthday)}</span>
+                                    </div>
+                                )}
+
+                                {/* Occupation */}
+                                {profile.occupation && (
+                                    <div className="flex items-center gap-3">
+                                        <User className="w-4 h-4 text-gray-400" />
+                                        <span className="text-gray-300">{profile.occupation}</span>
+                                    </div>
+                                )}
+
                                 {profile.socials.website && (
                                     <div className="flex items-center gap-3">
                                         <Globe className="w-4 h-4 text-blue-400" />
@@ -671,7 +750,74 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                                     </div>
                                 )}
                             </div>
+
+                            {/* Favorites Section */}
+                            {profile.favorites && (
+                                <div className="border-t border-gray-700 mt-6 pt-6">
+                                    <h4 className="text-white font-medium mb-3 flex items-center gap-2">
+                                        <Heart className="w-4 h-4 text-pink-400" />
+                                        Sở thích
+                                    </h4>
+                                    <p className="text-gray-300 text-sm leading-relaxed">{profile.favorites}</p>
+                                </div>
+                            )}
                         </div>
+
+                        {/* Achievements Section */}
+                        {user.role === 'writer' && novels.length > 0 && (
+                            <div className="bg-gray-950 backdrop-blur-sm rounded-sm border flex flex-col items-center border-gray-700/50 p-6">
+                                <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                                    <Trophy className="w-5 h-5 text-amber-400" />
+                                    Thành tích nổi bậc
+                                </h3>
+                                <div className="space-y-3 w-full">
+                                    {/* Most Popular Novel */}
+                                    {(() => {
+                                        const mostPopular = novels.reduce((prev, current) =>
+                                            (prev.views > current.views) ? prev : current
+                                        );
+                                        return (
+                                            <div className="bg-gray-700/30 rounded-lg p-3 flex flex-col items-center">
+                                                <div className="flex items-center gap-2">
+                                                    <TrendingUp className="w-4 h-4 text-green-400" />
+                                                    <span className="text-sm font-medium text-green-400">Phổ biến nhất</span>
+                                                </div>
+                                                <p className="text-white text-lg font-medium truncate">{mostPopular.title}</p>
+                                                <p className="text-gray-400 text-xs">{formatNumber(mostPopular.views)} lượt xem</p>
+                                            </div>
+                                        );
+                                    })()}
+
+                                    {/* Highest Rated Novel */}
+                                    {(() => {
+                                        const highestRated = novels.reduce((prev, current) =>
+                                            (prev.rating > current.rating) ? prev : current
+                                        );
+                                        return (
+                                            <div className="bg-gray-700/30 rounded-lg p-3 flex flex-col items-center">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <Star className="w-4 h-4 text-yellow-400" />
+                                                    <span className="text-sm font-medium text-yellow-400">Đánh giá cao nhất</span>
+                                                </div>
+                                                <p className="text-white text-sm font-medium truncate">{highestRated.title}</p>
+                                                <p className="text-gray-400 text-xs">{highestRated.rating.toFixed(1)} ⭐</p>
+                                            </div>
+                                        );
+                                    })()}
+
+                                    {/* Total Engagement */}
+                                    <div className="bg-gray-700/30 rounded-lg p-3 flex flex-col items-center">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <Heart className="w-4 h-4 text-pink-400" />
+                                            <span className="text-sm font-medium text-pink-400">Tổng tương tác</span>
+                                        </div>
+                                        <p className="text-white text-sm font-medium">
+                                            {formatNumber(novels.reduce((sum, novel) => sum + novel.likes, 0))} lượt thích
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Main Content */}
@@ -685,12 +831,69 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                                     exit={{ opacity: 0, x: -20 }}
                                     className="space-y-8"
                                 >
-                                    {/* Recent Activity */}
-                                    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 p-6">
+                                    {/* Overview Timeline */}
+                                    <div className="bg-gray-950 backdrop-blur-sm rounded-sm border border-gray-600/50 py-2 px-2 md:p-6">
                                         <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
                                             <TrendingUp className="w-6 h-6 text-green-500" />
-                                            Hoạt động gần đây
+                                            Tổng quan hoạt động
                                         </h2>
+
+                                        {/* Activity Timeline */}
+                                        <div className="space-y-4 mb-8">
+                                            <div className="flex items-start gap-4 p-4 bg-gray-700/30 rounded-lg">
+                                                <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                                                <div>
+                                                    <p className="text-white text-sm">
+                                                        Tham gia từ <span className="font-semibold">{formatDate(user.createdAt)}</span>
+                                                    </p>
+                                                    <p className="text-gray-400 text-xs">
+                                                        {Math.floor((new Date().getTime() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24))} ngày hoạt động
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {novels.length > 0 && (
+                                                <div className="flex items-start gap-4 p-4 bg-gray-700/30 rounded-lg">
+                                                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                                                    <div>
+                                                        <p className="text-white text-sm">
+                                                            Đã đăng <span className="font-semibold">{novels.length}</span> truyện
+                                                        </p>
+                                                        <p className="text-gray-400 text-xs">
+                                                            Truyện mới nhất: {novels[0]?.title}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {profile.stats.totalViews > 0 && (
+                                                <div className="flex items-start gap-4 p-4 bg-gray-700/30 rounded-lg">
+                                                    <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
+                                                    <div>
+                                                        <p className="text-white text-sm">
+                                                            Đạt <span className="font-semibold">{formatNumber(profile.stats.totalViews)}</span> lượt xem
+                                                        </p>
+                                                        <p className="text-gray-400 text-xs">
+                                                            Trung bình {Math.floor(profile.stats.totalViews / Math.max(novels.length, 1))} view/truyện
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {profile.stats.followers > 0 && (
+                                                <div className="flex items-start gap-4 p-4 bg-gray-700/30 rounded-lg">
+                                                    <div className="w-2 h-2 bg-pink-500 rounded-full mt-2"></div>
+                                                    <div>
+                                                        <p className="text-white text-sm">
+                                                            Có <span className="font-semibold">{formatNumber(profile.stats.followers)}</span> người theo dõi
+                                                        </p>
+                                                        <p className="text-gray-400 text-xs">
+                                                            Đang theo dõi {formatNumber(profile.stats.following)} người
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
 
                                         <div className="space-y-6">
                                             {/* Latest Novels */}
@@ -701,7 +904,7 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                                                             <Book className="w-5 h-5 text-blue-500" />
                                                             Truyện mới nhất
                                                         </span>
-                                                        {novels.length > 3 && (
+                                                        {novels.length > 4 && (
                                                             <button
                                                                 onClick={() => setActiveSection('novels')}
                                                                 className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-1"
@@ -711,8 +914,8 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                                                             </button>
                                                         )}
                                                     </h3>
-                                                    <div className="space-y-3">
-                                                        {novels.slice(0, 3).map((novel, index) => (
+                                                    <div className="grid gap-4 md:grid-cols-2">
+                                                        {novels.slice(0, 4).map((novel, index) => (
                                                             <NovelCard key={novel._id} novel={novel} index={index} />
                                                         ))}
                                                     </div>
@@ -727,7 +930,7 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                                                             <Heart className="w-5 h-5 text-pink-500" />
                                                             Yêu thích gần đây
                                                         </span>
-                                                        {likes.length > 3 && (
+                                                        {likes.length > 4 && (
                                                             <button
                                                                 onClick={() => setActiveSection('likes')}
                                                                 className="text-pink-400 hover:text-pink-300 text-sm flex items-center gap-1"
@@ -737,8 +940,8 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                                                             </button>
                                                         )}
                                                     </h3>
-                                                    <div className="space-y-3">
-                                                        {likes.slice(0, 3).map((like, index) => (
+                                                    <div className="grid gap-4 md:grid-cols-2">
+                                                        {likes.slice(0, 4).map((like, index) => (
                                                             <NovelCard
                                                                 key={like._id}
                                                                 novel={like.novelId}
@@ -750,47 +953,6 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                                                 </div>
                                             )}
 
-                                            {/* Reading History */}
-                                            {history.length > 0 && (
-                                                <div>
-                                                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center justify-between">
-                                                        <span className="flex items-center gap-2">
-                                                            <History className="w-5 h-5 text-green-500" />
-                                                            Đọc gần đây
-                                                        </span>
-                                                        {history.length > 3 && (
-                                                            <button
-                                                                onClick={() => setActiveSection('history')}
-                                                                className="text-green-400 hover:text-green-300 text-sm flex items-center gap-1"
-                                                            >
-                                                                Xem tất cả
-                                                                <ChevronRight className="w-4 h-4" />
-                                                            </button>
-                                                        )}
-                                                    </h3>
-                                                    <div className="space-y-3">
-                                                        {history.slice(0, 3).map((novel, index) => (
-                                                            <NovelCard
-                                                                key={novel._id}
-                                                                novel={novel}
-                                                                index={index}
-                                                                showAuthor={true}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Empty State */}
-                                            {novels.length === 0 && likes.length === 0 && history.length === 0 && (
-                                                <div className="text-center py-12">
-                                                    <User className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                                                    <p className="text-gray-400 text-lg">Chưa có hoạt động nào</p>
-                                                    <p className="text-gray-500 text-sm mt-2">
-                                                        {isOwnProfile ? 'Bắt đầu đọc hoặc đăng truyện để xem hoạt động ở đây' : 'Người dùng này chưa có hoạt động nào'}
-                                                    </p>
-                                                </div>
-                                            )}
                                         </div>
                                     </div>
                                 </motion.div>
@@ -868,47 +1030,16 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                                     )}
                                 </motion.div>
                             )}
-
-                            {activeSection === 'history' && (
-                                <motion.div
-                                    key="history"
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
-                                    className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 p-6"
-                                >
-                                    <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                                        <History className="w-6 h-6 text-green-500" />
-                                        Lịch sử đọc
-                                        <span className="bg-green-600 text-white text-sm px-3 py-1 rounded-full">
-                                            {history.length}
-                                        </span>
-                                    </h2>
-
-                                    {history.length > 0 ? (
-                                        <div className="grid gap-4 md:grid-cols-2">
-                                            {history.map((novel, index) => (
-                                                <NovelCard
-                                                    key={novel._id}
-                                                    novel={novel}
-                                                    index={index}
-                                                    showAuthor={true}
-                                                />
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="text-center py-16">
-                                            <History className="w-20 h-20 text-gray-600 mx-auto mb-6" />
-                                            <h3 className="text-xl font-semibold text-gray-400 mb-2">Chưa có lịch sử đọc</h3>
-                                            <p className="text-gray-500">
-                                                {isOwnProfile ? 'Bắt đầu đọc truyện để xem lịch sử ở đây' : 'Lịch sử đọc của người dùng này không công khai'}
-                                            </p>
-                                        </div>
-                                    )}
-                                </motion.div>
-                            )}
                         </AnimatePresence>
                     </div>
+                </div>
+                <div>
+                    <UpdateProfilePopup
+                        isOpen={isOpenEditProfile}
+                        onClose={() => setIsOpenEditProfile(false)}
+                        userId={user._id}
+                        currentProfile={profile}
+                    />
                 </div>
             </div>
         </div >

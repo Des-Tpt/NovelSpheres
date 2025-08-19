@@ -12,6 +12,7 @@ import handleRole from '@/utils/handleRole';
 import { AnimatePresence, motion } from 'framer-motion';
 import NotificationComponent from '../notification/NotificationComponent';
 import { useRouter } from 'next/navigation';
+import { useUserStore } from '@/store/avatarUserStore';
 
 interface User {
     _id: string;
@@ -21,6 +22,11 @@ interface User {
     publicId: string;
     format: string;
 }
+
+
+const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
+const defaultFallback = `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
+
 
 const Header = () => {
     const [activeButton, setActiveButton] = useState<String | null>(null);
@@ -32,6 +38,9 @@ const Header = () => {
     const [isLoading, setIsLoading] = useState(true);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
+    const avatar = useUserStore((state) => state.avatar);
+
+    console.log('Current User:', avatar);
 
     const handleClick = (buttonId: string) => {
         setActiveButton(buttonId);
@@ -71,10 +80,6 @@ const Header = () => {
                 const response = await getUserFromCookies();
                 if (response?.user) {
                     setCurrentUser(response.user);
-                    console.log('header responsive: ', response)
-
-                    const imageUrl = await getImage(response.user.publicId, response.user.format);
-                    setUserImage(imageUrl);
                 }
             } catch (error) {
                 console.error('Error fetching user:', error);
@@ -84,6 +89,17 @@ const Header = () => {
         };
         fetchUser();
     }, []);
+
+    useEffect(() => {
+        if (avatar)
+            getImage(avatar.publicId, avatar.format)
+                .then((imageUrl) => {
+                    setUserImage(imageUrl);
+                })
+                .catch((error) => {
+                    setUserImage(defaultFallback);
+                });
+    }, [avatar]);
 
     const handleLogout = async () => {
         try {

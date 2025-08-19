@@ -6,6 +6,7 @@ import { Comment } from "@/model/Comment";
 import { Genre } from "@/model/Genre";
 import { Novel } from "@/model/Novel";
 import { User } from "@/model/User";
+import { NovelService } from "@/service/novelService";
 import optimizeComment from "@/utils/handleOptimize";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -60,6 +61,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
         );
 
         await Novel.findByIdAndUpdate(novelId, { $inc: { views: 1 } });
+
+        await NovelService.updateAuthorTotalViews(novel.authorId._id.toString());
 
         return NextResponse.json({
             novel: novelResponse,

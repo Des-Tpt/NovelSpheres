@@ -1,5 +1,4 @@
 import mongoose, { Schema, Document, models, model } from 'mongoose';
-import { v4 as uuidv4 } from 'uuid';
 
 export interface INovel extends Document {
     _id: Schema.Types.ObjectId,
@@ -44,12 +43,11 @@ NovelSchema.index({ genresId: 1 });
 NovelSchema.index({ status: 1 });
 NovelSchema.index({ views: -1 });
 
-NovelSchema.pre('save', function (next) {
+NovelSchema.pre('save', async function () {
     this.updatedAt = new Date();
-    next();
 });
 
-NovelSchema.pre('findOneAndDelete', async function (next) {
+NovelSchema.pre('findOneAndDelete', async function () {
     const novelId = this.getQuery()._id;
 
     await Promise.all([
@@ -58,8 +56,6 @@ NovelSchema.pre('findOneAndDelete', async function (next) {
         mongoose.model('Comment').deleteMany({ sourceType: 'Novel', sourceId: novelId }),
         mongoose.model('Rating').deleteMany({ novelId }),
     ]);
-
-    next();
 });
 
 export const Novel = models.Novel || model<INovel>('Novel', NovelSchema, 'Novel');
