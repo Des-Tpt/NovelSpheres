@@ -12,7 +12,6 @@ import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/24/outline';
 import LoadingPostComponent from '../ui/LoadingPost';
 import { useSearchParams } from 'next/navigation';
 import { useForumPosts } from '@/action/postActions';
-import { MessageCircle, ThumbsUp, Send } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import stripHtml from '@/utils/stripHtml';
@@ -125,7 +124,7 @@ export default function ForumPage() {
     const handleRole = (role: String) => {
         switch (role) {
             case 'admin': return 'Quản trị viên';
-            case 'Writer': return 'Tác gia'
+            case 'writer': return 'Tác gia'
             case 'reader': return 'Độc giả'
         }
     }
@@ -154,7 +153,7 @@ export default function ForumPage() {
     };
 
     if (isLoading) return <LoadingPostComponent />;
-    if (isError) return <p>Có lỗi xảy ra.</p>;
+    if (isError) return <p>Có lỗi xảy ra!</p>;
 
     return (
         <div className="forum-page animate-fadeIn">

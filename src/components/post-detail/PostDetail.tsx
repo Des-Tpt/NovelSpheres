@@ -14,6 +14,7 @@ import getImage from '@/action/imageActions';
 import CommentItem from '../ui/CommentItem';
 import findParentComment from '@/utils/findParentComment';
 import { notifyError, notifySuccess } from '@/utils/notify';
+import LoadingComponent from '../ui/Loading';
 
 
 interface Post {
@@ -316,7 +317,7 @@ const PostDetail = () => {
     fetchImage();
   }, [data?.post?.userId.profile?.avatar?.publicId, data?.post?.userId.profile?.avatar?.format]);
 
-  if (isLoading) return (<div><LoadingPostComponent /></div>);
+  if (isLoading) return <LoadingComponent />;
   if (error) return <div className="text-center py-10 text-red-500">Error: {error.message.toString()}</div>;
   if (!data?.post) return <div className="text-center py-10">Post not found</div>;
 

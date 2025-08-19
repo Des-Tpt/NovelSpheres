@@ -47,8 +47,6 @@ const NotificationComponent: React.FC<NotificationProps> = ({ userId }) => {
         },
     });
 
-    console.log(data)
-
     // Mark as read mutation
     const markAsReadMutation = useMutation({
         mutationFn: markRead,

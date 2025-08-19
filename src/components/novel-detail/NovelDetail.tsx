@@ -1099,7 +1099,7 @@ const NovelDetail = () => {
                                         </div>
                                     ))
                                 ) : (
-                                    <div className='bg-gray-800 rounded-xl border border-gray-600 p-8 text-center'>
+                                    <div className='bg-gray-950 p-8 text-center'>
                                         <div className='max-w-md mx-auto'>
                                             <div className='bg-gray-700 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4'>
                                                 <Book className='w-10 h-10 text-white' />
@@ -1108,15 +1108,6 @@ const NovelDetail = () => {
                                             <p className='text-gray-400 text-base mb-6'>
                                                 Truyện này chưa có chương nào được đăng tải. {isAuthor ? 'Hãy tạo Act đầu tiên để bắt đầu!' : 'Hãy quay lại sau nhé!'}
                                             </p>
-                                            {isAuthor && (
-                                                <button
-                                                    onClick={handleAddAct}
-                                                    className='inline-flex items-center gap-2 px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl'
-                                                >
-                                                    <FileText className='w-4 h-4' />
-                                                    Tạo Act đầu tiên
-                                                </button>
-                                            )}
                                         </div>
                                     </div>
                                 )}

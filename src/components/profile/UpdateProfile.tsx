@@ -329,7 +329,7 @@ const UpdateProfilePopup: React.FC<UpdateProfilePopupProps> = ({
                                     </label>
                                     <div className="space-y-3">
                                         {coverPreview && (
-                                            <div className="w-full h-32 rounded overflow-hidden border-2 border-blue-500">
+                                            <div className="w-full h-42 rounded overflow-hidden border-2 border-blue-500">
                                                 <img
                                                     src={coverPreview}
                                                     alt="Cover preview"

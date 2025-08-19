@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { X, Settings, Moon, Sun } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// --- Zustand store interfaces (keep existing) ---
 interface Store {
     fontSize: number;
     fontFamily: string;
@@ -15,7 +14,6 @@ interface SettingChapterStore extends Store {
     setSettingChapterStore: (payload: Partial<Store>) => void;
 }
 
-// --- Popup component ---
 export type ChapterSettingPopupProps = {
     isOpen: boolean;
     onClose: () => void;

@@ -106,7 +106,7 @@ const ChapterPage = () => {
                 }
             } finally {
                 if (isMounted) {
-                    setInitComplete(true); // Đánh dấu hoàn thành sau khi set user
+                    setInitComplete(true);
                 }
             }
         };
@@ -181,7 +181,6 @@ const ChapterPage = () => {
             .replace(/line-height\s*:\s*[^;"]+;?/gi, '');        // Xóa line height
     }
 
-    console.log("Font size from store:", fontSize);
     // Loading state
     if (isLoading) {
         return (
@@ -232,6 +231,7 @@ const ChapterPage = () => {
                 }`}
             onKeyDown={handleKeyDown}
         >
+            <title>{data.chapter.title}</title>
             {/* Header */}
             <header className={`sticky top-0 z-40 border-b transition-colors ${nightMode === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'
                 }`}>

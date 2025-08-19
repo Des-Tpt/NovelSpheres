@@ -4,12 +4,13 @@ import ButtonClick from "../ui/ButtonClick";
 import ForumCard from "../ui/ForumCard";
 import { getHeaderForum } from "@/action/postActions";
 import { Schema } from "mongoose";
-import { PostType } from "@/model/PostForum";
 import { useQuery } from "@tanstack/react-query";
 import Posts from "./Posts";
 import { useState } from "react";
 import NewPostPopup from "./NewPost";
 import { AnimatePresence } from "framer-motion";
+
+export type PostType = 'general' | 'reviews' | 'recommendations' | 'ask-author' | 'writing' | 'support';
 
 interface ForumPost {
     _id: Schema.Types.ObjectId;

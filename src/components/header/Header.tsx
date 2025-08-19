@@ -13,6 +13,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import NotificationComponent from '../notification/NotificationComponent';
 import { useRouter } from 'next/navigation';
 import { useUserStore } from '@/store/avatarUserStore';
+import CustomImage from '../ui/CustomImage';
 
 interface User {
     _id: string;
@@ -39,8 +40,6 @@ const Header = () => {
     const dropdownRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
     const avatar = useUserStore((state) => state.avatar);
-
-    console.log('Current User:', avatar);
 
     const handleClick = (buttonId: string) => {
         setActiveButton(buttonId);
@@ -156,20 +155,14 @@ const Header = () => {
                         <NotificationComponent userId={currentUser._id} />
                     }
 
-                    {isLoading ? (
-                        // Hiển thị skeleton loading thay vì nút
-                        <div className="hidden md:flex items-center gap-2 p-2">
-                            <div className="w-8 h-8 bg-gray-600 rounded-full animate-pulse"></div>
-                            <div className="w-4 h-4 bg-gray-600 rounded animate-pulse"></div>
-                        </div>
-                    ) : currentUser ? (
+                    {currentUser ? (
                         <div className="relative">
                             <button
                                 onClick={handleToggleUserDropdown}
                                 className="flex items-center gap-2 hover:bg-gray-800 rounded-lg p-2 transition-colors"
                             >
                                 {userImage && (
-                                    <Image
+                                    <CustomImage
                                         src={userImage}
                                         alt={currentUser.username || 'avatar người dùng'}
                                         width={32}
@@ -192,7 +185,7 @@ const Header = () => {
                                         <div className="p-4 border-b border-gray-200">
                                             <div className="flex items-center gap-3">
                                                 {userImage && (
-                                                    <Image
+                                                    <CustomImage
                                                         src={userImage}
                                                         alt={currentUser.username || 'avatar người dùng'}
                                                         width={48}
@@ -210,7 +203,10 @@ const Header = () => {
 
                                         <div className="py-2">
                                             <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-gray-100 hover:bg-gray-600 transition-colors"
-                                                onClick={() => router.push(`/profile/${currentUser._id}`)}
+                                                onClick={() => {
+                                                    router.push(`/profile/${currentUser._id}`)
+                                                    setIsUserDropdownOpen(false);
+                                                }}
                                             >
                                                 <UserIcon className="h-5 w-5" />
                                                 <span>Hồ sơ</span>
@@ -222,10 +218,6 @@ const Header = () => {
                                             <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-gray-100 hover:bg-gray-600 transition-colors">
                                                 <History className="h-5 w-5" />
                                                 <span>Lịch sử</span>
-                                            </button>
-                                            <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-gray-100 hover:bg-gray-600 transition-colors">
-                                                <Cog6ToothIcon className="h-5 w-5" />
-                                                <span>Cài đặt</span>
                                             </button>
                                         </div>
 
@@ -296,22 +288,11 @@ const Header = () => {
                 </div>
 
                 {/* User Info trong sidebar với Loading */}
-                {isLoading ? (
-                    <div className="p-4 border-b border-gray-700">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-12 h-12 bg-gray-600 rounded-full animate-pulse"></div>
-                            <div className="flex-1">
-                                <div className="h-4 bg-gray-600 rounded animate-pulse mb-2"></div>
-                                <div className="h-3 bg-gray-600 rounded animate-pulse w-3/4 mb-1"></div>
-                                <div className="h-3 bg-gray-600 rounded animate-pulse w-1/2"></div>
-                            </div>
-                        </div>
-                    </div>
-                ) : currentUser ? (
+                {currentUser ? (
                     <div className="p-4 border-b border-gray-700">
                         <div className="flex items-center gap-3 mb-3">
                             {userImage && (
-                                <Image
+                                <CustomImage
                                     src={userImage}
                                     alt={currentUser.username || 'avatar người dùng'}
                                     width={48}
@@ -366,7 +347,7 @@ const Header = () => {
                             <Button
                                 type={<UserIcon className="h-5 w-5" />}
                                 text="Hồ sơ"
-                                href="/profile"
+                                href={`/profile/${currentUser._id}`}
                                 onClick={() => {
                                     handleClick('profile');
                                     setIsSidebarOpen(false);
@@ -387,16 +368,6 @@ const Header = () => {
                                 type={<HistoryIcon className="h-5 w-5" />}
                                 text="Lịch sử"
                                 href="/History"
-                                onClick={() => {
-                                    handleClick('settings');
-                                    setIsSidebarOpen(false);
-                                }}
-                                isActive={activeButton === 'settings'}
-                            />
-                            <Button
-                                type={<Cog6ToothIcon className="h-5 w-5" />}
-                                text="Cài đặt"
-                                href="/settings"
                                 onClick={() => {
                                     handleClick('settings');
                                     setIsSidebarOpen(false);

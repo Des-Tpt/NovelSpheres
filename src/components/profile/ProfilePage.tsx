@@ -22,6 +22,7 @@ import { useRouter } from 'next/navigation';
 import stripHtml from '@/utils/stripHtml';
 import UpdateProfilePopup from './UpdateProfile';
 import CustomImage from '../ui/CustomImage';
+import LoadingComponent from '../ui/Loading';
 
 const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 const defaultFallback = `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
@@ -381,25 +382,14 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
     // Loading state
     if (profileLoading || currentUserLoading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-                <div className="pt-24 pb-12">
-                    <div className="max-w-6xl mx-auto px-4">
-                        <div className="flex items-center justify-center py-20">
-                            <div className="text-center">
-                                <Loader2 className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
-                                <p className="text-gray-400 text-lg">Đang tải thông tin profile...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <LoadingComponent />
         );
     }
 
     // Error state
     if (profileError) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+            <div className="min-h-screen bg-gray-950">
                 <div className="pt-24 pb-12">
                     <div className="max-w-6xl mx-auto px-4">
                         <div className="bg-red-900/30 backdrop-blur-sm rounded-2xl border border-red-500/30 p-8 text-center">
@@ -445,30 +435,34 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
             <div className="border flex flex-col mt-4 mx-4 border-gray-800 rounded-sm">
                 {/* Cover Photo */}
                 <div className="relative group h-50 md:h-96 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 overflow-hidden">
-                    <CustomImage
-                        src={coverImage}
-                        alt="Cover Image"
-                        width={2000}
-                        height={1000}
-                        className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
-                    />
+                    {coverImage && (
+                        <CustomImage
+                            objectCenter={true}
+                            src={coverImage}
+                            alt="Cover Image"
+                            width={2000}
+                            height={1000}
+                        />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                 </div>
 
                 {/* Profile Header */}
-                <div className="max-w-full md:px-5">
+                <div className="max-w-full md:px-6">
                     <div className="flex flex-col md:flex md:flex-row justify-between gap-6">
                         {/* Avatar */}
                         <div className='flex flex-col md:flex-row md:mb-2.5 gap-3 md:gap-6 items-center'>
                             <div className="relative -mt-16">
                                 <div className={`w-35 h-35 rounded-full overflow-hidden border-2 border-gray-700 shadow-2xl bg-gray-800 ${isOwnProfile ? 'ml-1' : 'ml-0'}`}>
-                                    <CustomImage
-                                        src={avatar}
-                                        alt="Avatar"
-                                        width={160}
-                                        height={160}
-                                        className="w-full h-full object-cover"
-                                    />
+                                    {avatar && (
+                                        <CustomImage
+                                            src={avatar}
+                                            alt="Avatar"
+                                            width={160}
+                                            height={160}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    )}
                                 </div>
                                 {isOwnProfile && (
                                     <button className="absolute bottom-0 right-0 w-12 h-12 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center border-3 border-white shadow-lg transition-colors group">
@@ -829,17 +823,17 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -20 }}
-                                    className="space-y-8"
+                                    className="space-y-8 mb-10"
                                 >
                                     {/* Overview Timeline */}
-                                    <div className="bg-gray-950 backdrop-blur-sm rounded-sm border border-gray-600/50 py-2 px-2 md:p-6">
+                                    <div className="bg-gray-950 backdrop-blur-sm rounded-sm border border-gray-600/50 py-4 px-4 md:p-6">
                                         <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
                                             <TrendingUp className="w-6 h-6 text-green-500" />
                                             Tổng quan hoạt động
                                         </h2>
 
                                         {/* Activity Timeline */}
-                                        <div className="space-y-4 mb-8">
+                                        <div className="gap-4 mb-8 grid md:grid-cols-2">
                                             <div className="flex items-start gap-4 p-4 bg-gray-700/30 rounded-lg">
                                                 <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                                                 <div>
@@ -964,7 +958,7 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -20 }}
-                                    className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 p-6"
+                                    className="bg-gray-950 backdrop-blur-sm rounded-sm border border-gray-600/50 p-6"
                                 >
                                     <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
                                         <Book className="w-6 h-6 text-blue-500" />

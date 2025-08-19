@@ -2,6 +2,7 @@ import cloudinary from "@/lib/cloudinary";
 import { connectDB } from "@/lib/db";
 import { Novel } from "@/model/Novel";
 import { User } from "@/model/User";
+import removeScriptsFromHtml from "@/utils/removeScript";
 import { NextRequest, NextResponse } from "next/server";
 
 interface CloudinaryUploadResult {
@@ -48,9 +49,11 @@ export async function POST(request: NextRequest) {
             format = uploadResult.format;
         }
 
+        const cleanDescription = removeScriptsFromHtml(description);
+
         const newNovel = new Novel({
             title: title,
-            description: description,
+            description: cleanDescription,
             status: status,
             authorId: userId,
             genresId: genresId,

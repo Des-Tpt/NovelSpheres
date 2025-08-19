@@ -5,9 +5,10 @@ import { useState } from 'react';
 
 interface CustomImageProps extends ImageProps {
     alt: string;
+    objectCenter?: boolean;
 }
 
-const CustomImage = ({ src, alt, className = '', ...props }: CustomImageProps) => {
+const CustomImage = ({ src, alt, objectCenter, className = '', ...props }: CustomImageProps) => {
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
 
@@ -26,8 +27,8 @@ const CustomImage = ({ src, alt, className = '', ...props }: CustomImageProps) =
                 <Image
                     src={src}
                     alt={alt}
-                    className={`w-full h-full object-cover transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
-                    onLoadingComplete={() => setIsLoading(false)}
+                    className={`w-full h-full object-cover ${objectCenter ? 'object-center' : 'object-top'} transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+                    onLoad={() => setIsLoading(false)}
                     onError={() => {
                         setIsLoading(false);
                         setHasError(true);

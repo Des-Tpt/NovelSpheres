@@ -63,7 +63,6 @@ export async function GET(request: NextRequest, context: { params: Promise<{ cha
             }
         }
 
-
         const novel = chapter.novelId;
         const act = chapter.actId;
         const novelId = novel._id;

@@ -6,6 +6,7 @@ import { Chapter } from "@/model/Chapter";
 import { Likes } from "@/model/Likes";
 import { Notification } from "@/model/Notification";
 import { Novel } from "@/model/Novel";
+import removeScriptsFromHtml from "@/utils/removeScript";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest, context: { params: Promise<{ id: string, actId: string }> }) {
@@ -42,11 +43,12 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
                 error: `Chapter số ${chapterNumber} đã tồn tại trong Act này! Vui lòng chọn số thứ tự khác.`
             }, { status: 409 });
         }
+        const cleanContent = removeScriptsFromHtml(content);
 
         const newChapter = new Chapter({
             novelId: novelId,
             actId: actId,
-            content: content,
+            content: cleanContent,
             title: title,
             chapterNumber: chapterNumber,
             wordCount: wordCount,
@@ -145,12 +147,14 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
             }, { status: 409 });
         }
 
+        const cleanContent = removeScriptsFromHtml(content);
+
         const updateData = {
             title: title,
             chapterNumber: chapterNumber,
             updatedAt: new Date(),
-            ...(content && content.trim() && {
-                content: content,
+            ...(cleanContent && cleanContent.trim() && {
+                content: cleanContent,
                 wordCount: wordCount || 0
             })
         };

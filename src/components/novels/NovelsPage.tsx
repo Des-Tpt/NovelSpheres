@@ -13,6 +13,8 @@ import getStatusColor from '@/utils/getStatusColor';
 import CreateNovelPopup from './createNovel';
 import { notifyError } from '@/utils/notify';
 import { getUserFromCookies } from '@/action/userAction';
+import LoadingComponent from '../ui/Loading';
+import CustomImage from '../ui/CustomImage';
 
 interface Genre {
     _id: string;
@@ -223,6 +225,8 @@ const NovelsPage = () => {
     const handleRefresh = () => {
         refetch();
     };
+
+    if (isLoading) return <LoadingComponent />;
 
     return (
         <>
@@ -517,17 +521,19 @@ const NovelsPage = () => {
                                                         ? 'w-30 h-40 sm:w-32 sm:h-55 flex-shrink-0'
                                                         : 'relative overflow-hidden'
                                                 }>
-                                                    <Image
-                                                        src={novel.coverImage?.publicId && imageUrls[novel.coverImage.publicId]
-                                                            ? imageUrls[novel.coverImage.publicId]
-                                                            : `https://res.cloudinary.com/${cloudName!}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`
-                                                        }
-                                                        height={300}
-                                                        width={200}
-                                                        alt={novel.title || 'Novel cover'}
-                                                        className={`object-cover object-top transition-transform duration-300 group-hover:scale-110 ${viewMode === 'list' ? 'rounded-xl h-full' : 'rounded-t-2xl w-full h-60'
-                                                            }`}
-                                                    />
+                                                    <div className={`object-cover transition-transform duration-300 group-hover:scale-110 ${viewMode === 'list' ? 'rounded-xl h-full' : 'rounded-t-2xl w-full h-60'
+                                                        }`}>
+                                                        <CustomImage
+                                                            src={novel.coverImage?.publicId && imageUrls[novel.coverImage.publicId]
+                                                                ? imageUrls[novel.coverImage.publicId]
+                                                                : `https://res.cloudinary.com/${cloudName!}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`
+                                                            }
+                                                            height={300}
+                                                            width={200}
+                                                            alt={novel.title || 'Novel cover'}
+                                                            objectCenter={false}
+                                                        />
+                                                    </div>
                                                     {viewMode === 'grid' && (
                                                         <>
                                                             {/* Gradient overlay */}
