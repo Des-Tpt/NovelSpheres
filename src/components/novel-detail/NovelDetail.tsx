@@ -543,6 +543,9 @@ const NovelDetail = () => {
         });
     };
 
+    const onClickAuthor = (userId: string) => {
+        router.push(`/profile/${userId}`);
+    }
 
     const organizedComments = data?.comments ? formatComment(data.comments) : [];
 
@@ -632,7 +635,9 @@ const NovelDetail = () => {
                                             />
 
                                         )}
-                                        <span className='font-extrabold text-blue-400 text-sm'>
+                                        <span className='font-extrabold text-blue-400 text-sm'
+                                            onClick={() => onClickAuthor(data?.novel?.authorId?._id ?? '')}
+                                        >
                                             {data?.novel?.authorId?.username ?? 'Vô danh'}
                                         </span>
                                     </div>

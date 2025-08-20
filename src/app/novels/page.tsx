@@ -2,7 +2,7 @@ import NovelsPage from "@/components/novels/NovelsPage"
 
 const NovelPage = () => {
     return (
-        <div className="min-h-screen md:pt-20 md:px-[15%] bg-black">
+        <div className="min-h-screen pt-20 px-1 bg-gray-950 w1080:px-[15%]">
             <title>Thư viện NovelSphere</title>
             <NovelsPage />
         </div>

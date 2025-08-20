@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
 import { User } from '@/model/User';
 import { Profile } from '@/model/Profile';
 import { Follow } from '@/model/Following';
@@ -8,12 +7,8 @@ import { Likes } from '@/model/Likes';
 import { connectDB } from '@/lib/db';
 import { IGenre } from '@/model/Genre';
 import { History } from '@/model/History';
-import { error } from 'console';
 import { getCurrentUser } from '@/lib/auth';
 import cloudinary from '@/lib/cloudinary';
-import { use } from 'react';
-import { cookies } from 'next/headers';
-
 
 export async function GET(request: NextRequest, context: { params: Promise<{ userId: string }> }) {
     try {
@@ -47,23 +42,22 @@ export async function GET(request: NextRequest, context: { params: Promise<{ use
 
         // Lấy thống kê followers/following
         const [followersCount, followingCount] = await Promise.all([
-            Follow.countDocuments({ followingUserId: userId }),
-            Follow.countDocuments({ followerUserId: userId })
+            Follow.countDocuments({ followerUserId: userId }),
+            Follow.countDocuments({ userId: userId })
         ]);
-
-        const histories = await History.find({ userId: userId })
-            .populate({
-                path: 'novelId',
-                populate: [
-                    { path: 'authorId', select: 'username' },
-                    { path: 'genresId', select: '_id name' }
-                ]
-            })
-            .sort({ createdAt: -1 });
 
         const user = await User.findById(userId).lean() as any;
 
-        const followed: boolean | null = await Follow.findOne({ userId: user._id, followingUserId: profile.userId });
+        const currentUser = await getCurrentUser();
+        
+        let followed = null;
+
+        if (currentUser) {
+            followed = await Follow.findOne({
+                userId: currentUser._id,
+                followingUserId: profile.userId
+            });
+        }
 
         const responseData = {
             // User data
@@ -156,7 +150,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ use
                 },
                 createdAt: like.createdAt
             })),
-            followed: !!followed,
+            isFollowed: followed ? true : false,
         };
 
         return NextResponse.json(responseData);

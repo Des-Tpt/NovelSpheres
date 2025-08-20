@@ -1,7 +1,6 @@
 // tailwind.config.js
 /** @type {import('tailwindcss').Config} */
-
-module.exports = {
+module.exports = {  // ← Đổi từ export const thành module.exports
   content: [
     "./app/**/*.{js,ts,jsx,tsx}",
     "./pages/**/*.{js,ts,jsx,tsx}",
@@ -9,24 +8,17 @@ module.exports = {
   ],
   theme: {
     extend: {
-        fontFamily: {
-            inter: ['var(--font-inter)'],
-            times: ['"Times New Roman"', 'serif'],
-            sans: ['Inter', 'sans-serif'],
-        }
-    },
-    typography: {
-      DEFAULT: {
-        css: {
-          h1: {
-            fontSize: '3.5rem',
-            fontFamily: 'var(--font-inter)',
-          },
-        },
+      screens: {
+        'w1080': '1080px',
       },
+      fontFamily: {
+        inter: ['var(--font-inter)'],
+        times: ['"Times New Roman"', 'serif'],
+        sans: ['Inter', 'sans-serif'],
+      }
     },
   },
   plugins: [
     require('@tailwindcss/typography'),
   ],
-};
+}

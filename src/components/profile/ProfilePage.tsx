@@ -1,9 +1,9 @@
 'use client'
-import React, { ReactElement, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     User, Book, Heart, Eye, Users, Calendar, Globe, MessageCircle,
-    Edit3, Settings, Star, MapPin, History, Bookmark, Loader2,
+    Edit3, Star, Bookmark, Loader2,
     Camera, UserPlus, Mail, ChevronRight, TrendingUp,
     CakeIcon,
     PenTool,
@@ -15,14 +15,12 @@ import { getProfile } from '@/action/profileAction';
 import { getUserFromCookies } from '@/action/userAction';
 import getImage from '@/action/imageActions';
 import { motion, AnimatePresence } from 'framer-motion';
-import Image from 'next/image';
-import handleStatus from '@/utils/handleStatus';
-import getStatusColor from '@/utils/getStatusColor';
-import { useRouter } from 'next/navigation';
-import stripHtml from '@/utils/stripHtml';
 import UpdateProfilePopup from './UpdateProfile';
 import CustomImage from '../ui/CustomImage';
 import LoadingComponent from '../ui/Loading';
+import NovelCard from './NovelCard';
+import { followAction } from '@/action/followAction';
+import { notifyError, notifySuccess } from '@/utils/notify';
 
 const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 const defaultFallback = `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
@@ -99,7 +97,7 @@ interface ProfileData {
     profile: IProfile;
     novels: INovel[];
     likes: ILike[];
-    history: INovel[];
+    isFollowed: boolean
 }
 
 interface CurrentUser {
@@ -116,13 +114,10 @@ interface PageProps {
 }
 
 const ProfilePage: React.FC<PageProps> = ({ userId }) => {
-    const router = useRouter();
     const [activeSection, setActiveSection] = useState<string>('overview');
     const [isFollowing, setIsFollowing] = useState(false);
-    const queryClient = useQueryClient();
-    const [avatar, setAvatar] = useState<string>('');
-    const [coverImage, setCoverImage] = useState<string>('');
-    const [novelImageUrls, setNovelImageUrls] = useState<Record<string, string>>({});
+    const [avatar, setAvatar] = useState<string>(defaultFallback);
+    const [coverImage, setCoverImage] = useState<string>(defaultFallback);
     const [isOpenEditProfile, setIsOpenEditProfile] = useState(false);
 
     const { data: profileData, isLoading: profileLoading, error: profileError, refetch: refetchProfile } = useQuery<ProfileData>({
@@ -151,27 +146,16 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
 
     // Follow/Unfollow mutation
     const followMutation = useMutation({
-        mutationFn: async (action: 'follow' | 'unfollow') => {
-            // Replace with actual API call
-            // return await toggleFollow(userId, action);
-            return Promise.resolve({ action });
+        mutationFn: followAction,
+        onSuccess: (res) => {
+            setIsFollowing(!isFollowing);
+            if (res.message) {
+                notifySuccess(res.message);
+            }
         },
-        onSuccess: (data) => {
-            setIsFollowing(data.action === 'follow');
-            // Update follower count in cache
-            queryClient.setQueryData(['profile', userId], (oldData: ProfileData | undefined) => {
-                if (!oldData) return oldData;
-                return {
-                    ...oldData,
-                    profile: {
-                        ...oldData.profile,
-                        stats: {
-                            ...oldData.profile.stats,
-                            followers: oldData.profile.stats.followers + (data.action === 'follow' ? 1 : -1)
-                        }
-                    }
-                };
-            });
+        onError: (error: Error) => {
+            console.error('Follow/Unfollow error:', error);
+            notifyError(error.message || 'Có lỗi xảy ra khi thực hiện theo dõi/hủy theo dõi.');
         }
     });
 
@@ -180,50 +164,37 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
         const avatarData = profileData?.user.profile?.avatar;
         if (avatarData?.publicId && avatarData?.format) {
             getImage(avatarData.publicId, avatarData.format)
-                .then(setAvatar)
+                .then((url) => {
+                    if (url) {
+                        setAvatar(url);
+                    } else {
+                        setAvatar(defaultFallback);
+                    }
+                })
                 .catch(() => setAvatar(defaultFallback));
+        } else {
+            setAvatar(defaultFallback);
         }
-    }, [profileData?.user.profile?.avatar]);
+
+        setIsFollowing(profileData?.isFollowed || false);
+    }, [profileData]);
 
     useEffect(() => {
-        const coverImage = profileData?.profile.coverImage;
-        if (coverImage?.publicId && coverImage?.format) {
-            getImage(coverImage.publicId, coverImage.format)
-                .then(setCoverImage)
+        const coverImageData = profileData?.profile.coverImage;
+        if (coverImageData?.publicId && coverImageData?.format) {
+            getImage(coverImageData.publicId, coverImageData.format)
+                .then((url) => {
+                    if (url) {
+                        setCoverImage(url);
+                    } else {
+                        setCoverImage(defaultFallback);
+                    }
+                })
                 .catch(() => setCoverImage(defaultFallback));
+        } else {
+            setCoverImage(defaultFallback);
         }
     }, [profileData?.profile.coverImage])
-
-    // Load novel cover images
-    useEffect(() => {
-        if (!profileData) return;
-
-        const allNovels = [
-            ...profileData.novels,
-            ...profileData.likes.map(like => like.novelId)
-        ];
-
-        const fetchNovelImages = async () => {
-            for (const novel of allNovels) {
-                if (!novel?.coverImage?.publicId) continue;
-
-                const publicId = novel.coverImage.publicId;
-                const format = novel.coverImage.format ?? 'jpg';
-
-                if (publicId && !novelImageUrls[publicId]) {
-                    try {
-                        const res = await getImage(publicId, format);
-                        if (res) {
-                            setNovelImageUrls(prev => ({ ...prev, [publicId]: res }));
-                        }
-                    } catch (error) {
-                        console.error('Error fetching image for', publicId, error);
-                    }
-                }
-            }
-        };
-        fetchNovelImages();
-    }, [profileData, novelImageUrls]);
 
     const formatNumber = (num: number): string => {
         if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
@@ -246,8 +217,7 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
     };
 
     const handleFollowToggle = () => {
-        const action = isFollowing ? 'unfollow' : 'follow';
-        followMutation.mutate(action);
+        followMutation.mutate({ userId: currentUser?._id || '', followingUserId: profileData?.user._id || '' });
     };
 
     const handleOpenEditProfile = (e: React.MouseEvent) => {
@@ -256,99 +226,6 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
     }
 
     const isOwnProfile = currentUser?._id === profileData?.user._id;
-
-    // Enhanced Novel Card Component
-    const NovelCard: React.FC<{ novel: INovel; index: number; showAuthor?: boolean }> = ({ novel, index, showAuthor = false }) => (
-        <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 30 }}
-            transition={{ duration: index * 0.1, ease: 'easeInOut' }}
-            key={`${novel._id}-${index}`}
-            onClick={() => router.push(`/novels/${novel._id}`)}
-            className="bg-gray-950 backdrop-blur-sm rounded-2xl border border-gray-800/50 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer group flex gap-4 p-4 sm:gap-6 sm:p-6"
-        >
-            {/* Cover Image */}
-            <div className="w-30 h-40 sm:w-32 sm:h-55 flex-shrink-0">
-                <CustomImage
-                    src={novel.coverImage?.publicId && novelImageUrls[novel.coverImage.publicId]
-                        ? novelImageUrls[novel.coverImage.publicId]
-                        : defaultFallback
-                    }
-                    height={300}
-                    width={200}
-                    alt={novel.title || 'Novel cover'}
-                />
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 flex flex-col justify-between min-h-0">
-                {/* Header */}
-                <div className="space-y-2 mb-3">
-                    <div className="flex items-center justify-between gap-2">
-                        <h3 className="font-bold text-white group-hover:text-blue-400 transition-colors leading-tight text-lg line-clamp-2">
-                            {novel.title}
-                        </h3>
-                        <span className={`px-2 py-1 rounded-lg text-sm font-semibold whitespace-nowrap flex-shrink-0 ${getStatusColor(novel.status)}`}>
-                            {handleStatus(novel.status)}
-                        </span>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-[1rem]">
-                        <span className="text-gray-500">của</span>
-                        <span className="text-blue-400 font-medium truncate">
-                            {novel.authorId?.username || 'Ẩn danh'}
-                        </span>
-                    </div>
-                </div>
-
-                {/* Description */}
-                <p className="text-xs sm:text-sm text-gray-400 line-clamp-2 sm:line-clamp-3 leading-relaxed mb-3">
-                    {stripHtml(novel.description)}
-                </p>
-
-                {/* Genres - Max 2 genres */}
-                <div className="flex flex-wrap gap-1.5 mb-3">
-                    {novel.genresId?.slice(0, 2).map((genre) => (
-                        <span
-                            key={genre._id}
-                            className="px-2.5 py-1 bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-300 border border-purple-500/30 rounded-full text-xs font-medium backdrop-blur-sm"
-                        >
-                            {genre.name}
-                        </span>
-                    ))}
-                    {novel.genresId && novel.genresId.length > 2 && (
-                        <span className="px-2.5 py-1 bg-gray-700/50 text-gray-400 rounded-full text-xs backdrop-blur-sm">
-                            +{novel.genresId.length - 2}
-                        </span>
-                    )}
-                </div>
-
-                {/* Stats - Always at bottom */}
-                <div className="mt-auto pt-3 border-t border-gray-800/50">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 text-xs">
-                            <div className="flex items-center gap-1 text-emerald-400">
-                                <Eye size={12} />
-                                <span className="font-medium">{formatNumber(novel.views || 0)}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-rose-400">
-                                <Heart size={12} />
-                                <span className="font-medium">{formatNumber(novel.likes || 0)}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-yellow-400">
-                                <Star size={12} />
-                                <span className="font-medium">{Number(novel.rating || 0).toFixed(1)}</span>
-                            </div>
-                        </div>
-                        <div className="text-xs text-gray-500 font-medium">
-                            {formatDate(novel.updatedAt)}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </motion.div>
-    );
 
     // Section Navigation
     const sections = [
@@ -435,7 +312,7 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
             <div className="border flex flex-col mt-4 mx-4 border-gray-800 rounded-sm">
                 {/* Cover Photo */}
                 <div className="relative group h-50 md:h-96 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 overflow-hidden">
-                    {coverImage && (
+                    {coverImage && coverImage !== defaultFallback && (
                         <CustomImage
                             objectCenter={true}
                             src={coverImage}
@@ -454,15 +331,13 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                         <div className='flex flex-col md:flex-row md:mb-2.5 gap-3 md:gap-6 items-center'>
                             <div className="relative -mt-16">
                                 <div className={`w-35 h-35 rounded-full overflow-hidden border-2 border-gray-700 shadow-2xl bg-gray-800 ${isOwnProfile ? 'ml-1' : 'ml-0'}`}>
-                                    {avatar && (
-                                        <CustomImage
-                                            src={avatar}
-                                            alt="Avatar"
-                                            width={160}
-                                            height={160}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    )}
+                                    <CustomImage
+                                        src={avatar || defaultFallback}
+                                        alt="Avatar"
+                                        width={160}
+                                        height={160}
+                                        className="w-full h-full object-cover"
+                                    />
                                 </div>
                                 {isOwnProfile && (
                                     <button className="absolute bottom-0 right-0 w-12 h-12 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center border-3 border-white shadow-lg transition-colors group">

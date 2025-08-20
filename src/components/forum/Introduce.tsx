@@ -38,7 +38,7 @@ const Introduce = () => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col pt-7 md:px-[14%] bg-black md:bg-gradient-to-r md:from-black md:from-20% md:via-gray-950 md:via-75% md:to-black">
+            <div className="flex flex-col pt-7 bg-black md:bg-gradient-to-r md:from-black md:from-20% md:via-gray-950 md:via-75% md:to-black">
                 <div className="flex justify-between bg-gray-950 items-center border-gray-600 shadow-sm border rounded-[0.8rem] p-6">
                     <div className="flex flex-col">
                         <span className="font-bold text-3xl">Diễn đàn cộng đồng NovelSphere</span>
@@ -76,7 +76,7 @@ const Introduce = () => {
 
     if (error) {
         return (
-            <div className="flex flex-col pt-7 px-[14%] bg-black md:bg-gradient-to-r md:from-black md:from-20% md:via-gray-950 md:via-75% md:to-black">
+            <div className="flex flex-col pt-7 w1080:px-[14%] bg-black md:bg-gradient-to-r md:from-black md:from-20% md:via-gray-950 md:via-75% md:to-black">
                 <div className="flex justify-between bg-gray-950 items-center border-gray-600 shadow-sm border rounded-[0.8rem] p-6">
                     <div className="flex flex-col">
                         <span className="font-bold text-3xl">Diễn đàn cộng đồng NovelSphere</span>
@@ -100,7 +100,7 @@ const Introduce = () => {
 
     if (!data || data.length === 0) {
         return (
-            <div className="flex flex-col pt-7 px-[14%] bg-black md:bg-gradient-to-r md:from-black md:from-20% md:via-gray-950 md:via-75% md:to-black">
+            <div className="flex flex-col pt-7 w1080:px-[14%] bg-black md:bg-gradient-to-r md:from-black md:from-20% md:via-gray-950 md:via-75% md:to-black">
                 <div className="flex justify-between bg-gray-950 items-center border-gray-600 shadow-sm border rounded-[0.8rem] p-6">
                     <div className="flex flex-col">
                         <span className="font-bold text-3xl">Diễn đàn cộng đồng NovelSphere</span>
@@ -123,7 +123,7 @@ const Introduce = () => {
     }
 
     return (
-        <div className="flex flex-col pt-7 px-2 md:px-[14%] bg-black md:bg-gradient-to-r md:from-black md:from-20% md:via-gray-950 md:via-75% md:to-black">
+        <div className="flex flex-col pt-7 px-2 w1080:px-[14%] bg-black md:bg-gradient-to-r md:from-black md:from-20% md:via-gray-950 md:via-75% md:to-black">
             <div className="flex justify-between bg-gray-950 items-center border-gray-600 shadow-sm border rounded-[0.8rem] p-6">
                 <div className="flex flex-col">
                     <span className="font-bold text-3xl">Diễn đàn cộng đồng NovelSphere</span>

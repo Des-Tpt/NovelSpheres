@@ -122,7 +122,7 @@ const BookFilter = () => {
     return (
         <div className="flex flex-wrap justify-center gap-1 bg-black px-2.5 md:bg-gradient-to-r md:from-black md:from-20% md:via-gray-950 md:via-75% md:to-black pt-[5%] pb-[5%]">
             {/* Genre Filter Section - Hidden on mobile */}
-            <div className="w-full hidden md:flex md:flex-col md:mx-[14%] mx-10 p-4 rounded-2xl group hover:shadow hover:shadow-gray-400 hover:border-gray-400 transition-all duration-300">
+            <div className="w-full hidden md:flex md:flex-col mx-3 p-4 rounded-2xl group hover:shadow hover:shadow-gray-400 hover:border-gray-400 transition-all duration-300">
                 <h1 className="text-white mb-2 block text-3xl">Lọc theo thể loại</h1>
                 {selectedGenres.length > 0 && (
                     <div className="flex gap-1.5 font-inter py-2.5 flex-wrap items-center pb-5 text-white">

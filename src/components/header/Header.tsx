@@ -114,7 +114,7 @@ const Header = () => {
 
     return (
         <div>
-            <header className="bg-black top-0 text-white px-[5%] py-2.5 fixed flex justify-between items-center md:px-[15%] w-full z-40">
+            <header className="bg-black top-0 text-white px-[5%] py-2.5 fixed flex justify-between items-center w1080:px-[15%] w-full z-40">
                 <div className="flex justify-center mr-2.5">
                     <BookOpenIcon className="h-8 w-8" />
                     <span className="text-2xl font-semibold pl-4">NovelSphere</span>

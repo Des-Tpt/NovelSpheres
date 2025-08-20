@@ -4,7 +4,7 @@ import FeatureBook from "@/components/home/FeatureBook";
 
 export default function Home() {
     return (
-      <div className="md:pt-15">
+      <div className="md:pt-15 w1080:px-[15%] bg-black">
         <title>NovelSpheres</title>
         <Banner/>
         <FeatureBook />

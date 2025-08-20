@@ -5,7 +5,7 @@ const Profile = async (context: { params: Promise<{ userId: string }> }) => {
     return (
         <>
             <title>Hồ sơ</title>
-            <div className="min-h-screen bg-gray-950 md:px-[15%]">
+            <div className="min-h-screen bg-gray-950 w1080:px-[15%]">
                 <ProfilePage userId={userId} />
             </div>
         </>

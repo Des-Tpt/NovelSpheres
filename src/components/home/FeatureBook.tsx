@@ -153,7 +153,7 @@ const FeatureBook = () => {
 
     return (
         <div className="flex flex-col pt-7 bg-black px-2.5 md:bg-gradient-to-r md:from-black md:from-20% md:via-gray-950 md:via-75% md:to-black">
-            <div className="flex justify-between items-center pt-10 pb-2 md:pt-0 md:px-[14.8%] px-2">
+            <div className="flex justify-between items-center pt-10 pb-2 md:pt-0 px-2">
                 <div className="flex items-center gap-4 md:gap-5">
                     <Sparkle className="w-10 h-10 md:w-12 md:h-12 p-1.5 text-yellow-500 rounded-xl bg-gray-800" />
                     <div className="flex flex-col">
@@ -169,7 +169,7 @@ const FeatureBook = () => {
             </div>
 
             {/* Desktop Layout */}
-            <div className="hidden md:grid md:grid-cols-4 md:px-[14%]">
+            <div className="hidden md:grid md:grid-cols-4">
                 {data.map((novel, index) => (
                     <BookCard
                         key={novel._id}
