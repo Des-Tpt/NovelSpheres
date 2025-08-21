@@ -1,5 +1,5 @@
 'use client';
-import { getNovelById } from '@/action/novelActions';
+import { deleteAct, getNovelById } from '@/action/novelActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import LoadingComponent from '../ui/Loading';
@@ -256,6 +256,22 @@ const NovelDetail = () => {
         },
     })
 
+    const deleteMutation = useMutation({
+        mutationFn: deleteAct,
+        onSuccess: (response) => {
+            queryClient.setQueryData(['novelDetail', novelId], (oldData: any) => {
+                if (!oldData) return oldData;
+                return {
+                    ...oldData,
+                    acts: {
+                        ...oldData.act,
+                        acts: oldData.acts.filter((act: Act) => act._id !== response.deleteActId),
+                    }
+                };
+            })
+        }
+    })
+
     const handleReply = (commentId: string, username: string, userId: string) => {
         setReplyingTo(commentId);
         setReplyToUser({ id: userId, username });
@@ -267,6 +283,7 @@ const NovelDetail = () => {
         setReplyContent('');
         setReplyToUser(null);
     };
+
 
     const handleSubmitReply = async (parentCommentId: string) => {
         if (!replyContent.trim() || !replyToUser || !data?.comments) return;
@@ -414,7 +431,7 @@ const NovelDetail = () => {
             userId: userId,
             novelId: novelId,
         });
-        setIsShowDeleteActPopup(true);
+        setIsShowDeleteChapter(true);
     };
 
     useEffect(() => {

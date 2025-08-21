@@ -5,7 +5,7 @@ const getImage = async (publicId?: string, format?: string) => {
     const fallback = `https://res.cloudinary.com/${cloudName!}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
     try {
         if (!publicId || !format || publicId === '' || format === '') return fallback;
-        
+
         const url = `https://res.cloudinary.com/${cloudName!}/image/upload/${encodeURIComponent(publicId)}.${format}`;
         const res = await fetch(url, { method: "HEAD" });
 
@@ -18,3 +18,25 @@ const getImage = async (publicId?: string, format?: string) => {
 };
 
 export default getImage;
+
+interface ImageData {
+    userId: string,
+    file: File,
+}
+
+export const editAvatar = async ({ userId, file }: ImageData) => {
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    const response = await fetch(`/api/profile/${userId}/change-avatar`, {
+        method: 'POST',
+        body: formData,
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw Error(errorData.message || "Lỗi khi cập nhật ảnh đại diện!");
+    }
+
+    return response.json();
+}

@@ -219,7 +219,7 @@ export const deleteAct = async (postData: {
 };
 
 
-export async function getNovelsForNovelsPage({
+export const getNovelsForNovelsPage = async ({
     page = 1,
     genreIds = [],
     sort = 'date'
@@ -227,7 +227,7 @@ export async function getNovelsForNovelsPage({
     page?: number;
     genreIds?: string[];
     sort?: 'title' | 'date' | 'views';
-}) {
+}) => {
     const formData = new FormData();
     formData.append('page', page.toString());
     formData.append('sort', sort);
@@ -248,3 +248,4 @@ export async function getNovelsForNovelsPage({
 
     return await res.json();
 }
+

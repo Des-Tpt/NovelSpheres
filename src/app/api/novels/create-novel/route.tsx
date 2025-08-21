@@ -1,5 +1,8 @@
 import cloudinary from "@/lib/cloudinary";
 import { connectDB } from "@/lib/db";
+import { pusherServer } from "@/lib/pusher-server";
+import { Follow } from "@/model/Following";
+import { Notification } from "@/model/Notification";
 import { Novel } from "@/model/Novel";
 import { User } from "@/model/User";
 import removeScriptsFromHtml from "@/utils/removeScript";
@@ -24,6 +27,7 @@ export async function POST(request: NextRequest) {
 
         let publicId: string | null = null;
         let format: string | null = null;
+        let uploadedImageId: string | null = null;
 
         if (!title || !userId || genresId.length === 0) {
             return NextResponse.json({ error: 'Thiếu dữ liệu bắt buộc' }, { status: 400 });
@@ -46,30 +50,62 @@ export async function POST(request: NextRequest) {
             });
 
             publicId = uploadResult.public_id;
+            uploadedImageId = publicId;
             format = uploadResult.format;
         }
 
         const cleanDescription = removeScriptsFromHtml(description);
+        try {
+            const newNovel = new Novel({
+                title: title,
+                description: cleanDescription,
+                status: status,
+                authorId: userId,
+                genresId: genresId,
+                coverImage: publicId && format ? { publicId, format } : undefined,
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+            })
 
-        const newNovel = new Novel({
-            title: title,
-            description: cleanDescription,
-            status: status,
-            authorId: userId,
-            genresId: genresId,
-            coverImage: publicId && format ? { publicId, format } : undefined,
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
-        })
-        
-        await newNovel.save();
+            await newNovel.save();
 
-        await User.findByIdAndUpdate(userId, { $set: { role: 'writer' }});
+            const user = await User.findById(userId).select('username');
 
-        return NextResponse.json({ success: true }, { status: 201 });
+            const followers = await Follow.find({ followingUserId: userId })
+                .select('userId');
+
+            const notifPromises = followers.map(async (follower) => {
+                const message = `Tác giả ${user.username} vừa đăng tiểu thuyết mới: ${newNovel.title}`;
+                const href = `/novels/${newNovel._id.toString()}`;
+
+                const notif = await Notification.create({
+                    userId: follower.userId,
+                    type: 'chapter_update',
+                    message,
+                    href,
+                    createdAt: Date.now(),
+                })
+
+                await pusherServer.trigger(`private-user-${follower.userId.toString()}`, "new-notification", {
+                    id: notif._id,
+                    message,
+                    href,
+                    createdAt: notif.createdAt
+                });
+            });
+
+            await Promise.all(notifPromises);
+
+            await User.findByIdAndUpdate(userId, { $set: { role: 'writer' } });
+
+            return NextResponse.json({ success: true }, { status: 201 });
+        } catch (novelError) {
+            if (uploadedImageId) {
+                await cloudinary.uploader.destroy(uploadedImageId);
+            }
+            return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
+        }
     } catch (e) {
         return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
     }
-
-
 }

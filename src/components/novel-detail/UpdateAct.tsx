@@ -36,6 +36,7 @@ const EditActPopup: React.FC<EditActPopupProps> = ({ isOpen, onClose, userId, no
             setTitle(actData.title || '');
             setActType(actData.actType || '');
             setActNumberStr(actData.actNumber.toString() || "1");
+            setActNumber(actData.actNumber || 1);
             setSelectedFile(null);
             setRemoveCurrentFile(false);
         }
@@ -76,8 +77,18 @@ const EditActPopup: React.FC<EditActPopupProps> = ({ isOpen, onClose, userId, no
 
     const updateActMutation = useMutation({
         mutationFn: updateAct,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['novelDetail', novelId] });
+        onSuccess: (res) => {
+            queryClient.setQueryData(['novelDetail', novelId], (oldData: any) => {
+                if (!oldData) return oldData;
+                return {
+                    ...oldData,
+                    acts: oldData.acts.map((act: ActData) =>
+                        act._id === res.newAct._id
+                            ? { ...act, ...res.newAct }
+                            : act
+                    ),
+                };
+            });
             notifySuccess('Cập nhật act thành công!');
             resetForm();
             setTimeout(() => {
@@ -260,8 +271,8 @@ const EditActPopup: React.FC<EditActPopupProps> = ({ isOpen, onClose, userId, no
                                                 setActNumber(num);
                                             }
                                         }}
-                                    className="w-full px-3 py-2 bg-black border-2 border-blue-500 rounded text-white focus:outline-none focus:border-blue-400 transition-colors disabled:opacity-50"
-                                    disabled={updateActMutation.isPending}
+                                        className="w-full px-3 py-2 bg-black border-2 border-blue-500 rounded text-white focus:outline-none focus:border-blue-400 transition-colors disabled:opacity-50"
+                                        disabled={updateActMutation.isPending}
                                     />
                                 </div>
                                 <div className='w-[70%]'>

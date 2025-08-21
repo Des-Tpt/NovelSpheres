@@ -43,6 +43,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
                 error: `Chapter số ${chapterNumber} đã tồn tại trong Act này! Vui lòng chọn số thứ tự khác.`
             }, { status: 409 });
         }
+
         const cleanContent = removeScriptsFromHtml(content);
 
         const newChapter = new Chapter({
@@ -55,7 +56,8 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
             createdAt: new Date(),
             updatedAt: new Date(),
         })
-        await newChapter.save();
+
+        const savedChapter = await newChapter.save();
 
         await Novel.findByIdAndUpdate(novelId, { updatedAt: new Date() });
 
@@ -66,7 +68,6 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
             const message = `Tiểu thuyết ${novel.title} vừa có chương mới: ${title}`;
             const href = `/novels/${novelId.toString()}`;
 
-            // 1. Lưu vào DB
             const notif = await Notification.create({
                 userId: like.userId,
                 type: 'chapter_update',
@@ -75,7 +76,6 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
                 createdAt: Date.now(),
             });
 
-            // 2. Bắn realtime qua Pusher
             await pusherServer.trigger(`private-user-${like.userId.toString()}`, "new-notification", {
                 id: notif._id,
                 message,
@@ -86,9 +86,22 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
 
         await Promise.all(notifPromises);
 
-        return NextResponse.json({ success: true, }, { status: 201 });
-
+        // Trả về chapter data để frontend update cache
+        return NextResponse.json({
+            success: true,
+            message: 'Tạo chapter thành công!',
+            data: {
+                _id: savedChapter._id.toString(),
+                title: savedChapter.title,
+                chapterNumber: savedChapter.chapterNumber,
+                wordCount: savedChapter.wordCount,
+                actId: savedChapter.actId.toString(),
+                createdAt: savedChapter.createdAt.toISOString(),
+                updatedAt: savedChapter.updatedAt.toISOString()
+            }
+        }, { status: 201 });
     } catch (error) {
+        console.log(error);
         return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
     }
 }
@@ -175,6 +188,14 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
         return NextResponse.json({
             success: true,
             message: `Cập nhật thành công!`,
+            data: {
+                _id: updatedChapter._id,
+                title: updatedChapter.title,
+                chapterNumber: updatedChapter.chapterNumber,
+                wordCount: updatedChapter.wordCount,
+                updatedAt: updatedChapter.updatedAt,
+                actId: updatedChapter.actId
+            }
         }, { status: 200 });
 
     } catch (error) {
@@ -210,7 +231,7 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
 
         await Chapter.findByIdAndDelete(chapterId);
 
-        return NextResponse.json({ success: true }, { status: 200 });
+        return NextResponse.json({ success: true, chapterId: chapterId, actId: actId, }, { status: 200 });
     } catch (error) {
         console.error('Lỗi xóa act:', error);
         return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });

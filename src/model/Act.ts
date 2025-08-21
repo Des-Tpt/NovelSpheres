@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document, models, model } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
+import { Chapter } from './Chapter';
 
 export interface IAct extends Document {
     _id: Schema.Types.ObjectId,
@@ -29,7 +30,7 @@ ActSchema.pre('findOneAndDelete', async function (next) {
     const actId = this.getQuery()._id;
 
     await Promise.all([
-        mongoose.model('Chapter').deleteMany({ actId: actId }),
+        Chapter.deleteMany({ actId: actId }),
     ]);
 
     next();

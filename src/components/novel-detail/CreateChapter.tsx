@@ -20,7 +20,7 @@ interface CreateChapterPopupProps {
 }
 const config = {
     height: 250,
-    readonly: false, 
+    readonly: false,
     style: {
         color: '#ffffff',
         backgroundColor: '#0a0a0a',
@@ -67,14 +67,44 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
 
     const createChapterMutation = useMutation({
         mutationFn: createChapter,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['novelDetail', novelId] });
+        onSuccess: (response) => {
+            const newChapter = response.data;
+
+            // Update novelDetail cache - add new chapter to correct act
+            queryClient.setQueryData(['novelDetail', novelId], (oldData: any) => {
+                if (!oldData?.acts) return oldData;
+
+                return {
+                    ...oldData,
+                    acts: oldData.acts.map((act: any) =>
+                        act._id === newChapter.actId
+                            ? {
+                                ...act,
+                                chapters: [
+                                    ...(act.chapters || []),
+                                    newChapter
+                                ].sort((a, b) => a.chapterNumber - b.chapterNumber)
+                            }
+                            : act
+                    )
+                };
+            });
+
+            // Optional: Set individual chapter cache
+            queryClient.setQueryData(['chapter', newChapter._id], newChapter);
+
+            // Optional: Invalidate related caches
+            queryClient.invalidateQueries({
+                queryKey: ['chapterList', novelId]
+            });
+
             notifySuccess('Tạo chapter thành công!');
             setTimeout(() => {
                 onClose();
             }, 100);
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
+            console.error('Error creating chapter:', error);
             notifyError(error?.message || 'Tạo chapter thất bại!');
         }
     });

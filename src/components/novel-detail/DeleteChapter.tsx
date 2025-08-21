@@ -43,8 +43,23 @@ const DeleteChapterPopup: React.FC<DeleteChapterPopupProps> = ({ isOpen, onClose
 
     const deleteMutation = useMutation({
         mutationFn: deleteChapter,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['novelDetail', novelId] });
+        onSuccess: (res) => {
+            queryClient.setQueryData(['novelDetail', novelId], (oldData: any) => {
+                if (!oldData?.acts) return oldData;
+
+                return {
+                    ...oldData,
+                    acts: oldData.acts.map((act: any) =>
+                        act._id === res.actId
+                            ? {
+                                ...act,
+                                chapters: act.chapters?.filter((ch: any) => ch._id !== res.chapterId) || []
+                            }
+                            : act
+                    )
+                };
+            });
+
             notifySuccess('Xóa chapter thành công!');
             setTimeout(() => {
                 onClose();
@@ -140,7 +155,7 @@ const DeleteChapterPopup: React.FC<DeleteChapterPopupProps> = ({ isOpen, onClose
 
                         {/* Header */}
                         <div className="flex items-center justify-between mb-6">
-                            <motion.h2 
+                            <motion.h2
                                 initial={{ x: -20, opacity: 0 }}
                                 animate={{ x: 0, opacity: 1 }}
                                 transition={{ delay: 0.1 }}
@@ -164,7 +179,7 @@ const DeleteChapterPopup: React.FC<DeleteChapterPopupProps> = ({ isOpen, onClose
                         </div>
 
                         {/* Content */}
-                        <motion.div 
+                        <motion.div
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: 0.2 }}
@@ -212,7 +227,7 @@ const DeleteChapterPopup: React.FC<DeleteChapterPopupProps> = ({ isOpen, onClose
                         </motion.div>
 
                         {/* Buttons */}
-                        <motion.div 
+                        <motion.div
                             className="flex gap-3 mt-6"
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}

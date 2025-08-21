@@ -93,9 +93,34 @@ const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, us
 
     const updateChapterMutation = useMutation({
         mutationFn: updateChapter,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['novelDetail', novelId] });
-            queryClient.invalidateQueries({ queryKey: ['chapter', chapter?._id] });
+        onSuccess: (response) => {
+            const updatedChapter = response.data; // Lấy data từ API response
+
+            // Update novelDetail cache
+            queryClient.setQueryData(['novelDetail', novelId], (oldData: any) => {
+                if (!oldData) return oldData;
+
+                return {
+                    ...oldData,
+                    acts: oldData.acts?.map((act: any) =>
+                        act._id === chapter?.actId
+                            ? {
+                                ...act,
+                                chapters: act.chapters?.map((ch: Chapter ) =>
+                                    ch._id === updatedChapter._id
+                                        ? { ...ch, ...updatedChapter }
+                                        : ch
+                                ) || []
+                            }
+                            : act
+                    ) || []
+                };
+            });
+            queryClient.setQueryData(['chapter', chapter?._id], (oldData: any) => {
+                if (!oldData) return oldData;
+                return { ...oldData, ...updatedChapter };
+            });
+
             notifySuccess('Cập nhật chapter thành công!');
             setTimeout(() => {
                 onClose();

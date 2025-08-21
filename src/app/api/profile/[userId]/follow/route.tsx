@@ -4,8 +4,8 @@ import { Profile } from "@/model/Profile";
 import { User } from "@/model/User";
 import { NextResponse } from "next/server";
 
-export async function POST(req: Request, context: { params: { userId: string } }) {
-    const { userId } = context.params;
+export async function POST(req: Request, context: { params: Promise<{ userId: string }> }) {
+    const { userId } = await context.params;
     const { searchParams } = new URL(req.url);
     const followingUserId = searchParams.get("followingUserId");
 

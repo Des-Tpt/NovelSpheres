@@ -4,6 +4,7 @@ import { connectDB } from '@/lib/db';
 import { User } from '@/model/User';
 import { Comment } from '@/model/Comment';
 import { getCurrentUser } from '@/lib/auth';
+import removeScriptsFromHtml from '@/utils/removeScript';
 
 export async function GET(req: NextRequest) {
     await connectDB();
@@ -98,12 +99,14 @@ export async function POST(request: NextRequest) {
         
         const {title, category, content, novelId} = await request.json();
 
+        const safeContent = removeScriptsFromHtml(content);
+
         const newPost = new ForumPost({
             userId: user._id,
             novelId: novelId ?? null,
             title: title,
             category: category,
-            content: content,
+            content: safeContent,
             createdAt: Date.now(),
             updatedAt: Date.now(),
         });

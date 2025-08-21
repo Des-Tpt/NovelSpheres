@@ -1,13 +1,18 @@
-export function removeScriptsFromHtml(html: string): string {
-    // Tạo một DOM tạm để parse string
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
+import * as cheerio from 'cheerio';
 
-    // Xóa tất cả thẻ <script>
-    doc.querySelectorAll('script').forEach(script => script.remove());
+function removeScriptsFromHtml(html: string | undefined | null): string {
+    if (!html || typeof html !== 'string') {
+        return '';
+    }
 
-    // Trả về innerHTML đã lọc
-    return doc.body.innerHTML;
+    try {
+        const $ = cheerio.load(html);
+        $("script").remove();
+        return $.html();
+    } catch (error) {
+        console.error('Error removing scripts from HTML:', error);
+        return html;
+    }
 }
 
 export default removeScriptsFromHtml;

@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     User, Book, Heart, Eye, Users, Calendar, Globe, MessageCircle,
@@ -9,11 +9,12 @@ import {
     PenTool,
     Shield,
     BookOpen,
-    Trophy
+    Trophy,
+    Loader
 } from 'lucide-react';
 import { getProfile } from '@/action/profileAction';
 import { getUserFromCookies } from '@/action/userAction';
-import getImage from '@/action/imageActions';
+import getImage, { editAvatar } from '@/action/imageActions';
 import { motion, AnimatePresence } from 'framer-motion';
 import UpdateProfilePopup from './UpdateProfile';
 import CustomImage from '../ui/CustomImage';
@@ -21,6 +22,8 @@ import LoadingComponent from '../ui/Loading';
 import NovelCard from './NovelCard';
 import { followAction } from '@/action/followAction';
 import { notifyError, notifySuccess } from '@/utils/notify';
+import { useUserStore } from '@/store/avatarUserStore';
+import handleRole from '@/utils/handleRole';
 
 const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 const defaultFallback = `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
@@ -116,9 +119,12 @@ interface PageProps {
 const ProfilePage: React.FC<PageProps> = ({ userId }) => {
     const [activeSection, setActiveSection] = useState<string>('overview');
     const [isFollowing, setIsFollowing] = useState(false);
-    const [avatar, setAvatar] = useState<string>(defaultFallback);
+    const { avatar, setAvatar } = useUserStore();
+    const [avatarUrl, setAvatarUrl] = useState<string>('');
     const [coverImage, setCoverImage] = useState<string>(defaultFallback);
     const [isOpenEditProfile, setIsOpenEditProfile] = useState(false);
+    const queryClient = useQueryClient();
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const { data: profileData, isLoading: profileLoading, error: profileError, refetch: refetchProfile } = useQuery<ProfileData>({
         queryKey: ['profile', userId],
@@ -148,10 +154,22 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
     const followMutation = useMutation({
         mutationFn: followAction,
         onSuccess: (res) => {
-            setIsFollowing(!isFollowing);
-            if (res.message) {
-                notifySuccess(res.message);
-            }
+            setIsFollowing(res.isFollowing);
+            notifySuccess(res.message || (res.isFollowing ? 'Theo dõi thành công!' : 'Hủy theo dõi thành công!'));
+            queryClient.setQueryData(['profile', userId], (oldData: ProfileData | undefined) => {
+                if (!oldData) return oldData;
+                return {
+                    ...oldData,
+                    profile: {
+                        ...oldData.profile,
+                        stats: {
+                            ...oldData.profile.stats,
+                            followers: oldData.profile.stats.followers + (res.isFollowing ? 1 : -1),
+                        }
+                    }
+
+                }
+            })
         },
         onError: (error: Error) => {
             console.error('Follow/Unfollow error:', error);
@@ -159,25 +177,81 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
         }
     });
 
-    // Load avatar
-    useEffect(() => {
-        const avatarData = profileData?.user.profile?.avatar;
-        if (avatarData?.publicId && avatarData?.format) {
-            getImage(avatarData.publicId, avatarData.format)
-                .then((url) => {
-                    if (url) {
-                        setAvatar(url);
-                    } else {
-                        setAvatar(defaultFallback);
+    const changeAvatarMutation = useMutation({
+        mutationFn: editAvatar,
+        onSuccess: async (res: any) => {
+            queryClient.setQueryData(['profile', userId], (oldData: ProfileData | undefined) => {
+                if (!oldData) return oldData;
+                return {
+                    ...oldData,
+                    user: {
+                        ...oldData.user,
+                        profile: {
+                            ...oldData.user.profile,
+                            avatar: {
+                                publicId: res.avatar.publicId,
+                                format: res.avatar.format,
+                            }
+                        }
                     }
-                })
-                .catch(() => setAvatar(defaultFallback));
-        } else {
-            setAvatar(defaultFallback);
-        }
+                }
+            })
+            notifySuccess('Cập nhật ảnh đại diện thành công!');
+            const newAvatar = { publicId: res.avatar.publicId, format: res.avatar.format };
+            setAvatar(newAvatar);
 
+            const newAvatarUrl = await getImage(newAvatar.publicId, newAvatar.format);
+            if (newAvatarUrl) {
+                setAvatarUrl(newAvatarUrl);
+            }
+        },
+        onError: (error: Error) => {
+            notifyError(error.message || 'Lỗi khi cập nhật ảnh đại diện!');
+        }
+    });
+
+    const handleClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file && currentUser) {
+            changeAvatarMutation.mutate({ userId: currentUser._id, file });
+        }
+    };
+
+    useEffect(() => {
         setIsFollowing(profileData?.isFollowed || false);
-    }, [profileData]);
+
+        const handleAvatar = async () => {
+            let avatarData = null;
+
+            if (isOwnProfile && avatar) {
+                avatarData = avatar;
+            }
+            else if (profileData?.user.profile?.avatar) {
+                avatarData = profileData.user.profile.avatar;
+                if (isOwnProfile) {
+                    setAvatar(avatarData);
+                }
+            }
+
+            if (avatarData?.publicId && avatarData?.format) {
+                try {
+                    const url = await getImage(avatarData.publicId, avatarData.format);
+                    setAvatarUrl(url || defaultFallback);
+                } catch (error) {
+                    console.error('Error loading avatar:', error);
+                    setAvatarUrl(defaultFallback);
+                }
+            } else {
+                setAvatarUrl(defaultFallback);
+            }
+        };
+
+        handleAvatar();
+    }, [profileData?.isFollowed, profileData?.user.profile?.avatar, avatar, setAvatar]);
 
     useEffect(() => {
         const coverImageData = profileData?.profile.coverImage;
@@ -332,7 +406,7 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                             <div className="relative -mt-16">
                                 <div className={`w-35 h-35 rounded-full overflow-hidden border-2 border-gray-700 shadow-2xl bg-gray-800 ${isOwnProfile ? 'ml-1' : 'ml-0'}`}>
                                     <CustomImage
-                                        src={avatar || defaultFallback}
+                                        src={avatarUrl || defaultFallback}
                                         alt="Avatar"
                                         width={160}
                                         height={160}
@@ -340,10 +414,26 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                                     />
                                 </div>
                                 {isOwnProfile && (
-                                    <button className="absolute bottom-0 right-0 w-12 h-12 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center border-3 border-white shadow-lg transition-colors group">
-                                        <Camera className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+                                    <button className="absolute bottom-0 right-0 w-12 h-12 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center border-3 border-white shadow-lg transition-colors group"
+                                        onClick={handleClick}
+                                    >
+                                        {changeAvatarMutation.isPending ?
+                                            (
+                                                <Loader className="w-5 h-5 text-white animate-spin" />
+
+                                            ) : (
+                                                <Camera className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+                                            )
+                                        }
                                     </button>
                                 )}
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={handleFileChange}
+                                />
                             </div>
                             <div className="flex flex-col items-center justify-center md:mt-1 md:items-start">
                                 <div>
@@ -352,7 +442,7 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                                 <div className={`flex items-center gap-2 px-3 py-0.5 mt-1 border rounded-full ${getRoleStyle(user.role)}`} >
                                     {getRoleIcon(user.role)}
                                     <span className="font-medium">
-                                        {user.role === "writer" ? "Tác giả" : user.role === "admin" ? "Quản trị" : "Độc giả"}
+                                        {handleRole(profileData.user.role)}
                                     </span>
                                 </div>
                             </div>
@@ -372,7 +462,7 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                                 <>
                                     <button
                                         onClick={handleFollowToggle}
-                                        disabled={followMutation.isPending}
+                                        disabled={followMutation.isPending || changeAvatarMutation.isPending}
                                         className={`w-50 px-4 py-2 md:px-6 md:py-3 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg disabled:opacity-50 ${isFollowing
                                             ? "bg-green-400 hover:bg-green-600 text-white hover:shadow-green-400/25"
                                             : "bg-green-500 hover:bg-green-700 text-white hover:shadow-green-500/25"
@@ -757,7 +847,7 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                                                             Có <span className="font-semibold">{formatNumber(profile.stats.followers)}</span> người theo dõi
                                                         </p>
                                                         <p className="text-gray-400 text-xs">
-                                                            Đang theo dõi {formatNumber(profile.stats.following)} người
+                                                            Đang theo dõi {formatNumber(profile.stats.followers)} người
                                                         </p>
                                                     </div>
                                                 </div>

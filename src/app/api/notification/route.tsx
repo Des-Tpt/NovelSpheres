@@ -49,7 +49,6 @@ export async function GET(req: NextRequest) {
             filter.type = type;
         }
 
-        // Parallel queries for better performance
         const [notifies, total, unreadCount] = await Promise.all([
             Notification.find(filter)
                 .select('message type href isRead createdAt') // Only needed fields
@@ -60,7 +59,6 @@ export async function GET(req: NextRequest) {
             
             Notification.countDocuments(filter),
             
-            // Get unread count for badge
             Notification.countDocuments({ 
                 userId: new mongoose.Types.ObjectId(userId), 
                 isRead: false 
@@ -83,7 +81,6 @@ export async function GET(req: NextRequest) {
             }
         });
 
-        // Add cache headers (5 minutes for read notifications, no cache for unread)
         if (status === 'read') {
             response.headers.set('Cache-Control', 'public, max-age=300');
         } else {
@@ -98,7 +95,6 @@ export async function GET(req: NextRequest) {
     }
 }
 
-// Thêm endpoint riêng để mark as read (PUT method)
 export async function PUT(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
@@ -115,13 +111,11 @@ export async function PUT(req: NextRequest) {
         let updateResult;
 
         if (markAllAsRead) {
-            // Mark all notifications as read
             updateResult = await Notification.updateMany(
                 { userId: new mongoose.Types.ObjectId(userId), isRead: false },
                 { isRead: true }
             );
         } else if (notificationIds && Array.isArray(notificationIds)) {
-            // Mark specific notifications as read
             updateResult = await Notification.updateMany(
                 { 
                     _id: { $in: notificationIds.map(id => new mongoose.Types.ObjectId(id)) },

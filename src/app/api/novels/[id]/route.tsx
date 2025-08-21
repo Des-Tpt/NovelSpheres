@@ -3,9 +3,7 @@ import { connectDB } from "@/lib/db";
 import { Act } from "@/model/Act";
 import { Chapter } from "@/model/Chapter";
 import { Comment } from "@/model/Comment";
-import { Genre } from "@/model/Genre";
 import { Novel } from "@/model/Novel";
-import { User } from "@/model/User";
 import { NovelService } from "@/service/novelService";
 import optimizeComment from "@/utils/handleOptimize";
 import { NextRequest, NextResponse } from "next/server";
@@ -153,7 +151,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
         });
         await newAct.save();
 
-        return NextResponse.json({ success: true }, { status: 201 });
+        return NextResponse.json({ success: true, newAct: newAct }, { status: 201 });
     } catch (error) {
         return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
     }
@@ -232,7 +230,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
 
         await act.save();
 
-        return NextResponse.json({ success: true }, { status: 200 });
+        return NextResponse.json({ success: true, newAct: act }, { status: 200 });
     } catch (error) {
         console.error('Lỗi khi cập nhật act:', error);
         return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
@@ -330,7 +328,7 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
 
         await Act.findOneAndDelete({ _id: actId })
 
-        return NextResponse.json({ success: true }, { status: 200 });
+        return NextResponse.json({ success: true, deleteActId: actId }, { status: 200 });
     } catch (error) {
         return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
     }

@@ -42,19 +42,18 @@ export async function GET(request: NextRequest, context: { params: Promise<{ use
 
         // Lấy thống kê followers/following
         const [followersCount, followingCount] = await Promise.all([
-            Follow.countDocuments({ followerUserId: userId }),
+            Follow.countDocuments({ followingUserId: userId }),
             Follow.countDocuments({ userId: userId })
         ]);
 
         const user = await User.findById(userId).lean() as any;
 
         const currentUser = await getCurrentUser();
-        
-        let followed = null;
 
+        let followed = null;
         if (currentUser) {
             followed = await Follow.findOne({
-                userId: currentUser._id,
+                userId: currentUser._id,        
                 followingUserId: profile.userId
             });
         }

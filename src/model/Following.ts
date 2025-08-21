@@ -50,7 +50,7 @@ FollowSchema.post("findOneAndDelete", async function (doc) {
     );
 });
 
-FollowSchema.index({ followerUserId: 1, followingUserId: 1 }, { unique: true });
+FollowSchema.index({ userId: 1, followingUserId: 1 }, { unique: true });
 
 
 export const Follow = models.Follow || model<IFollow>("Follow", FollowSchema, "Follow");
