@@ -4,6 +4,7 @@ import { User } from "@/model/User";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { error } from "console";
 
 
 export interface IUser {
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     const secret = process.env.JWT_SECRET;
-    if (!secret) throw Error("JWT_SECRET is not defined");
+    if (!secret) return NextResponse.json({error: "JWT_SECRET is not defined"},  { status: 404 });
 
     //Tạo jwt token (về cơ bản là 1 interface chứa các attribute được lưu vào cookies)
     const token = jwt.sign(

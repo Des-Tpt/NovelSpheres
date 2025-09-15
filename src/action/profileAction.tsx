@@ -2,7 +2,7 @@ export const getProfile = async (userId: string) => {
     const response = await fetch(`/api/profile/${userId}`);
 
     if (!response.ok) {
-        throw new Error('Failed to fetch profile');
+        throw Error('Lỗi khi lấy dữ liệu trang cá nhân!');
     }
 
     return response.json();
@@ -69,4 +69,21 @@ export async function updateProfile({ userId, data }: UpdateProfileVariables) {
     }
 
     return result;
+}
+
+interface historyData {
+    userId: string;
+    page: number;
+}
+
+export async function getHistory({ userId, page }: historyData) {
+    const response = await fetch(`/api/${userId}/histories?page=${page}`, {
+        method: 'GET'
+    });
+
+    if (!response.ok) {
+        throw Error('Lỗi khi lấy lịch sử đọc truyện!');
+    }
+
+    return response.json();
 }

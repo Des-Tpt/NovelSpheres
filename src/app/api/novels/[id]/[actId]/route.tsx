@@ -62,7 +62,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
         await Novel.findByIdAndUpdate(novelId, { updatedAt: new Date() });
 
         const likes = await Likes.find({ novelId })
-            .select('userId')
+            .select('userId');
 
         const notifPromises = likes.map(async (like) => {
             const message = `Tiểu thuyết ${novel.title} vừa có chương mới: ${title}`;

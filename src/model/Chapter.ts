@@ -1,5 +1,6 @@
 import { Schema, Document, models, model } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
+import { Novel } from './Novel';
 
 export interface IChapter extends Document {
     _id: Schema.Types.ObjectId,
@@ -20,7 +21,7 @@ const ChapterSchema = new Schema<IChapter>({
     title: { type: String, required: true },
     content: { type: String, required: true },
     chapterNumber: { type: Number, required: true },
-    wordCount: {type: Number},
+    wordCount: { type: Number },
     updatedAt: { type: Date, default: Date.now },
     createdAt: { type: Date, default: Date.now }
 })
@@ -28,10 +29,16 @@ const ChapterSchema = new Schema<IChapter>({
 ChapterSchema.index({ novelId: 1, chapterNumber: 1 });
 ChapterSchema.index({ actId: 1 });
 
-ChapterSchema.pre('save', function (next) {
+ChapterSchema.pre('save', async function (next) {
     this.updatedAt = new Date();
+
+    if (this.novelId) {
+        await Novel.findByIdAndUpdate(this.novelId,
+            { updatedAt: new Date() }
+        );
+    }
     next();
-  });
-  
+});
+
 
 export const Chapter = models.Chapter || model<IChapter>('Chapter', ChapterSchema, 'Chapter');

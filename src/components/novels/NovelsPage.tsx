@@ -104,7 +104,7 @@ const NovelsPage = () => {
             genreIds: selectedGenres,
             sort: sortBy
         }),
-        //LastPage là Array gần nhất vừa fetch về (ví dụ từ 5-10), còn allPages là toàn bộ Array đã fetch.
+        //LastPage là Array gần nhất vừa fetch về (ví dụ từ 5-10), còn allPages là toàn bộ Array đã fetch. Hai giá trị này có sẳn trong useInfiniteQuery.
         getNextPageParam: (lastPage, allPages) => {
             return lastPage.hasMore ? allPages.length + 1 : undefined;
         },
@@ -638,7 +638,7 @@ const NovelsPage = () => {
 
                                     {/* Load More Button */}
                                     {hasNextPage && (
-                                        <div className="text-center mt-12">
+                                        <div className="text-center mt-12 mb-12">
                                             <button
                                                 onClick={() => fetchNextPage()}
                                                 disabled={isFetchingNextPage}
