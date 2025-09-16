@@ -1,3 +1,4 @@
+import { getCurrentUser } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import { Chapter } from "@/model/Chapter";
 import { Genre } from "@/model/Genre";
@@ -18,6 +19,15 @@ export async function GET(request: NextRequest, context: { params: Promise<{ use
         if (!userId) {
             return NextResponse.json(
                 { error: "Không lấy được thông tin người dùng!" },
+                { status: 400 }
+            );
+        }
+
+        const currentUser = await getCurrentUser();
+
+        if (currentUser && userId !== currentUser._id) {
+            return NextResponse.json(
+                { error: "Bạn không có quyền xem lịch sử của người khác!" },
                 { status: 400 }
             );
         }

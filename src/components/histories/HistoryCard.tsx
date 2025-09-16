@@ -148,7 +148,7 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
                                         <div className="flex gap-1 max-w-48 overflow-hidden">
                                             {history.novels.genres.slice(0, 2).map((genre, idx) => (
                                                 <span
-                                                    key={genre._id}
+                                                    key={`${genre._id}-${idx}`}
                                                     className="text-xs text-gray-400 bg-gray-700/50 px-2 py-0.5 rounded truncate"
                                                 >
                                                     {genre.name}

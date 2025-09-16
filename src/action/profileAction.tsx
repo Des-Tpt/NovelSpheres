@@ -77,7 +77,7 @@ interface historyData {
 }
 
 export async function getHistory({ userId, page }: historyData) {
-    const response = await fetch(`/api/user/${userId}/histories?page=${page}`, {
+    const response = await fetch(`/api/profile/${userId}/histories?page=${page}`, {
         method: 'GET'
     });
 
@@ -89,7 +89,7 @@ export async function getHistory({ userId, page }: historyData) {
 }
 
 export async function getFavorites({ userId, page }: historyData) {
-    const response = await fetch(`/api/user/${userId}/favorites?page=${page}`, {
+    const response = await fetch(`/api/profile/${userId}/favorites?page=${page}`, {
         method: 'GET'
     });
 

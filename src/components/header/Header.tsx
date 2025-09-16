@@ -215,7 +215,12 @@ const Header = () => {
                                                 <Heart className="h-5 w-5" />
                                                 <span>Yêu thích</span>
                                             </button>
-                                            <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-gray-100 hover:bg-gray-600 transition-colors">
+                                            <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-gray-100 hover:bg-gray-600 transition-colors"
+                                                onClick={() => {
+                                                    router.push(`/profile/${currentUser._id}/histories`)
+                                                    setIsUserDropdownOpen(false);
+                                                }}    
+                                            >
                                                 <History className="h-5 w-5" />
                                                 <span>Lịch sử</span>
                                             </button>
