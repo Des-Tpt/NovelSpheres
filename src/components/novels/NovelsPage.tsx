@@ -90,26 +90,40 @@ const NovelsPage = () => {
         JSON.stringify(pendingGenres.sort()) !== JSON.stringify(selectedGenres.sort()) ||
         pendingSort !== sortBy;
 
+    const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+
     // Separate query for genres
     const { data: genresData, isLoading: genresLoading } = useQuery({
         queryKey: ['genres'],
         queryFn: getGenres,
     });
 
-    const { data, error, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch } = useInfiniteQuery<ApiResponse>({
+    const {
+        data,
+        error,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+        isLoading,
+        isError,
+        refetch,
+        status,
+        isFetching
+    } = useInfiniteQuery<ApiResponse>({
         queryKey: ['novels', selectedGenres, sortBy],
-        //pageParam là biến của useInfiniteQuery, nó sẽ có tác dụng phụ trách phân trang, thay vì chúng ta phải tự khai báo state và tự xử lý logic.
         queryFn: ({ pageParam = 1 }) => getNovelsForNovelsPage({
             page: pageParam as number,
             genreIds: selectedGenres,
             sort: sortBy
         }),
-        //LastPage là Array gần nhất vừa fetch về (ví dụ từ 5-10), còn allPages là toàn bộ Array đã fetch. Hai giá trị này có sẳn trong useInfiniteQuery.
         getNextPageParam: (lastPage, allPages) => {
             return lastPage.hasMore ? allPages.length + 1 : undefined;
         },
         initialPageParam: 1,
     });
+
+    const isInitialLoading = isLoading && !hasLoadedOnce;
+    const isRefetching = isFetching && hasLoadedOnce;
 
     // Extract data from pages - Fixed: Add fallback and ensure unique keys
     const novels = data?.pages.flatMap(page => page.novel).filter(novel => novel && novel._id) || [];
@@ -226,7 +240,14 @@ const NovelsPage = () => {
         refetch();
     };
 
-    if (isLoading) return <LoadingComponent />;
+    useEffect(() => {
+        if (data && !hasLoadedOnce) {
+            setHasLoadedOnce(true);
+        }
+    }, [data, hasLoadedOnce]);
+
+
+    if (isInitialLoading) return <LoadingComponent />;
 
     return (
         <>
@@ -442,254 +463,256 @@ const NovelsPage = () => {
                                             <span className="bg-blue-500 text-xs px-2 py-0.5 rounded-full">●</span>
                                         )}
                                     </button>
-
-                                    {hasPendingChanges && (
-                                        <motion.button
-                                            initial={{ opacity: 0, y: -10, scale: 0.5 }}
-                                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                                            transition={{
-                                                ease: 'easeInOut',
-                                                duration: 0.1
-                                            }}
-                                            exit={{ opacity: 0, y: 30, scale: 0.5 }}
-                                            onClick={resetPendingChanges}
-                                            className="w-full bg-gray-700 hover:bg-gray-600 z-0 text-gray-300 px-4 py-2 rounded-lg font-medium transition-all duration-300"
-                                        >
-                                            Hủy thay đổi
-                                        </motion.button>
-                                    )}
+                                    <motion.button
+                                        initial={{ opacity: 0, y: -10, scale: 0.5 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        transition={{
+                                            ease: 'easeInOut',
+                                            duration: 0.1
+                                        }}
+                                        exit={{ opacity: 0, y: 30, scale: 0.5 }}
+                                        onClick={resetPendingChanges}
+                                        disabled={!hasPendingChanges}
+                                        className="w-full bg-gray-700 hover:bg-gray-600 z-0 text-gray-300 px-4 py-2 rounded-lg font-medium transition-all duration-300"
+                                    >
+                                        Hủy thay đổi
+                                    </motion.button>
                                 </div>
                             </div>
                         </div>
 
                         {/* Main Content */}
                         <div className="flex-1">
-                            {/* Error State */}
-                            {isError && (
-                                <div className="bg-red-900/50 border border-red-700 rounded-xl p-6 mb-6">
-                                    <div className="flex items-center gap-3 mb-3">
-                                        <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center">
-                                            <X size={14} className="text-white" />
+                            {/* Loading overlay cho phần novels khi filter */}
+                            <div className="relative">
+                                {isRefetching && (
+                                    <div className="text-center py-16">
+                                        <div className="inline-flex items-center gap-4">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                                            <p className="text-gray-400 text-lg">Đang cập nhật kết quả...</p>
                                         </div>
-                                        <h3 className="text-red-400 font-semibold">Có lỗi xảy ra</h3>
                                     </div>
-                                    <p className="text-red-300 mb-4">
-                                        {error instanceof Error ? error.message : 'Không thể tải dữ liệu tiểu thuyết'}
-                                    </p>
-                                    <button
-                                        onClick={() => refetch()}
-                                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium"
-                                    >
-                                        Thử lại
-                                    </button>
-                                </div>
-                            )}
+                                )}
 
-                            {/* Loading State */}
-                            {isLoading && (
-                                <div className="text-center py-16">
-                                    <div className="inline-flex items-center gap-4">
-                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                                        <p className="text-gray-400 text-lg">Đang tải tiểu thuyết...</p>
+                                {/* Error State */}
+                                {isError && (
+                                    <div className="bg-red-900/50 border border-red-700 rounded-xl p-6 mb-6">
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center">
+                                                <X size={14} className="text-white" />
+                                            </div>
+                                            <h3 className="text-red-400 font-semibold">Có lỗi xảy ra</h3>
+                                        </div>
+                                        <p className="text-red-300 mb-4">
+                                            {error instanceof Error ? error.message : 'Không thể tải dữ liệu tiểu thuyết'}
+                                        </p>
+                                        <button
+                                            onClick={() => refetch()}
+                                            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+                                        >
+                                            Thử lại
+                                        </button>
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                            {/* Novels Grid/List */}
-                            {novels.length > 0 && (
-                                <>
-                                    <div className={viewMode === 'grid'
-                                        ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"
-                                        : "space-y-3"
-                                    }>
-                                        {novels.map((novel, index) => (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: 30 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: 30 }}
-                                                transition={{ duration: index * 0.1, ease: 'easeInOut' }}
-                                                key={`${novel._id}-${index}`}
-                                                onClick={() => router.push(`/novels/${novel._id}`)}
-                                                className={`bg-gray-950 backdrop-blur-sm rounded-2xl border border-gray-800/50 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer group ${viewMode === 'list'
-                                                    ? 'flex gap-4 p-4 sm:gap-6 sm:p-6'
-                                                    : 'overflow-hidden flex flex-col h-auto'
-                                                    }`}
-                                            >
-                                                {/* Cover Image */}
-                                                <div className={
-                                                    viewMode === 'list'
-                                                        ? 'w-30 h-40 sm:w-32 sm:h-55 flex-shrink-0'
-                                                        : 'relative overflow-hidden'
-                                                }>
-                                                    <div className={`object-cover transition-transform duration-300 group-hover:scale-110 ${viewMode === 'list' ? 'rounded-xl h-full' : 'rounded-t-2xl w-full h-60'
-                                                        }`}>
-                                                        <CustomImage
-                                                            src={novel.coverImage?.publicId && imageUrls[novel.coverImage.publicId]
-                                                                ? imageUrls[novel.coverImage.publicId]
-                                                                : `https://res.cloudinary.com/${cloudName!}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`
-                                                            }
-                                                            height={300}
-                                                            width={200}
-                                                            alt={novel.title || 'Novel cover'}
-                                                            objectCenter={false}
-                                                        />
-                                                    </div>
-                                                    {viewMode === 'grid' && (
-                                                        <>
-                                                            {/* Gradient overlay */}
-                                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
-                                                            {/* Status badge */}
-                                                            <div className="absolute bottom-3 right-3">
-                                                                <span className={`px-2 py-1 rounded-lg text-xs font-semibold backdrop-blur-sm ${getStatusColor(novel.status)}`}>
-                                                                    {handleStatus(novel.status)}
-                                                                </span>
-                                                            </div>
-                                                            {/* Rating badge */}
-                                                            <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-lg">
-                                                                <Star size={12} className="text-yellow-400 fill-current" />
-                                                                <span className="text-white text-xs font-semibold">
-                                                                    {Number(novel.rating || 0).toFixed(1)}
-                                                                </span>
-                                                            </div>
-                                                        </>
-                                                    )}
-                                                </div>
-
-                                                {/* Content */}
-                                                <div className={
-                                                    viewMode === 'list'
-                                                        ? 'flex-1 flex flex-col justify-between min-h-0'
-                                                        : 'p-4 flex-1 flex flex-col'
-                                                }>
-                                                    {/* Header */}
-                                                    <div className="space-y-2 mb-3">
-                                                        <div className="flex items-center justify-between gap-2">
-                                                            <h3 className={`font-bold text-white group-hover:text-blue-400 transition-colors leading-tight ${viewMode === 'list' ? 'text-lg line-clamp-2' : 'text-lg line-clamp-2'
+                                {/* Novels Grid/List */}
+                                <div className={`transition-opacity duration-300 ${isRefetching ? 'opacity-50' : 'opacity-100'}`}>
+                                    {novels.length > 0 ? (
+                                        <>
+                                            <div className={viewMode === 'grid'
+                                                ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"
+                                                : "space-y-3"
+                                            }>
+                                                {novels.map((novel, index) => (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, y: 30 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        exit={{ opacity: 0, y: 30 }}
+                                                        transition={{ duration: index * 0.1, ease: 'easeInOut' }}
+                                                        key={`${novel._id}-${index}`}
+                                                        onClick={() => router.push(`/novels/${novel._id}`)}
+                                                        className={`bg-gray-950 backdrop-blur-sm rounded-2xl border border-gray-800/50 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer group ${viewMode === 'list'
+                                                            ? 'flex gap-4 p-4 sm:gap-6 sm:p-6'
+                                                            : 'overflow-hidden flex flex-col h-auto'
+                                                            }`}
+                                                    >
+                                                        {/* Cover Image */}
+                                                        <div className={
+                                                            viewMode === 'list'
+                                                                ? 'w-30 h-40 sm:w-32 sm:h-55 flex-shrink-0'
+                                                                : 'relative overflow-hidden'
+                                                        }>
+                                                            <div className={`object-cover transition-transform duration-300 group-hover:scale-110 ${viewMode === 'list' ? 'rounded-xl h-full' : 'rounded-t-2xl w-full h-60'
                                                                 }`}>
-                                                                {novel.title}
-                                                            </h3>
-                                                            {viewMode === 'list' && (
-                                                                <span className={`px-2 py-1 rounded-lg text-sm font-semibold whitespace-nowrap flex-shrink-0 ${getStatusColor(novel.status)}`}>
-                                                                    {handleStatus(novel.status)}
-                                                                </span>
+                                                                <CustomImage
+                                                                    src={novel.coverImage?.publicId && imageUrls[novel.coverImage.publicId]
+                                                                        ? imageUrls[novel.coverImage.publicId]
+                                                                        : `https://res.cloudinary.com/${cloudName!}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`
+                                                                    }
+                                                                    height={300}
+                                                                    width={200}
+                                                                    alt={novel.title || 'Novel cover'}
+                                                                    objectCenter={false}
+                                                                />
+                                                            </div>
+                                                            {viewMode === 'grid' && (
+                                                                <>
+                                                                    {/* Gradient overlay */}
+                                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+                                                                    {/* Status badge */}
+                                                                    <div className="absolute bottom-3 right-3">
+                                                                        <span className={`px-2 py-1 rounded-lg text-xs font-semibold backdrop-blur-sm ${getStatusColor(novel.status)}`}>
+                                                                            {handleStatus(novel.status)}
+                                                                        </span>
+                                                                    </div>
+                                                                    {/* Rating badge */}
+                                                                    <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-lg">
+                                                                        <Star size={12} className="text-yellow-400 fill-current" />
+                                                                        <span className="text-white text-xs font-semibold">
+                                                                            {Number(novel.rating || 0).toFixed(1)}
+                                                                        </span>
+                                                                    </div>
+                                                                </>
                                                             )}
                                                         </div>
 
-                                                        <div className="flex items-center gap-2 text-[1rem]">
-                                                            <span className="text-gray-500">của</span>
-                                                            <span className="text-blue-400 font-medium truncate">
-                                                                {novel.authorId?.username || 'Ẩn danh'}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Description - Only show in list mode or larger screens */}
-                                                    {(viewMode === 'list' || (typeof window !== 'undefined' && window.innerWidth > 640)) && (
-                                                        <p className="text-xs sm:text-sm text-gray-400 line-clamp-2 sm:line-clamp-3 leading-relaxed mb-3">
-                                                            {stripHtml(novel.description)}
-                                                        </p>
-                                                    )}
-
-                                                    {/* Genres - Max 2 genres */}
-                                                    <div className="flex flex-wrap gap-1.5 mb-3">
-                                                        {novel.genresId?.slice(0, 2).map((genre) => (
-                                                            <span
-                                                                key={genre._id}
-                                                                className="px-2.5 py-1 bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-300 border border-purple-500/30 rounded-full text-xs font-medium backdrop-blur-sm"
-                                                            >
-                                                                {genre.name}
-                                                            </span>
-                                                        ))}
-                                                        {novel.genresId && novel.genresId.length > 2 && (
-                                                            <span className="px-2.5 py-1 bg-gray-700/50 text-gray-400 rounded-full text-xs backdrop-blur-sm">
-                                                                +{novel.genresId.length - 2}
-                                                            </span>
-                                                        )}
-                                                    </div>
-
-                                                    {/* Stats - Always at bottom */}
-                                                    <div className="mt-auto pt-3 border-t border-gray-800/50">
-                                                        <div className="flex items-center justify-between">
-                                                            <div className="flex items-center gap-3 text-xs">
-                                                                <div className="flex items-center gap-1 text-emerald-400">
-                                                                    <Eye size={12} />
-                                                                    <span className="font-medium">{formatNumber(novel.views || 0)}</span>
+                                                        {/* Content */}
+                                                        <div className={
+                                                            viewMode === 'list'
+                                                                ? 'flex-1 flex flex-col justify-between min-h-0'
+                                                                : 'p-4 flex-1 flex flex-col'
+                                                        }>
+                                                            {/* Header */}
+                                                            <div className="space-y-2 mb-3">
+                                                                <div className="flex items-center justify-between gap-2">
+                                                                    <h3 className={`font-bold text-white group-hover:text-blue-400 transition-colors leading-tight ${viewMode === 'list' ? 'text-lg line-clamp-2' : 'text-lg line-clamp-2'
+                                                                        }`}>
+                                                                        {novel.title}
+                                                                    </h3>
+                                                                    {viewMode === 'list' && (
+                                                                        <span className={`px-2 py-1 rounded-lg text-sm font-semibold whitespace-nowrap flex-shrink-0 ${getStatusColor(novel.status)}`}>
+                                                                            {handleStatus(novel.status)}
+                                                                        </span>
+                                                                    )}
                                                                 </div>
-                                                                <div className="flex items-center gap-1 text-rose-400">
-                                                                    <Heart size={12} />
-                                                                    <span className="font-medium">{formatNumber(novel.likes || 0)}</span>
+
+                                                                <div className="flex items-center gap-2 text-[1rem]">
+                                                                    <span className="text-gray-500">của</span>
+                                                                    <span className="text-blue-400 font-medium truncate">
+                                                                        {novel.authorId?.username || 'Ẩn danh'}
+                                                                    </span>
                                                                 </div>
-                                                                {viewMode === 'list' && (
-                                                                    <div className="flex items-center gap-1 text-yellow-400">
-                                                                        <Star size={12} />
-                                                                        <span className="font-medium">{Number(novel.rating || 0).toFixed(1)}</span>
-                                                                    </div>
+                                                            </div>
+
+                                                            {/* Description - Only show in list mode or larger screens */}
+                                                            {(viewMode === 'list' || (typeof window !== 'undefined' && window.innerWidth > 640)) && (
+                                                                <p className="text-xs sm:text-sm text-gray-400 line-clamp-2 sm:line-clamp-3 leading-relaxed mb-3">
+                                                                    {stripHtml(novel.description)}
+                                                                </p>
+                                                            )}
+
+                                                            {/* Genres - Max 2 genres */}
+                                                            <div className="flex flex-wrap gap-1.5 mb-3">
+                                                                {novel.genresId?.slice(0, 2).map((genre) => (
+                                                                    <span
+                                                                        key={genre._id}
+                                                                        className="px-2.5 py-1 bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-300 border border-purple-500/30 rounded-full text-xs font-medium backdrop-blur-sm"
+                                                                    >
+                                                                        {genre.name}
+                                                                    </span>
+                                                                ))}
+                                                                {novel.genresId && novel.genresId.length > 2 && (
+                                                                    <span className="px-2.5 py-1 bg-gray-700/50 text-gray-400 rounded-full text-xs backdrop-blur-sm">
+                                                                        +{novel.genresId.length - 2}
+                                                                    </span>
                                                                 )}
                                                             </div>
-                                                            <div className="text-xs text-gray-500 font-medium">
-                                                                {formatDate(novel.updatedAt)}
+
+                                                            {/* Stats - Always at bottom */}
+                                                            <div className="mt-auto pt-3 border-t border-gray-800/50">
+                                                                <div className="flex items-center justify-between">
+                                                                    <div className="flex items-center gap-3 text-xs">
+                                                                        <div className="flex items-center gap-1 text-emerald-400">
+                                                                            <Eye size={12} />
+                                                                            <span className="font-medium">{formatNumber(novel.views || 0)}</span>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-1 text-rose-400">
+                                                                            <Heart size={12} />
+                                                                            <span className="font-medium">{formatNumber(novel.likes || 0)}</span>
+                                                                        </div>
+                                                                        {viewMode === 'list' && (
+                                                                            <div className="flex items-center gap-1 text-yellow-400">
+                                                                                <Star size={12} />
+                                                                                <span className="font-medium">{Number(novel.rating || 0).toFixed(1)}</span>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="text-xs text-gray-500 font-medium">
+                                                                        {formatDate(novel.updatedAt)}
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                </div>
-                                            </motion.div>
-                                        ))}
-                                    </div>
-
-                                    {/* Load More Button */}
-                                    {hasNextPage && (
-                                        <div className="text-center mt-12 mb-12">
-                                            <button
-                                                onClick={() => fetchNextPage()}
-                                                disabled={isFetchingNextPage}
-                                                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 inline-flex items-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none"
-                                            >
-                                                {isFetchingNextPage ? (
-                                                    <>
-                                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                                                        Đang tải thêm...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <BookOpen size={18} />
-                                                        Xem thêm tiểu thuyết
-                                                    </>
-                                                )}
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    {/* No More Results */}
-                                    {!hasNextPage && novels.length > 0 && (
-                                        <div className="text-center mt-12 py-8 border-t border-gray-700">
-                                            <div className="text-gray-400 mb-2">
-                                                <BookOpen size={24} className="mx-auto mb-2 opacity-50" />
+                                                    </motion.div>
+                                                ))}
                                             </div>
-                                            <p className="text-gray-400">Đã hiển thị tất cả {novels.length} tiểu thuyết</p>
-                                        </div>
-                                    )}
-                                </>
-                            )}
 
-                            {/* No Results */}
-                            {!isLoading && novels.length === 0 && (
-                                <div className="text-center py-20 bg-gray-950 rounded-xl border border-gray-700">
-                                    <div className="text-gray-500 mb-6">
-                                        <Search size={64} className="mx-auto mb-4 opacity-50" />
-                                    </div>
-                                    <h3 className="text-2xl font-bold text-white mb-3">
-                                        Không tìm thấy tiểu thuyết nào
-                                    </h3>
-                                    <p className="text-gray-400 mb-6 max-w-md mx-auto">
-                                        Có vẻ như không có tiểu thuyết nào phù hợp với bộ lọc hiện tại. Hãy thử điều chỉnh các tiêu chí tìm kiếm.
-                                    </p>
-                                    <button
-                                        onClick={clearFilters}
-                                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
-                                        Xóa tất cả bộ lọc
-                                    </button>
+                                            {/* Load More Button */}
+                                            {hasNextPage && (
+                                                <div className="text-center mt-12 mb-12">
+                                                    <button
+                                                        onClick={() => fetchNextPage()}
+                                                        disabled={isFetchingNextPage || isRefetching}
+                                                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 inline-flex items-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none"
+                                                    >
+                                                        {isFetchingNextPage ? (
+                                                            <>
+                                                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                                                                Đang tải thêm...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <BookOpen size={18} />
+                                                                Xem thêm tiểu thuyết
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                            {/* No More Results */}
+                                            {!hasNextPage && novels.length > 0 && (
+                                                <div className="text-center mt-12 py-8 border-t border-gray-700">
+                                                    <div className="text-gray-400 mb-2">
+                                                        <BookOpen size={24} className="mx-auto mb-2 opacity-50" />
+                                                    </div>
+                                                    <p className="text-gray-400">Đã hiển thị tất cả {novels.length} tiểu thuyết</p>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        /* No Results - chỉ hiển thị khi không đang refetch */
+                                        !isRefetching && (
+                                            <div className="text-center py-20 bg-gray-950 rounded-xl border border-gray-700">
+                                                <div className="text-gray-500 mb-6">
+                                                    <Search size={64} className="mx-auto mb-4 opacity-50" />
+                                                </div>
+                                                <h3 className="text-2xl font-bold text-white mb-3">
+                                                    Không tìm thấy tiểu thuyết nào
+                                                </h3>
+                                                <p className="text-gray-400 mb-6 max-w-md mx-auto">
+                                                    Có vẻ như không có tiểu thuyết nào phù hợp với bộ lọc hiện tại. Hãy thử điều chỉnh các tiêu chí tìm kiếm.
+                                                </p>
+                                                <button
+                                                    onClick={clearFilters}
+                                                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                                                    Xóa tất cả bộ lọc
+                                                </button>
+                                            </div>
+                                        )
+                                    )}
                                 </div>
-                            )}
+                            </div>
                         </div>
                     </div>
                 </div>

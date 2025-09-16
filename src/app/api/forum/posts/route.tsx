@@ -32,19 +32,19 @@ export async function GET(req: NextRequest) {
         const total = await ForumPost.countDocuments(filter);
 
         const posts = await ForumPost.find(filter)
-        .sort(sortBy)
-        .skip(skip)
-        .limit(limit)
-        .populate({
-            path: 'userId',
-            select: 'username profile.avatar role',
-            model: User,
-        })
-        .lean();
+            .sort(sortBy)
+            .skip(skip)
+            .limit(limit)
+            .populate({
+                path: 'userId',
+                select: 'username profile.avatar role',
+                model: User,
+            })
+            .lean();
 
         const formatted = await Promise.all(
             posts.map(async (post) => {
-                const totalReplies = await Comment.countDocuments({sourceId: post._id});
+                const totalReplies = await Comment.countDocuments({ sourceId: post._id });
 
                 return {
                     _id: post._id,
@@ -60,9 +60,9 @@ export async function GET(req: NextRequest) {
                     owner: post.userId?.username || 'Vô danh',
                     avatar: post.userId?.profile?.avatar || null,
                     totalRepiles: totalReplies,
-                    lastCommentAt: post.lastCommentAt,    
+                    lastCommentAt: post.lastCommentAt,
                 }
-                })
+            })
         )
 
         return NextResponse.json({
@@ -74,8 +74,8 @@ export async function GET(req: NextRequest) {
     } catch (e) {
         console.error('[ForumPosts API ERROR]', e);
         return NextResponse.json(
-        { error: 'Không thể lấy thông tin bài viết.' },
-        { status: 500 }
+            { error: 'Không thể lấy thông tin bài viết.' },
+            { status: 500 }
         );
     }
 }
@@ -96,8 +96,8 @@ export async function POST(request: NextRequest) {
         const user: User | null = await getCurrentUser();
 
         if (!user) return NextResponse.json({ error: 'Vui lòng đăng nhập tài khoản để tạo post!' }, { status: 401 });
-        
-        const {title, category, content, novelId} = await request.json();
+
+        const { title, category, content, novelId } = await request.json();
 
         const safeContent = removeScriptsFromHtml(content);
 
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
         });
 
         await newPost.save();
-        
+
         return NextResponse.json({ success: true, post: newPost })
     } catch (e) {
         return NextResponse.json({ error: 'Đã xảy ra lỗi khi tạo post!' }, { status: 500 });
