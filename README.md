@@ -80,4 +80,4 @@ src/
 └── utils/      # Helper functions
 ```
 
-[MIT License](LICENSE)
+Preview: https://novel-spheres.vercel.app/
