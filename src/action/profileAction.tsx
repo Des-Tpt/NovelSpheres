@@ -77,7 +77,7 @@ interface historyData {
 }
 
 export async function getHistory({ userId, page }: historyData) {
-    const response = await fetch(`/api/${userId}/histories?page=${page}`, {
+    const response = await fetch(`/api/user/${userId}/histories?page=${page}`, {
         method: 'GET'
     });
 
@@ -86,4 +86,19 @@ export async function getHistory({ userId, page }: historyData) {
     }
 
     return response.json();
+}
+
+export async function getFavorites({ userId, page }: historyData) {
+    const response = await fetch(`/api/user/${userId}/favorites?page=${page}`, {
+        method: 'GET'
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        console.log(result.error)
+        throw Error('Lỗi khi lấy lịch sử đọc truyện!');
+    }
+
+    return result;
 }

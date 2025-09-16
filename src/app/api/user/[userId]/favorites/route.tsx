@@ -11,7 +11,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ use
     try {
         await connectDB();
         const { searchParams } = request.nextUrl;
-        const userId = await context.params;
+        const { userId } = await context.params;
         const page = parseInt(searchParams.get("page") || "1");
         const limit = 10;
 

@@ -6,12 +6,12 @@ import { Novel } from "@/model/Novel";
 import { User } from "@/model/User";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: NextRequest, context : { params: Promise<{ userId: string }> }) {
+export async function GET(request: NextRequest, context: { params: Promise<{ userId: string }> }) {
     try {
         await connectDB();
 
         const { searchParams } = request.nextUrl;
-        const userId = await context.params;
+        const { userId } = await context.params;
         const page = parseInt(searchParams.get("page") || "1");
         const limit = 10;
 
@@ -66,10 +66,9 @@ export async function GET(request: NextRequest, context : { params: Promise<{ us
             },
             chapter: {
                 _id: history.chapterId._id,
-                number: history.chapterId.chapterNumber,
+                chapterNumber: history.chapterId.chapterNumber,
                 title: history.chapterId.title
             },
-            currentChapter: history.currentChapter,
             lastReadAt: history.lastReadAt,
         }));
 
@@ -84,6 +83,7 @@ export async function GET(request: NextRequest, context : { params: Promise<{ us
         });
 
     } catch (error) {
+        console.log(error);
         return NextResponse.json(
             { error: "Lỗi khi lấy lịch sử đọc!" },
             { status: 500 }
