@@ -219,7 +219,7 @@ const Header = () => {
                                                 onClick={() => {
                                                     router.push(`/profile/${currentUser._id}/histories`)
                                                     setIsUserDropdownOpen(false);
-                                                }}    
+                                                }}
                                             >
                                                 <History className="h-5 w-5" />
                                                 <span>Lịch sử</span>
@@ -252,23 +252,6 @@ const Header = () => {
                                 isActive={activeButton === 'login'}
                             />
                         </div>
-                    )}
-                </div>
-
-                {/* Mobile User Section - Chỉ hiển thị nút đăng nhập khi chưa đăng nhập */}
-                <div className='md:hidden flex items-center gap-2'>
-                    {!isLoading && !currentUser && (
-                        <Button
-                            type={<UserIcon className="h-5 w-5" />}
-                            text="Đăng nhập"
-                            href="#"
-                            onClick={() => {
-                                handleClick('login');
-                                setIsAuthOpen(true);
-                                setIsSidebarOpen(false);
-                            }}
-                            isActive={activeButton === 'login'}
-                        />
                     )}
                 </div>
 
@@ -315,6 +298,23 @@ const Header = () => {
                 ) : null}
 
                 <div className="flex flex-col gap-2 p-4">
+                    {/* Mobile User Section - Chỉ hiển thị nút đăng nhập khi chưa đăng nhập */}
+                    <div className='md:hidden flex items-center gap-2'>
+                        {!isLoading && !currentUser && (
+                            <Button
+                                type={<UserIcon className="h-5 w-5" />}
+                                text="Đăng nhập"
+                                href="#"
+                                onClick={() => {
+                                    handleClick('login');
+                                    setIsAuthOpen(true);
+                                    setIsSidebarOpen(false);
+                                }}
+                                isActive={activeButton === 'login'}
+                            />
+                        )}
+                    </div>
+
                     <Button
                         type={<HomeIcon className="h-5 w-5" />}
                         text="Trang chủ"
@@ -345,6 +345,7 @@ const Header = () => {
                         }}
                         isActive={activeButton === 'novels'}
                     />
+
                     {/* User menu items trong sidebar */}
                     {!isLoading && currentUser && (
                         <>

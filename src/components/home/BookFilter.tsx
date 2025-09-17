@@ -120,7 +120,7 @@ const BookFilter = () => {
     if (!genres || genres.length === 0) return <p>Không có dữ liệu</p>;
 
     return (
-        <div className="flex flex-wrap justify-center gap-1 bg-black px-2.5 md:bg-gradient-to-r md:from-black md:from-20% md:via-gray-950 md:via-75% md:to-black pt-[5%] pb-[5%]">
+        <div className="flex flex-wrap justify-center gap-1 bg-black md:bg-gradient-to-r md:from-black md:from-20% md:via-gray-950 md:via-75% md:to-black pt-[5%] pb-[5%]">
             {/* Genre Filter Section - Hidden on mobile */}
             <div className="w-full hidden md:flex md:flex-col mx-3 p-4 rounded-2xl group hover:shadow hover:shadow-gray-400 hover:border-gray-400 transition-all duration-300">
                 <h1 className="text-white mb-2 block text-3xl">Lọc theo thể loại</h1>
@@ -156,17 +156,46 @@ const BookFilter = () => {
             </div>
 
             {/* Main Content Section */}
-            <div className="flex flex-col items-center py-10 w-full">
-                {/* Sort Buttons */}
+            <div className="flex flex-col items-center py-10 w-full px-2">
+                {/* Mobile sort */}
+                <div className="w-full max-w-sm md:hidden pb-2.5 px-2 md:px-0">
+                    <div className="flex items-center border-2 border-gray-800 bg-gray-800 rounded-[0.4rem] text-xs md:text-[0.9rem] w-full">
+                        <button
+                            id="views"
+                            onClick={handleOnClick}
+                            className={`cursor-pointer px-2 md:px-4 py-2 flex-1 md:w-[8rem] font-inter justify-center items-center flex rounded-[0.4rem] text-[0.7rem] md:text-sm font-medium transition ${sort === "views" ? "bg-black text-amber-600 shadow" : "bg-gray-800 text-white hover:bg-gray-600 hover:text-white transition-colors duration-200"}`}
+                        >
+                            <ArrowTrendingUpIcon className="w-4 h-4 md:w-6 md:h-6 md:pr-2" />
+                            <span className="hidden xs:inline ml-1 md:ml-0">Phổ biến</span>
+                        </button>
+                        <button
+                            id="updatedAt"
+                            onClick={handleOnClick}
+                            className={`cursor-pointer px-2 md:px-4 py-2 flex-1 md:w-[8rem] font-inter justify-center items-center rounded-[0.4rem] flex text-[0.7rem] md:text-sm font-medium transition ${sort === "updatedAt" ? "bg-black text-amber-600 shadow" : "bg-gray-800 text-white hover:bg-gray-600 hover:text-white transition-colors duration-200"}`}
+                        >
+                            <ClockIcon className="w-4 h-4 md:w-6 md:h-6 md:pr-2" />
+                            <span className="hidden xs:inline ml-1 md:ml-0">Mới</span>
+                        </button>
+                        <button
+                            id="title"
+                            onClick={handleOnClick}
+                            className={`cursor-pointer px-2 md:px-4 py-2 flex-1 md:w-[8rem] font-inter justify-center items-center flex rounded-[0.4rem] text-[0.7rem] md:text-sm font-medium transition ${sort === "title" ? "bg-black text-amber-600 shadow" : "bg-gray-800 text-white hover:bg-gray-600 hover:text-white transition-colors duration-200"}`}
+                        >
+                            <BookmarkIcon className="w-4 h-4 md:w-6 md:h-6 md:pr-2" />
+                            <span className="hidden xs:inline ml-1 md:ml-0">A - Z</span>
+                        </button>
+                    </div>
+                </div>
+
                 <div className="w-auto h-auto pb-2.5">
-                    <div className="flex items-center border-2 border-gray-800 bg-gray-800 rounded-l-[0.4rem] rounded-r-[0.4rem]">
-                        <button id="views" onClick={handleOnClick} className={`cursor-pointer px-4 py-2 w-[8rem] font-inter text-[0.9rem] justify-center items-center flex rounded-[0.4rem] text-sm font-medium transition ${sort === "views" ? "bg-black text-amber-600 shadow" : "bg-gray-800 text-white hover:bg-gray-600 hover:text-white transition-colors duration-200"}`}>
+                    <div className="hidden md:flex items-center border-2 border-gray-800 bg-gray-800 rounded-l-[0.4rem] text-xs md:text-[0.9rem] rounded-r-[0.4rem]">
+                        <button id="views" onClick={handleOnClick} className={`cursor-pointer px-4 py-2 w-[8rem] font-inter justify-center items-center flex rounded-[0.4rem] text-sm font-medium transition ${sort === "views" ? "bg-black text-amber-600 shadow" : "bg-gray-800 text-white hover:bg-gray-600 hover:text-white transition-colors duration-200"}`}>
                             <ArrowTrendingUpIcon className="w-6 h-6 pr-2" /> Phổ biến
                         </button>
-                        <button id="updatedAt" onClick={handleOnClick} className={`cursor-pointer px-4 py-2 w-[8rem] font-inter text-[0.9rem] justify-center items-center rounded-[0.4rem] flex text-sm font-medium transition ${sort === "updatedAt" ? "bg-black text-amber-600 shadow" : "bg-gray-800 text-white hover:bg-gray-600 hover:text-white transition-colors duration-200"}`}>
+                        <button id="updatedAt" onClick={handleOnClick} className={`cursor-pointer px-4 py-2 w-[8rem] font-inter justify-center items-center rounded-[0.4rem] flex text-sm font-medium transition ${sort === "updatedAt" ? "bg-black text-amber-600 shadow" : "bg-gray-800 text-white hover:bg-gray-600 hover:text-white transition-colors duration-200"}`}>
                             <ClockIcon className="w-6 h-6 pr-2" />Mới
                         </button>
-                        <button id="title" onClick={handleOnClick} className={`cursor-pointer px-4 py-2 w-[8rem] font-inter text-[0.9rem] justify-center items-center flex rounded-[0.4rem] text-sm font-medium transition ${sort === "title" ? "bg-black text-amber-600 shadow" : "bg-gray-800 text-white hover:bg-gray-600 hover:text-white transition-colors duration-200"}`}>
+                        <button id="title" onClick={handleOnClick} className={`cursor-pointer px-4 py-2 w-[8rem] font-inter justify-center items-center flex rounded-[0.4rem] text-sm font-medium transition ${sort === "title" ? "bg-black text-amber-600 shadow" : "bg-gray-800 text-white hover:bg-gray-600 hover:text-white transition-colors duration-200"}`}>
                             <BookmarkIcon className="w-6 h-6 pr-2" /> A - Z
                         </button>
                     </div>
@@ -244,7 +273,13 @@ const BookFilter = () => {
                                                         </span>
                                                     </div>
                                                     {/* Rating badge */}
-                                                    <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-lg">
+                                                    <div className="hidden absolute bottom-3 left-3 md:flex items-center gap-1 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-lg">
+                                                        <Star size={12} className="text-yellow-400 fill-current" />
+                                                        <span className="text-white text-xs font-semibold">
+                                                            {Number(novel.rating || 0).toFixed(1)}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex absolute top-3 left-3 md:hidden items-center gap-1 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-lg">
                                                         <Star size={12} className="text-yellow-400 fill-current" />
                                                         <span className="text-white text-xs font-semibold">
                                                             {Number(novel.rating || 0).toFixed(1)}
@@ -253,14 +288,14 @@ const BookFilter = () => {
                                                 </div>
                                                 <div className="bg-black rounded-b-lg relative">
                                                     <div className="flex flex-col p-3 space-y-1">
-                                                        <span className="font-semibold text-[1rem] line-clamp-1 text-white group-hover:text-blue-400 transition-colors leading-tight">
+                                                        <span className="font-semibold text-[0.9rem] md:text-[1rem] line-clamp-1 text-white group-hover:text-blue-400 transition-colors leading-tight">
                                                             {novel.title}
                                                         </span>
-                                                        <span className="text-[0.9rem] line-clamp-1">
+                                                        <span className="text-[0.8rem] md:text-[0.9rem] line-clamp-1">
                                                             của <span className="text-blue-400">{novel.authorName}</span>
                                                         </span>
                                                         <div className="flex flex-col space-y-1 pt-2">
-                                                            <div className="flex justify-between items-center">
+                                                            <div className="flex flex-col md:flex-row justify-between items-center">
                                                                 <span className="px-2.5 py-1 bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-300 border border-purple-500/30 rounded-full text-xs font-medium backdrop-blur-sm"
                                                                 >
                                                                     {novel.firstGenreName}

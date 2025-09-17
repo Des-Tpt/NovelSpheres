@@ -157,7 +157,7 @@ export default function ForumPage() {
 
     return (
         <div className="forum-page animate-fadeIn">
-            <div className="filter-section flex justify-between border border-gray-600 rounded-[0.8rem] py-5 px-5 bg-gray-950 hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)] transition-all duration-200">
+            <div className="filter-section flex flex-col md:flex-row justify-between border border-gray-600 rounded-[0.8rem] py-5 px-5 bg-gray-950 hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)] transition-all duration-200">
                 <div className="flex items-center gap-2">
                     <Filter className="w-4.5 h-4.5" />
                     <span className="font-semibold text-[1.25rem]">Bộ lọc bài viết</span>
@@ -269,7 +269,7 @@ export default function ForumPage() {
             </div>
 
             <div className="mt-4 flex flex-col gap-4 border border-gray-600 bg-gray-950 rounded-[0.8rem] p-5">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col md:flex-row justify-between items-center">
                     <p className="text-[1rem] text-gray-400">
                         Hiển thị {startItem}-{endItem} của {totalItems} kết quả
                     </p>

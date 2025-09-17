@@ -127,7 +127,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                                 disabled={isSubmitting}
                             >
                                 <ThumbsUp className="w-3 h-3 sm:w-4 sm:h-4" />
-                                <span>Thích</span>
+                                <span className='hidden sm:inline'>Thích</span>
                             </motion.button>
 
                             <motion.button
@@ -138,7 +138,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                                 disabled={isSubmitting}
                             >
                                 <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                                <span>Trả lời</span>
+                                <span className='hidden sm:inline'>Trả lời</span>
                             </motion.button>
                         </div>
                         
