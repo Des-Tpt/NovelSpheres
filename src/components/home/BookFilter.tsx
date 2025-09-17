@@ -267,13 +267,13 @@ const BookFilter = () => {
                                                         />
                                                     </div>
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                                                    <div className="absolute bottom-3 right-3">
+                                                    <div className="absolute bottom-1.5 right-1">
                                                         <span className={`px-2 py-1 rounded-lg text-xs font-semibold backdrop-blur-sm ${getStatusColor(novel.status)}`}>
                                                             {handleStatus(novel.status)}
                                                         </span>
                                                     </div>
                                                     {/* Rating badge */}
-                                                    <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-lg">
+                                                    <div className="absolute bottom-1.25 left-1 flex justify-center items-center gap-1 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-lg">
                                                         <Star size={12} className="text-yellow-400 fill-current" />
                                                         <span className="text-white text-xs font-semibold">
                                                             {Number(novel.rating || 0).toFixed(1)}
