@@ -595,7 +595,7 @@ const NovelsPage = () => {
                                                                         {novel.title}
                                                                     </h3>
                                                                     {viewMode === 'list' && (
-                                                                        <span className={`px-2 py-1 rounded-lg text-sm font-semibold whitespace-nowrap flex-shrink-0 ${getStatusColor(novel.status)}`}>
+                                                                        <span className={`hidden px-2 py-1 rounded-lg text-sm font-semibold whitespace-nowrap md:flex flex-shrink-0 ${getStatusColor(novel.status)}`}>
                                                                             {handleStatus(novel.status)}
                                                                         </span>
                                                                     )}
