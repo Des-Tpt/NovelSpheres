@@ -492,8 +492,8 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
 
             {/* Stats Dashboard */}
             <div className="max-w-full mx-4 mt-4 mb-8 border border-gray-800 rounded-sm">
-                <div className="backdrop-blur-sm rounded-xl p-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="backdrop-blur-sm rounded-xl p-2 md:p-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                         {/* Truyện đã đăng */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
@@ -957,7 +957,7 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -20 }}
-                                    className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 p-6"
+                                    className="bg-gray-950/50 backdrop-blur-sm rounded-xl border border-gray-700/50 p-6"
                                 >
                                     <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
                                         <Heart className="w-6 h-6 text-pink-500" />

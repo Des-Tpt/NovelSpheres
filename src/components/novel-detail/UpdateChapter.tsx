@@ -28,21 +28,26 @@ interface EditChapterPopupProps {
 }
 
 const config = {
-    height: 250,
+    height: 200,
     readonly: false,
-    placeholder: 'Paste nội dung mới vào đây để chỉnh sửa chapter (tùy chọn)...',
     style: {
         color: '#ffffff',
         backgroundColor: '#0a0a0a',
     },
+    placeholder: 'Paste nội dung mới vào đây để chỉnh sửa chapter (tùy chọn)...',
+    toolbar: false, // Disable toolbar for mobile
+    statusbar: false,
+    showCharsCounter: false,
+    showWordsCounter: false,
+    showXPathInStatusbar: false,
     events: {
         beforePaste: (html: string) => {
-            return html
-                .replace(/color\s*:\s*[^;"]+;?/gi, '')
+            return html.replace(/color\s*:\s*[^;"]+;?/gi, '')
                 .replace(/background(-color)?\s*:\s*[^;"]+;?/gi, '');
         }
     }
 };
+
 
 const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, userId, novelId, chapter }) => {
     const [title, setTitle] = useState<string>('');
@@ -74,6 +79,7 @@ const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, us
         if (isOpen && chapter) {
             setTitle(chapter.title || '');
             setChapterNumberStr(chapter.chapterNumber.toString() || "1");
+            setChapterNumber(chapter.chapterNumber || 1);
             setContent('');
             setHasContentChanged(false);
             setWordCount(0);
@@ -94,7 +100,7 @@ const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, us
     const updateChapterMutation = useMutation({
         mutationFn: updateChapter,
         onSuccess: (response) => {
-            const updatedChapter = response.data; // Lấy data từ API response
+            const updatedChapter = response.data;
 
             // Update novelDetail cache
             queryClient.setQueryData(['novelDetail', novelId], (oldData: any) => {
@@ -106,7 +112,7 @@ const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, us
                         act._id === chapter?.actId
                             ? {
                                 ...act,
-                                chapters: act.chapters?.map((ch: Chapter ) =>
+                                chapters: act.chapters?.map((ch: Chapter) =>
                                     ch._id === updatedChapter._id
                                         ? { ...ch, ...updatedChapter }
                                         : ch

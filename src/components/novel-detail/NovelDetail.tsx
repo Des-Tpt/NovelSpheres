@@ -644,14 +644,15 @@ const NovelDetail = () => {
                                     </div>
                                     <div className='mt-1 flex items-center gap-2.5'>
                                         {authorImage && (
-                                            <Image
-                                                src={authorImage}
-                                                width={80}
-                                                height={80}
-                                                alt={data?.novel?.authorId?.username || 'Avatar tác giả'}
-                                                className="rounded-full w-6 h-6 object-cover border border-gray-200"
-                                            />
-
+                                            <div className='w-6 h-6 '>
+                                                <CustomImage
+                                                    src={authorImage}
+                                                    width={80}
+                                                    height={80}
+                                                    alt={data?.novel?.authorId?.username || 'Avatar tác giả'}
+                                                    className="rounded-full object-cover border border-gray-200"
+                                                />
+                                            </div>
                                         )}
                                         <span className='font-extrabold text-blue-400 text-sm'
                                             onClick={() => onClickAuthor(data?.novel?.authorId?._id ?? '')}
@@ -776,7 +777,7 @@ const NovelDetail = () => {
 
                         <div className='flex items-center gap-2 sm:gap-3'>
                             {authorImage && (
-                                <Image
+                                <CustomImage
                                     src={authorImage}
                                     width={80}
                                     height={80}
@@ -863,7 +864,7 @@ const NovelDetail = () => {
 
                     {/* Tab Navigation */}
                     <motion.div className='flex w-full my-4 sm:my-6' variants={itemVariants}>
-                        <nav className='flex w-full bg-gray-900 border border-blue-600 text-base sm:text-lg rounded-lg p-1'>
+                        <nav className='flex w-full bg-gray-900 border border-blue-600 text-sm sm:text-lg rounded-lg p-1'>
                             <button
                                 onClick={() => setActiveTab('description')}
                                 className={`flex-1 flex items-center justify-center gap-2 py-2 sm:py-3 px-3 sm:px-4 font-medium transition-all duration-200 rounded-md ${activeTab === 'description'
@@ -1016,7 +1017,7 @@ const NovelDetail = () => {
                                                                 {/* Act Cover Section */}
                                                                 <div className="w-full flex flex-col items-center lg:block lg:w-48">
                                                                     <div className="relative group w-48"> {/* cố định width để ảnh & box bằng nhau */}
-                                                                        <Image
+                                                                        <CustomImage
                                                                             src={act.publicId && imageUrls[act.publicId] ? imageUrls[act.publicId] : defaultFallback}
                                                                             width={400}
                                                                             height={400}

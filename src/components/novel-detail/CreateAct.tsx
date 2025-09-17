@@ -201,7 +201,7 @@ const CreateActPopup: React.FC<CreateActPopupProps> = ({ isOpen, onClose, userId
                                 transition={{ delay: 0.2 }}
                                 className='flex gap-2 w-full'
                             >
-                                <div className='w-[30%]'>
+                                <div className='w-[40%]'>
                                     <label className="block text-sm font-medium mb-2 text-gray-300">
                                         Số thứ tự phần *
                                     </label>

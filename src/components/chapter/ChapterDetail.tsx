@@ -353,7 +353,7 @@ const ChapterPage = () => {
 
                         {/* Chapter Content */}
                         <div
-                            className={`prose max-w-none leading-relaxed transition-all ${nightMode === 'dark' ? 'bg-gray-950 text-white' : 'bg-amber-50 text-black'}`}
+                            className={`prose prose-invert max-w-none leading-relaxed transition-all ${nightMode === 'dark' ? 'bg-gray-950 text-white' : 'bg-amber-50 text-black'}`}
                             style={{
                                 fontSize: `${fontSize}px`,
                                 fontFamily: fontFamily === 'system-ui' ? 'system-ui, -apple-system, "Segoe UI", Roboto' : fontFamily,
@@ -374,7 +374,8 @@ const ChapterPage = () => {
                                         }`}
                                 >
                                     <ChevronLeft size={20} className="mr-2" />
-                                    Chương trước
+                                    <p className='hidden sm:inline'>Chương trước</p>
+                                    <p className='inline sm:hidden'>Trước</p>
                                 </button>
 
                                 <button
@@ -385,7 +386,8 @@ const ChapterPage = () => {
                                         : 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
                                         }`}
                                 >
-                                    Chương sau
+                                    <p className='hidden sm:inline'>Chương sau</p>
+                                    <p className='inline sm:hidden'>Sau</p>
                                     <ChevronRight size={20} className="ml-2" />
                                 </button>
                             </div>

@@ -18,22 +18,26 @@ interface CreateChapterPopupProps {
     novelId: string;
     actId: string;
 }
+
 const config = {
-    height: 250,
+    height: 200,
     readonly: false,
     style: {
         color: '#ffffff',
         backgroundColor: '#0a0a0a',
     },
     placeholder: 'Dáng nội dung của chapter ở đây...',
+    toolbar: false, // Disable toolbar for mobile
+    statusbar: false,
+    showCharsCounter: false,
+    showWordsCounter: false,
+    showXPathInStatusbar: false,
     events: {
         beforePaste: (html: string) => {
-            // Xoá thuộc tính màu chữ và nền
             return html.replace(/color\s*:\s*[^;"]+;?/gi, '')
                 .replace(/background(-color)?\s*:\s*[^;"]+;?/gi, '');
         }
     }
-
 };
 
 const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose, userId, novelId, actId }) => {

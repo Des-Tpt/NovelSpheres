@@ -5,7 +5,7 @@ export default function Page() {
         <>
             <title>Chương...</title>
             <div className='bg-gray-950'>
-                <ChapterPage />;
+                <ChapterPage />
             </div>
         </>
     )
