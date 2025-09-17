@@ -36,8 +36,6 @@ async function updateNovelStats(novelId: Schema.Types.ObjectId) {
             }
         ]);
 
-        console.log('📊 Aggregation result:', stats);
-
         if (stats.length > 0) {
             const result = await Novel.findByIdAndUpdate(
                 novelId,

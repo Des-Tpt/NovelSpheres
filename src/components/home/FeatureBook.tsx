@@ -17,6 +17,7 @@ import handleStatus from "@/utils/handleStatus";
 import { Sparkle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import stripHtml from "@/utils/stripHtml";
+import CustomImage from "../ui/CustomImage";
 
 type Novel = {
     _id: string;
@@ -53,16 +54,18 @@ const BookCard: React.FC<BookCardProps> = ({ novel, imageUrls, index = 0, showAn
             onClick={() => router.push(`/novels/${novel._id}`)}
         >
             <div className="relative rounded-t-lg overflow-hidden">
-                <Image
-                    src={novel.coverImage?.publicId && imageUrls[novel.coverImage.publicId]
-                        ? imageUrls[novel.coverImage.publicId]
-                        : `https://res.cloudinary.com/${cloudName!}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`
-                    }
-                    width={400}
-                    height={400}
-                    alt={novel.title}
-                    className="w-full h-64 md:h-72 object-cover object-top"
-                />
+                <div className="h-80">
+                    <CustomImage
+                        src={novel.coverImage?.publicId && imageUrls[novel.coverImage.publicId]
+                            ? imageUrls[novel.coverImage.publicId]
+                            : `https://res.cloudinary.com/${cloudName!}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`
+                        }
+                        width={400}
+                        height={400}
+                        alt={novel.title}
+                        className="w-full h-78 object-cover object-top"
+                    />
+                </div>
                 <div className="flex">
                     <span className="rounded-2xl absolute bg-gray-800 bg-opacity-90 py-1 px-2 font-semibold text-sm top-3 left-3 text-white">
                         {novel.rating ? `⭐ ${novel.rating}` : 'Chưa có đánh giá'}

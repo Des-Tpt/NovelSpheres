@@ -17,8 +17,6 @@ export const NovelService = {
                 { $group: { _id: null, total: { $sum: "$views" } } }
             ]);
 
-            console.log('Aggregation result:', agg);
-
             const totalViews = agg[0]?.total ?? 0;
 
             // Also update totalNovels count

@@ -15,6 +15,7 @@ import handleStatus from "@/utils/handleStatus";
 import { useRouter } from "next/navigation";
 import getStatusColor from '@/utils/getStatusColor';
 import { Star } from "lucide-react";
+import CustomImage from "../ui/CustomImage";
 
 
 type Genre = {
@@ -156,7 +157,7 @@ const BookFilter = () => {
             </div>
 
             {/* Main Content Section */}
-            <div className="flex flex-col items-center py-10 w-full px-2">
+            <div className="flex flex-col items-center py-10 w-full">
                 {/* Mobile sort */}
                 <div className="w-full max-w-sm md:hidden pb-2.5 px-2 md:px-0">
                     <div className="flex items-center border-2 border-gray-800 bg-gray-800 rounded-[0.4rem] text-xs md:text-[0.9rem] w-full">
@@ -202,7 +203,7 @@ const BookFilter = () => {
                 </div>
 
                 {/* Title and View All Section */}
-                <div className="flex flex-col w-full max-w-[1400px] px-4">
+                <div className="flex flex-col w-full max-w-[1400px] px-2">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-5 md:py-0 gap-3 sm:gap-0">
                         <div className="flex items-center gap-3 md:gap-4">
                             {getIconForSort(sort)}
@@ -217,9 +218,6 @@ const BookFilter = () => {
                                 </span>
                             </div>
                         </div>
-                        <button className="flex items-center justify-center sm:justify-start cursor-pointer text-amber-600 font-inter rounded-[10px] px-4 py-1.5 hover:bg-gray-600 transition-colors duration-200 whitespace-nowrap">
-                            Xem tất cả <ArrowRightIcon className="pl-2 w-6 h-6" />
-                        </button>
                     </div>
 
                     {/* Content Grid */}
@@ -247,7 +245,7 @@ const BookFilter = () => {
                                     {novels.length > 0 ? novels.map((novel, index) => (
                                         <motion.div
                                             key={novel._id.toString()}
-                                            className="flex flex-col cursor-pointer rounded-lg border border-gray-400 group hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 hover:-translate-y-1"
+                                            className="flex flex-col cursor-pointer rounded-lg border border-gray-700 group hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 hover:-translate-y-1"
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ duration: 0.4, ease: 'easeOut', delay: 0.05 * index }}
@@ -255,17 +253,19 @@ const BookFilter = () => {
                                         >
                                             <div className=" rounded-lg overflow-hidden">
                                                 <div className="relative">
-                                                    <Image
-                                                        src={
-                                                            novel.coverImage?.publicId && imageUrls[novel.coverImage.publicId]
-                                                                ? imageUrls[novel.coverImage.publicId]
-                                                                : `https://res.cloudinary.com/${cloudName!}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`
-                                                        }
-                                                        width={200}
-                                                        height={280}
-                                                        alt={novel.title}
-                                                        className="w-full h-53 object-cover object-top"
-                                                    />
+                                                    <div className="h-50">
+                                                        <CustomImage
+                                                            src={
+                                                                novel.coverImage?.publicId && imageUrls[novel.coverImage.publicId]
+                                                                    ? imageUrls[novel.coverImage.publicId]
+                                                                    : `https://res.cloudinary.com/${cloudName!}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`
+                                                            }
+                                                            width={200}
+                                                            height={280}
+                                                            alt={novel.title}
+                                                            className="w-full object-cover object-top"
+                                                        />
+                                                    </div>
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                                                     <div className="absolute bottom-3 right-3">
                                                         <span className={`px-2 py-1 rounded-lg text-xs font-semibold backdrop-blur-sm ${getStatusColor(novel.status)}`}>
@@ -273,13 +273,7 @@ const BookFilter = () => {
                                                         </span>
                                                     </div>
                                                     {/* Rating badge */}
-                                                    <div className="hidden absolute bottom-3 left-3 md:flex items-center gap-1 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-lg">
-                                                        <Star size={12} className="text-yellow-400 fill-current" />
-                                                        <span className="text-white text-xs font-semibold">
-                                                            {Number(novel.rating || 0).toFixed(1)}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex absolute top-3 left-3 md:hidden items-center gap-1 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-lg">
+                                                    <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-lg">
                                                         <Star size={12} className="text-yellow-400 fill-current" />
                                                         <span className="text-white text-xs font-semibold">
                                                             {Number(novel.rating || 0).toFixed(1)}
@@ -295,7 +289,7 @@ const BookFilter = () => {
                                                             của <span className="text-blue-400">{novel.authorName}</span>
                                                         </span>
                                                         <div className="flex flex-col space-y-1 pt-2">
-                                                            <div className="flex flex-col md:flex-row justify-between items-center">
+                                                            <div className="flex justify-between items-center">
                                                                 <span className="px-2.5 py-1 bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-300 border border-purple-500/30 rounded-full text-xs font-medium backdrop-blur-sm"
                                                                 >
                                                                     {novel.firstGenreName}
@@ -307,7 +301,7 @@ const BookFilter = () => {
                                                             </div>
                                                             <div className="text-[0.8rem] line-clamp-1 text-gray-400 flex items-center">
                                                                 <ClockIcon className="w-4 h-4" />
-                                                                <span className="pl-1 pt-0.5">{getTimeAgo(novel.updatedAt)}</span>
+                                                                <span className="pl-1 pt-0.5 line-clamp-1">{getTimeAgo(novel.updatedAt)}</span>
                                                             </div>
                                                         </div>
                                                     </div>

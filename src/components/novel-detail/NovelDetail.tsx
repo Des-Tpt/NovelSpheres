@@ -25,6 +25,7 @@ import handleStatus from '@/utils/handleStatus';
 import EditNovelPopup from './UpdateNovel';
 import { getLike, Like, UnLike } from '@/action/likeAction';
 import RatingPopup from './RateNovel';
+import CustomImage from '../ui/CustomImage';
 
 const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 const defaultFallback = `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
@@ -594,7 +595,7 @@ const NovelDetail = () => {
 
                             <div className='flex items-start md:items-center '>
                                 <div className='max-w-2/6 flex-shrink-0 md:max-w-full'>
-                                    <Image
+                                    <CustomImage
                                         src={coverImage || defaultFallback}
                                         width={400}
                                         height={400}

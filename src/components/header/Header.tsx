@@ -112,6 +112,18 @@ const Header = () => {
         }
     };
 
+    useEffect(() => {
+        if (isAuthOpen || isSidebarOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isAuthOpen, isSidebarOpen]);
+
     return (
         <div>
             <header className="bg-black top-0 text-white px-[5%] py-2.5 fixed flex justify-between items-center w1080:px-[15%] w-full z-40">
@@ -337,7 +349,7 @@ const Header = () => {
                     />
                     <Button
                         type={<Book className="h-5 w-5" />}
-                        text="Danh sách"
+                        text="Thư viện"
                         href="/novels"
                         onClick={() => {
                             handleClick('novels');
