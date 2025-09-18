@@ -53,7 +53,7 @@ const Introduce = () => {
                         />
                     </div>
                 </div>
-                <div className="grid grid-cols-3 gap-x-3 gap-y-4 justify-between py-5">
+                <div className="hidden md:grid md:grid-cols-3 gap-x-3 gap-y-4 justify-between py-5">
                     {[1, 2, 3, 4, 5, 6].map(i => (
                         <div key={i} className="border-gray-500 border bg-gray-950 rounded-[1rem] min-h-40 h-auto py-6 pr-2 w-auto flex items-center">
                             <div className="flex justify-center w-full">
@@ -123,7 +123,7 @@ const Introduce = () => {
     }
 
     return (
-        <div className="flex flex-col pt-7 px-2 w1080:px-[14%] bg-black md:bg-gradient-to-r md:from-black md:from-20% md:via-gray-950 md:via-75% md:to-black">
+        <div className="flex flex-col pt-7 px-0.5 w1080:px-[14%] bg-black md:bg-gradient-to-r md:from-black md:from-20% md:via-gray-950 md:via-75% md:to-black">
             <div className="flex justify-between bg-gray-950 items-center border-gray-600 shadow-sm border rounded-[0.8rem] p-6">
                 <div className="flex flex-col">
                     <span className="font-bold text-3xl">Diễn đàn cộng đồng NovelSphere</span>
@@ -138,14 +138,14 @@ const Introduce = () => {
                     />
                 </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-3 gap-y-4 justify-between py-5">
+            <div className="hidden  md:grid md:grid-cols-3 gap-x-3 gap-y-4 justify-between py-5">
                 {data.map(post => (
                     <div key={post._id.toString()}>
                         <ForumCard data={post} />
                     </div>
                 ))}
             </div>
-            <div>
+            <div className="mt-4 sm:mt-0">
                 <Posts />
             </div>
             <AnimatePresence>

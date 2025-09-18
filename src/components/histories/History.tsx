@@ -188,21 +188,16 @@ const Histories: React.FC<HistoriesProp> = ({ userId }) => {
         return {
             totalNovels: uniqueNovels.size,
             totalChapters,
-            averageReadingTime: 25, // Mock data - would need to track actual reading time
             readingStreak: streak,
             completedNovels: new Set(completedNovels.map(h => h.novels._id)).size,
-            monthlyGoal: 10, // Mock data
-            monthlyProgress: 7 // Mock data
         };
     }, [allHistories]);
 
     const handleNovelClick = (novelId: string) => {
-        // Navigate to novel page
         router.push(`/novels/${novelId}`);
     };
 
     const handleChapterClick = (novelId: string, chapterId: string) => {
-        // Navigate to chapter page
         router.push(`/chapter/${chapterId}`);
     };
 
@@ -256,7 +251,7 @@ const Histories: React.FC<HistoriesProp> = ({ userId }) => {
     const totalCount = data?.pages[0]?.pagination.total ? parseInt(data.pages[0].pagination.total) : 0;
 
     return (
-        <div className="min-h-screen bg-gray-950 pt-20 pb-12">
+        <div className="min-h-screen bg-gray-950 pt-3 md:pt-20 pb-12">
             <div className="max-w-6xl mx-auto px-4">
                 {/* Header */}
                 <motion.div

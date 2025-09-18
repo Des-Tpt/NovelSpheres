@@ -1016,7 +1016,7 @@ const NovelDetail = () => {
                                                             <div className="flex flex-col lg:flex-row gap-6 p-6">
                                                                 {/* Act Cover Section */}
                                                                 <div className="w-full flex flex-col items-center lg:block lg:w-48">
-                                                                    <div className="relative group w-48"> {/* cố định width để ảnh & box bằng nhau */}
+                                                                    <div className="relative group w-48">
                                                                         <CustomImage
                                                                             src={act.publicId && imageUrls[act.publicId] ? imageUrls[act.publicId] : defaultFallback}
                                                                             width={400}

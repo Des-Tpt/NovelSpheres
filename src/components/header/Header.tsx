@@ -385,7 +385,7 @@ const Header = () => {
                             <Button
                                 type={<HistoryIcon className="h-5 w-5" />}
                                 text="Lịch sử"
-                                href="/History"
+                                href={`/profile/${currentUser._id}/histories`}
                                 onClick={() => {
                                     handleClick('settings');
                                     setIsSidebarOpen(false);

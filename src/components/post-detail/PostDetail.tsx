@@ -16,7 +16,6 @@ import findParentComment from '@/utils/findParentComment';
 import { notifyError, notifySuccess } from '@/utils/notify';
 import LoadingComponent from '../ui/Loading';
 
-
 interface Post {
   _id: string;
   userId: {
@@ -172,7 +171,7 @@ const PostDetail = () => {
 
   const handleCategoryColor = (category: string) => {
     const baseClass =
-      'inline-block px-3 my-2 text-[1rem] rounded-[1rem] border font-semibold';
+      'inline-block px-2.5 py-1 md:px-3 md:py-1.5 my-2 text-xs md:text-sm rounded-lg md:rounded-[1rem] border font-semibold';
 
     switch (category) {
       case 'general':
@@ -337,48 +336,58 @@ const PostDetail = () => {
         animate="visible"
       >
         <title>{post.title}</title>
-        <div className="mx-auto p-4 min-h-screen">
+        <div className="p-3 md:p-4 min-h-screen">
+          {/* Breadcrumb - Mobile optimized */}
           <motion.div
-            className='flex font-inter text-[0.92rem] py-3'
+            className='flex font-inter text-xs md:text-sm py-2 md:py-3 overflow-x-auto scrollbar-hide'
             variants={itemVariants}
           >
-            <a href='/forum' className='pr-2 flex items-center'><ArrowLeftIcon className='w-3.5 h-3.5' /><span className='pl-1'>Diễn đàn</span></a> /
-            <a href={`/forum?category=${post.category}`} className='pl-2 pr-2'>{handlePostCategory(post.category)}</a> /
-            <a href='#' className='pl-2 pr-2'>Bài viết</a>
+            <a href='/forum' className='pr-2 flex items-center whitespace-nowrap'>
+              <ArrowLeftIcon className='w-3 h-3 md:w-3.5 md:h-3.5' />
+              <span className='pl-1'>Diễn đàn</span>
+            </a> /
+            <a href={`/forum?category=${post.category}`} className='pl-2 pr-2 whitespace-nowrap truncate max-w-[120px] md:max-w-none'>{handlePostCategory(post.category)}</a> /
+            <a href='#' className='pl-2 pr-2 whitespace-nowrap'>Bài viết</a>
           </motion.div>
 
+          {/* Post Header - Mobile optimized */}
           <motion.div
-            className='bg-gray-950 px-5 py-2.5 border border-gray-600 rounded-[0.8rem]'
+            className='bg-gray-950 px-3 md:px-5 py-3 md:py-2.5 border border-gray-600 rounded-lg md:rounded-[0.8rem]'
             variants={itemVariants}
           >
             <div>{handleCategoryColor(post.category)}</div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white py-1">{post.title}</h1>
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900 dark:text-white py-1 leading-tight">{post.title}</h1>
+            
             {post.novelId && (
-              <div className='pb-4'>
-                <div onClick={() => handlePushNovel(post.novelId?._id)} className="font-inter text-[0.95rem] pl-0.5 mt-2 block">
-                  Liên quan đến: <span className='text-yellow-500 hover:underline'>{post.novelId.title}</span>
+              <div className='pb-3 md:pb-4'>
+                <div onClick={() => handlePushNovel(post.novelId?._id)} className="font-inter text-sm md:text-[0.95rem] pl-0.5 mt-2 block">
+                  Liên quan đến: <span className='text-yellow-500 hover:underline break-words'>{post.novelId.title}</span>
                 </div>
               </div>
             )}
-            <div className="flex items-center gap-3">
+            
+            {/* Author info - Mobile optimized */}
+            <div className="flex items-start md:items-center gap-3">
               <Image
                 src={avatarUrl || `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`}
                 width={200}
                 height={280}
                 alt={post.title}
-                className="post-image w-12 h-12 md:w-15 md:h-15 rounded-2xl md:rounded-4xl object-cover object-top transition-transform duration-200 hover:scale-105"
+                className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl object-cover object-top transition-transform duration-200 hover:scale-105 flex-shrink-0"
               />
-              <div>
-                <div onClick={() => handleToProfile(post.userId._id)} className="font-semibold text-gray-900 text-[1.3rem] dark:text-white hover:text-blue-500">
-                  <div className='flex items-center cursor-pointer'>
-                    <span>{post.userId.username}</span>
-                    <span className='ml-3 px-2.5 font-inter text-[0.75rem] font-bold border border-gray-600 rounded-2xl mt-0.5'>{handleRole(post.userId.role)}</span>
+              <div className="min-w-0 flex-1">
+                <div onClick={() => handleToProfile(post.userId._id)} className="font-semibold text-gray-900 text-base md:text-[1.3rem] dark:text-white hover:text-blue-500">
+                  <div className='flex gap-3 items-center cursor-pointer'>
+                    <span className="truncate">{post.userId.username}</span>
+                    <span className='block px-2 md:px-2.5 font-inter text-[0.65rem] md:text-[0.75rem] font-bold border border-gray-600 rounded-xl md:rounded-2xl md:mt-0.5'>
+                      {handleRole(post.userId.role)}
+                    </span>
                   </div>
                 </div>
-                <div className='flex gap-3 font-inter'>
-                  <div className='flex items-center gap-1 text-sm text-gray-300'>
-                    <Clock className='w-4 h-4' />
-                    <span>
+                <div className='flex font-inter gap-2.5'>
+                  <div className='flex items-center gap-1 text-xs md:text-sm text-gray-300'>
+                    <Clock className='w-3 h-3 md:w-4 md:h-4 flex-shrink-0' />
+                    <span className="truncate">
                       {new Date(post.createdAt).toLocaleString('vi-VN', {
                         day: '2-digit',
                         month: '2-digit',
@@ -389,9 +398,9 @@ const PostDetail = () => {
                       })}
                     </span>
                   </div>
-                  •
-                  <div className='flex items-center gap-1 text-sm text-gray-300'>
-                    <EyeIcon className='w-4 h-4' />
+                  <span className="inline">•</span>
+                  <div className='flex items-center gap-1 text-xs md:text-sm text-gray-300'>
+                    <EyeIcon className='w-3 h-3 md:w-4 md:h-4 flex-shrink-0' />
                     <span>{post.views} lượt xem</span>
                   </div>
                 </div>
@@ -399,34 +408,37 @@ const PostDetail = () => {
             </div>
           </motion.div>
 
+          {/* Post Content - Mobile optimized */}
           <motion.div
-            className='bg-gray-950 px-5 py-1.5 mt-2.5 border border-gray-600 rounded-[0.8rem]'
+            className='bg-gray-950 px-3 md:px-5 py-3 md:py-1.5 mt-2.5 border border-gray-600 rounded-lg md:rounded-[0.8rem]'
             variants={itemVariants}
           >
-            <div className="prose prose-invert my-4 text-gray-700 dark:text-gray-300"
+            <div className="prose prose-sm md:prose prose-invert my-3 md:my-4 text-gray-700 dark:text-gray-300 max-w-none"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
           </motion.div>
 
+          {/* Comments Section - Mobile optimized */}
           <motion.div
-            className="mt-8 bg-gray-950 px-5 py-4 border border-gray-600 rounded-[0.8rem]"
+            className="mt-6 md:mt-8 bg-gray-950 px-3 md:px-5 py-4 border border-gray-600 rounded-lg md:rounded-[0.8rem]"
             variants={itemVariants}
           >
-            <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-              <MessageCircle className="w-5 h-5" />
+            <h2 className="text-lg md:text-xl font-semibold text-white mb-4 md:mb-6 flex items-center gap-2">
+              <MessageCircle className="w-4 h-4 md:w-5 md:h-5" />
               Bình luận ({countTotalComments(comments)})
             </h2>
 
+            {/* New Comment Form - Mobile optimized */}
             <motion.div
-              className="mb-6 rounded-lg"
+              className="mb-4 md:mb-6 rounded-lg"
               variants={itemVariants}
             >
               <textarea
                 value={newCommentContent}
                 onChange={(e) => setNewCommentContent(e.target.value)}
                 placeholder="Viết bình luận của bạn..."
-                className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                rows={4}
+                className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
+                rows={3}
                 disabled={createCommentMutation.isPending}
               />
               <div className="flex justify-end mt-3">
@@ -434,32 +446,35 @@ const PostDetail = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleSubmitComment}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-3 md:px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 text-sm md:text-base"
                   disabled={createCommentMutation.isPending || !newCommentContent.trim()}
                 >
                   {createCommentMutation.isPending ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                      Đang đăng...
+                      <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                      <span className="hidden md:inline">Đang đăng...</span>
+                      <span className="md:hidden">Đăng...</span>
                     </>
                   ) : (
                     <>
-                      <Send className="w-4 h-4" />
-                      Đăng bình luận
+                      <Send className="w-3 h-3 md:w-4 md:h-4" />
+                      <span className="hidden md:inline">Đăng bình luận</span>
+                      <span className="md:hidden">Đăng</span>
                     </>
                   )}
                 </motion.button>
               </div>
             </motion.div>
 
-            <div className="space-y-4 border-t-[1px] border-white pt-10 pb-10">
+            {/* Comments List */}
+            <div className="space-y-3 md:space-y-4 border-t-[1px] border-white pt-6 md:pt-10 pb-6 md:pb-10">
               {comments.length === 0 ? (
                 <motion.div
-                  className="text-center py-8 text-gray-400"
+                  className="text-center py-6 md:py-8 text-gray-400"
                   variants={itemVariants}
                 >
-                  <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p>Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
+                  <MessageCircle className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm md:text-base">Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
                 </motion.div>
               ) : (
                 <AnimatePresence>
@@ -475,7 +490,7 @@ const PostDetail = () => {
 
                           {replies.length > 2 && (
                             <motion.div
-                              className="ml-12 mt-2"
+                              className="ml-8 md:ml-12 mt-2"
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
                               transition={{ duration: 0.3 }}
@@ -484,17 +499,19 @@ const PostDetail = () => {
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => toggleShowAllReplies(parent._id)}
-                                className="flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm text-blue-400 hover:text-blue-300 transition-colors rounded-md hover:bg-gray-800/50"
+                                className="flex cursor-pointer items-center gap-2 px-2 md:px-3 py-1.5 text-xs md:text-sm text-blue-400 hover:text-blue-300 transition-colors rounded-md hover:bg-gray-800/50"
                               >
                                 {showAllReplies.has(parent._id) ? (
                                   <>
-                                    <ChevronUp className="w-4 h-4" />
-                                    Ẩn bớt phản hồi
+                                    <ChevronUp className="w-3 h-3 md:w-4 md:h-4" />
+                                    <span className="hidden md:inline">Ẩn bớt phản hồi</span>
+                                    <span className="md:hidden">Ẩn bớt</span>
                                   </>
                                 ) : (
                                   <>
-                                    <ChevronDown className="w-4 h-4" />
-                                    Hiển thị {replies.length - 2} phản hồi khác
+                                    <ChevronDown className="w-3 h-3 md:w-4 md:h-4" />
+                                    <span className="hidden md:inline">Hiển thị {replies.length - 2} phản hồi khác</span>
+                                    <span className="md:hidden">Hiện {replies.length - 2} khác</span>
                                   </>
                                 )}
                               </motion.button>
