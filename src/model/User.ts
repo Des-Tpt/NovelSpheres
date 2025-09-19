@@ -1,5 +1,4 @@
 import mongoose, { Schema, Document, models, model } from 'mongoose';
-import { Profile } from './Profile';
 
 export interface IUser extends Document {
   _id: Schema.Types.ObjectId;
@@ -45,22 +44,6 @@ UserSchema.pre('findOneAndDelete', async function (next) {
   ]);
 
   next();
-});
-
-UserSchema.post('save', async function (doc) {
-  if (doc.isNew) {
-    await Profile.create({
-      userId: doc._id,
-      bio: "",
-      socials: {},
-      stats: {
-        followers: 0,
-        following: 0,
-        totalViews: 0,
-        totalNovels: 0,
-      },
-    });
-  }
 });
 
 export const User = models.User || model<IUser>('User', UserSchema, 'User');

@@ -292,7 +292,6 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ u
         }
         return NextResponse.json({ success: true, avatar: avatar }, { status: 200 });
     } catch (error) {
-        console.error('Profile update error:', error);
         return NextResponse.json({ error: 'Lỗi server!' }, { status: 500 })
     }
 }

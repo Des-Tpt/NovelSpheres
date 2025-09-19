@@ -32,8 +32,6 @@ export const NovelService = {
                 },
                 { upsert: true, new: true }
             );
-
-            console.log('Updated profile:', updatedProfile);
             return totalViews;
         } catch (error) {
             console.error('Error updating author total views:', error);
