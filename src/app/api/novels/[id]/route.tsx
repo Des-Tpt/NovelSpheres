@@ -4,6 +4,7 @@ import { Act } from "@/model/Act";
 import { Chapter } from "@/model/Chapter";
 import { Comment } from "@/model/Comment";
 import { Novel } from "@/model/Novel";
+import { User } from "@/model/User";
 import { NovelService } from "@/service/novelService";
 import optimizeComment from "@/utils/handleOptimize";
 import { NextRequest, NextResponse } from "next/server";
@@ -14,6 +15,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
         if (!novelId) {
             return NextResponse.json({ error: "NovelId là biến bắt buộc" }, { status: 400 });
         }
+
+        console.log(User.modelName);
 
         await connectDB();
 
