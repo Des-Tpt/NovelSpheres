@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Bell, X, Check, MessageCircle, BookOpen, UserPlus, Loader2 } from 'lucide-react';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPusherWithSession } from '@/lib/pusher-client';
-import { notifySuccess } from '@/utils/notify';
+import { notifyError, notifySuccess } from '@/utils/notify';
 import { getAllNotifications, markRead } from '@/action/notifyAction';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -30,7 +30,6 @@ const NotificationComponent: React.FC<NotificationProps> = ({ userId }) => {
     const queryClient = useQueryClient();
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-    // Get notifications with infinite scroll
     const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, error } = useInfiniteQuery({
         queryKey: ['notifications', userId, filter],
         queryFn: ({ pageParam = 1 }) => getAllNotifications({
@@ -47,7 +46,6 @@ const NotificationComponent: React.FC<NotificationProps> = ({ userId }) => {
         },
     });
 
-    // Mark as read mutation
     const markAsReadMutation = useMutation({
         mutationFn: markRead,
         onSuccess: () => {
@@ -57,18 +55,16 @@ const NotificationComponent: React.FC<NotificationProps> = ({ userId }) => {
 
     useEffect(() => {
         if (isError && error) {
-            // Handle error if needed
+            notifyError((error as Error).message);
         }
     }, [isError, error]);
 
-    // Update unread count when data changes
     useEffect(() => {
         if (data?.pages?.[0]?.meta?.unreadCount !== undefined) {
             setUnreadCount(data.pages[0].meta.unreadCount);
         }
     }, [data]);
 
-    // Lock body scroll when popup is open
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
@@ -88,12 +84,14 @@ const NotificationComponent: React.FC<NotificationProps> = ({ userId }) => {
         const pusher = createPusherWithSession();
         const channel = pusher.subscribe(`private-user-${userId}`);
 
+        // Logic to handle incoming notifications
         const handleNewNotification = (data: { message: string }) => {
             notifySuccess(data.message);
             queryClient.invalidateQueries({ queryKey: ['notifications'] });
             setUnreadCount(prev => prev + 1);
         };
 
+        // Subscribe to the channel and handle events
         channel.bind("new-notification", handleNewNotification);
 
         return () => {
@@ -102,7 +100,6 @@ const NotificationComponent: React.FC<NotificationProps> = ({ userId }) => {
         };
     }, [userId, queryClient]);
 
-    // Handle ESC key
     useEffect(() => {
         const handleEscKey = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
@@ -121,6 +118,7 @@ const NotificationComponent: React.FC<NotificationProps> = ({ userId }) => {
 
     // Flatten notifications
     const notifications = data?.pages.flatMap(page => page.data) || [];
+
     const filteredNotifications = filter === 'unread'
         ? notifications.filter(n => !n.isRead)
         : notifications;
@@ -194,7 +192,6 @@ const NotificationComponent: React.FC<NotificationProps> = ({ userId }) => {
 
     return (
         <div className="relative">
-            {/* Bell Button */}
             <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -213,7 +210,6 @@ const NotificationComponent: React.FC<NotificationProps> = ({ userId }) => {
                 )}
             </motion.button>
 
-            {/* Dropdown Backdrop and Modal */}
             <AnimatePresence>
                 {isOpen && (
                     <>

@@ -40,18 +40,22 @@ interface EditNovelPopupProps {
     userId: string;
 }
 
-
 const config = {
-    height: 250,
+    height: 200,
     readonly: false,
-    placeholder: 'Paste nội dung mới của tóm tắt vào đây để chỉnh sửa...',
     style: {
-        color: '#000000'
+        color: '#ffffff',
+        backgroundColor: '#0a0a0a',
     },
+    placeholder: 'Dáng nội dung của chapter ở đây...',
+    toolbar: false,
+    statusbar: false,
+    showCharsCounter: false,
+    showWordsCounter: false,
+    showXPathInStatusbar: false,
     events: {
         beforePaste: (html: string) => {
-            return html
-                .replace(/color\s*:\s*[^;"]+;?/gi, '')
+            return html.replace(/color\s*:\s*[^;"]+;?/gi, '')
                 .replace(/background(-color)?\s*:\s*[^;"]+;?/gi, '');
         }
     }
@@ -165,7 +169,7 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
                 notifyError('Kích thước file không được vượt quá 10MB!');
                 return;
             }
-            
+
             // Kiểm tra định dạng file
             if (!file.type.startsWith('image/')) {
                 notifyError('Vui lòng chọn file hình ảnh!');

@@ -17,27 +17,25 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
 
         const { userId, title, content, chapterNumber, wordCount } = await request.json()
 
-        const novel = await Novel.findById(novelId);
-
+        // Kiểm tra novel có tồn tại không
+        const novel = await Novel.findById(novelId)
+            .lean<any>();
         if (!novel) {
             return NextResponse.json({ error: 'Novel không tồn tại!' }, { status: 404 });
         }
-
         if (userId !== novel.authorId.toString()) {
             return NextResponse.json({ error: 'Bạn không có quyền thực hiện thao tác này!' }, { status: 403 });
         }
-
         if (!title || !chapterNumber || !content) {
             return NextResponse.json({ error: 'Vui lòng nhập đầy đủ thông tin!' }, { status: 400 });
         }
 
+        // Kiểm tra act và chapterNumber đó đã tồn tại không
         const act = await Act.findOne({ _id: actId, novelId: novelId });
         if (!act) {
             return NextResponse.json({ error: 'Act không tồn tại hoặc không thuộc về novel này!' }, { status: 404 });
         }
-
         const existingChapter = await Chapter.findOne({ actId: actId, chapterNumber: chapterNumber });
-
         if (existingChapter) {
             return NextResponse.json({
                 error: `Chapter số ${chapterNumber} đã tồn tại trong Act này! Vui lòng chọn số thứ tự khác.`
@@ -61,6 +59,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
 
         await Novel.findByIdAndUpdate(novelId, { updatedAt: new Date() });
 
+        // Tạo thông báo cho tất cả người like novel này
         const likes = await Likes.find({ novelId })
             .select('userId');
 
@@ -97,7 +96,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
                 wordCount: savedChapter.wordCount,
                 actId: savedChapter.actId.toString(),
                 createdAt: savedChapter.createdAt.toISOString(),
-                updatedAt: savedChapter.updatedAt.toISOString()
+                updatedAt: savedChapter.updatedAt.toISOString(),
             }
         }, { status: 201 });
     } catch (error) {

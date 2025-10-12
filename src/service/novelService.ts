@@ -9,7 +9,6 @@ import { Types } from "mongoose";
 export const NovelService = {
     async updateAuthorTotalViews(authorId: string) {
         try {
-            // Convert string to ObjectId for aggregation
             const authorObjectId = new Types.ObjectId(authorId);
 
             const agg = await Novel.aggregate([
@@ -19,7 +18,7 @@ export const NovelService = {
 
             const totalViews = agg[0]?.total ?? 0;
 
-            // Also update totalNovels count
+            // Update totalNovels count
             const totalNovels = await Novel.countDocuments({ authorId: authorObjectId });
 
             const updatedProfile = await Profile.findOneAndUpdate(

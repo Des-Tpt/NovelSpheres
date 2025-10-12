@@ -197,7 +197,7 @@ const Header = () => {
                                         <div className="p-4 border-b border-gray-200">
                                             <div className="flex items-center gap-3">
                                                 {userImage && (
-                                                    <CustomImage
+                                                    <Image
                                                         src={userImage}
                                                         alt={currentUser.username || 'avatar người dùng'}
                                                         width={48}

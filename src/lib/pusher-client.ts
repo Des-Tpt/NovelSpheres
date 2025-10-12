@@ -28,7 +28,7 @@ export function createPusherWithSession() {
                         .then(async (res) => {
                             if (!res.ok) {
                                 const text = await res.text().catch(() => "");
-                                throw new Error(`Auth failed: ${res.status} ${text}`);
+                                throw Error(`Auth failed: ${res.status} ${text}`);
                             }
                             return res.json();
                         })

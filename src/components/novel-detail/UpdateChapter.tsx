@@ -34,8 +34,8 @@ const config = {
         color: '#ffffff',
         backgroundColor: '#0a0a0a',
     },
-    placeholder: 'Paste nội dung mới vào đây để chỉnh sửa chapter (tùy chọn)...',
-    toolbar: false, // Disable toolbar for mobile
+    placeholder: 'Dáng nội dung của chapter ở đây...',
+    toolbar: false,
     statusbar: false,
     showCharsCounter: false,
     showWordsCounter: false,

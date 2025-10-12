@@ -27,7 +27,7 @@ const config = {
         backgroundColor: '#0a0a0a',
     },
     placeholder: 'Dáng nội dung của chapter ở đây...',
-    toolbar: false, // Disable toolbar for mobile
+    toolbar: false,
     statusbar: false,
     showCharsCounter: false,
     showWordsCounter: false,
@@ -74,32 +74,23 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
         onSuccess: (response) => {
             const newChapter = response.data;
 
-            // Update novelDetail cache - add new chapter to correct act
+            // Update novelDetail cache, get data from api response and add to cache
             queryClient.setQueryData(['novelDetail', novelId], (oldData: any) => {
                 if (!oldData?.acts) return oldData;
 
                 return {
                     ...oldData,
                     acts: oldData.acts.map((act: any) =>
-                        act._id === newChapter.actId
-                            ? {
-                                ...act,
-                                chapters: [
-                                    ...(act.chapters || []),
-                                    newChapter
-                                ].sort((a, b) => a.chapterNumber - b.chapterNumber)
-                            }
-                            : act
+                        act._id === newChapter.actId ? {
+                            ...act,
+                            chapters: [
+                                ...(act.chapters || []),
+                                newChapter
+                            ].sort((a, b) => a.chapterNumber - b.chapterNumber)
+                        }
+                        : act
                     )
                 };
-            });
-
-            // Optional: Set individual chapter cache
-            queryClient.setQueryData(['chapter', newChapter._id], newChapter);
-
-            // Optional: Invalidate related caches
-            queryClient.invalidateQueries({
-                queryKey: ['chapterList', novelId]
             });
 
             notifySuccess('Tạo chapter thành công!');

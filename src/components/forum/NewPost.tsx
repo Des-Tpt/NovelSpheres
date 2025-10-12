@@ -34,14 +34,25 @@ const CATEGORIES: { value: CategoryType; label: string }[] = [
 ];
 
 const config = {
-    height: 250,
+    height: 200,
+    readonly: false,
     style: {
-        background: '#111827',
-        color: '#f9fafb',
+        color: '#ffffff',
+        backgroundColor: '#0a0a0a',
     },
-    editorCssClass: 'jodit-dark-editor'
-}
-
+    placeholder: 'Dáng nội dung của chapter ở đây...',
+    toolbar: false,
+    statusbar: false,
+    showCharsCounter: false,
+    showWordsCounter: false,
+    showXPathInStatusbar: false,
+    events: {
+        beforePaste: (html: string) => {
+            return html.replace(/color\s*:\s*[^;"]+;?/gi, '')
+                .replace(/background(-color)?\s*:\s*[^;"]+;?/gi, '');
+        }
+    }
+};
 interface Novel {
     _id: string;
     title: string;

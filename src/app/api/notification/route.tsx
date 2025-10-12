@@ -28,7 +28,6 @@ export async function GET(req: NextRequest) {
     try {
         await connectDB();
 
-        // Build filter with proper interface
         interface NotificationFilter {
             userId: mongoose.Types.ObjectId;
             isRead?: boolean;
@@ -51,11 +50,11 @@ export async function GET(req: NextRequest) {
 
         const [notifies, total, unreadCount] = await Promise.all([
             Notification.find(filter)
-                .select('message type href isRead createdAt') // Only needed fields
+                .select('message type href isRead createdAt')
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit)
-                .lean(), // Use lean() for better performance
+                .lean(),
             
             Notification.countDocuments(filter),
             

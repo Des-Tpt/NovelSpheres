@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation';
 import LoadingComponent from '../ui/Loading';
 import React, { useEffect, useState } from 'react';
 import getImage from '@/action/imageActions';
-import Image from 'next/image';
 import { Book, BookMarked, Heart, Share2, StepForward, Calendar, Eye, Clock, BookOpenIcon, Star, MessageCircle, Send, ChevronUp, ChevronDown, Plus, FileText, Newspaper, CirclePlus, Edit2, Trash2, Settings, EyeIcon, StarIcon, List, BookOpen } from 'lucide-react';
 import { createComment } from '@/action/commentActions';
 import findParentComment from '@/utils/findParentComment';
@@ -594,13 +593,13 @@ const NovelDetail = () => {
                         <div className='flex flex-col p-4 sm:p-5 rounded-lg bg-gray-950'>
 
                             <div className='flex items-start md:items-center '>
-                                <div className='max-w-2/6 flex-shrink-0 md:max-w-full'>
+                                <div className='max-w-2/6 flex-shrink-0 md:max-w-[24rem]'>
                                     <CustomImage
                                         src={coverImage || defaultFallback}
                                         width={400}
                                         height={400}
                                         alt={data?.novel?.title || 'Novel Cover'}
-                                        className="w-50 rounded-lg object-cover object-top shadow-md sm:w-[350px] sm:h-[450px]"
+                                        className="rounded-lg shadow-xl w-full object-cover border border-blue-600 aspect-[3/4] transition-transform duration-200"
                                     />
                                 </div>
                                 <div className='ml-3 md:ml-0 max-w-4/6 md:hidden'>
@@ -646,11 +645,12 @@ const NovelDetail = () => {
                                         {authorImage && (
                                             <div className='w-6 h-6 '>
                                                 <CustomImage
-                                                    src={authorImage}
+                                                    src={authorImage || defaultFallback}
+                                                    timeAdd={20}
                                                     width={80}
                                                     height={80}
                                                     alt={data?.novel?.authorId?.username || 'Avatar tác giả'}
-                                                    className="rounded-full object-cover border border-gray-200"
+                                                    className="rounded-full w-6 h-6 object-cover border border-gray-200"
                                                 />
                                             </div>
                                         )}
@@ -779,6 +779,7 @@ const NovelDetail = () => {
                             {authorImage && (
                                 <CustomImage
                                     src={authorImage}
+                                    timeAdd={20}
                                     width={80}
                                     height={80}
                                     alt={data?.novel?.authorId?.username || 'Avatar tác giả'}
