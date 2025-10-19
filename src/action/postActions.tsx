@@ -39,7 +39,13 @@ export const useForumPosts = ({ page = 1, category = '', sort = 'date', limit = 
         ...(limit && { limit: String(limit) })
       });
 
-      const res = await fetch(`/api/forum/posts?${params.toString()}`);
+      const res = await fetch(`/api/forum/posts?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
+      });
       if (!res.ok) throw Error('Không thể lấy dữ liệu bài viết');
       return res.json();
     },
@@ -49,13 +55,25 @@ export const useForumPosts = ({ page = 1, category = '', sort = 'date', limit = 
 };
 
 export const getHeaderForum = async () => {
-  const res = await fetch(`/api/forum/header-forum`);
+  const res = await fetch(`/api/forum/header-forum`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': process.env.PRIVATE_API_KEY!,
+    },
+  });
   if (!res.ok) throw Error('Lỗi khi fetch dữ liệu');
   return res.json();
 }
 
 export async function getPostById(id: string) {
-  const res = await fetch(`/api/forum/posts/${id}`);
+  const res = await fetch(`/api/forum/posts/${id}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': process.env.PRIVATE_API_KEY!,
+    },
+  });
 
   if (!res.ok) {
     throw Error(`Không thể lấy post!`);
@@ -73,7 +91,10 @@ export const createPost = async (postData: {
 }) => {
   const response = await fetch('/api/forum/posts', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': process.env.PRIVATE_API_KEY!,
+    }, 
     body: JSON.stringify(postData),
     credentials: 'include',
   });

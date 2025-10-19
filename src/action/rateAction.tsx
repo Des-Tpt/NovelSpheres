@@ -28,6 +28,7 @@ export const getRating = async (novelId: string, userId: string): Promise<Rating
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
+                'x-api-key': process.env.PRIVATE_API_KEY!,
             },
         });
 
@@ -48,6 +49,7 @@ export const createRating = async (data: RatingData): Promise<ApiResponse> => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'x-api-key': process.env.PRIVATE_API_KEY!,
             },
             body: JSON.stringify({ userId: data.userId, score: data.score }),
         });
@@ -69,6 +71,7 @@ export const updateRating = async (data: RatingData): Promise<ApiResponse> => {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
+                'x-api-key': process.env.PRIVATE_API_KEY!,
             },
             body: JSON.stringify({ userId: data.userId, score: data.score }),
         });

@@ -10,6 +10,7 @@ export const createComment = async (commentData: {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-api-key': process.env.PRIVATE_API_KEY!,
       },
       body: JSON.stringify(commentData),
       credentials: 'include'
@@ -20,7 +21,7 @@ export const createComment = async (commentData: {
       throw Error(errorData.error || 'Lỗi khi bình luận!');
     }
     return await response.json();
-    
+
   } catch (error) {
     throw error;
   }

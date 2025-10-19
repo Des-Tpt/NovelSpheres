@@ -3,7 +3,13 @@ export async function getChapterById(chapterId: string, userId?: string) {
         ? `/api/chapter/${chapterId}?userId=${userId}`
         : `/api/chapter/${chapterId}`;
 
-    const res = await fetch(url);
+    const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
+    });
 
     if (!res.ok) {
         throw Error(`Không thể lấy chapter!`);
@@ -24,7 +30,10 @@ export const createChapter = async (postData: {
 }) => {
     const response = await fetch(`/api/novels/${postData.novelId}/${postData.actId}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
         body: JSON.stringify(postData),
     });
 
@@ -48,7 +57,10 @@ export const updateChapter = async (postData: {
 }) => {
     const response = await fetch(`/api/novels/${postData.novelId}/${postData.actId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
         body: JSON.stringify({
             chapterId: postData.chapterId,
             userId: postData.userId,
@@ -82,6 +94,10 @@ export const deleteChapter = async (postData: {
 
     const response = await fetch(`/api/novels/${postData.novelId}/${postData.actId}`, {
         method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
         body: formData,
     });
 
@@ -112,6 +128,10 @@ export async function getNovelsForNovelsPage({
 
     const res = await fetch('/api/novels', {
         method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
         body: formData,
     });
 

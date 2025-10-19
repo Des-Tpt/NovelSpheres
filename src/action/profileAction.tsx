@@ -1,5 +1,11 @@
 export const getProfile = async (userId: string) => {
-    const response = await fetch(`/api/profile/${userId}`);
+    const response = await fetch(`/api/profile/${userId}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
+    });
 
     if (!response.ok) {
         throw Error('Lỗi khi lấy dữ liệu trang cá nhân!');
@@ -59,6 +65,10 @@ export async function updateProfile({ userId, data }: UpdateProfileVariables) {
 
     const response = await fetch(`/api/profile/${userId}`, {
         method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
         body: formData,
     });
 
@@ -78,7 +88,12 @@ interface historyData {
 
 export async function getHistory({ userId, page }: historyData) {
     const response = await fetch(`/api/profile/${userId}/histories?page=${page}`, {
-        method: 'GET'
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
+        credentials: 'include',
     });
 
     if (!response.ok) {
@@ -90,7 +105,12 @@ export async function getHistory({ userId, page }: historyData) {
 
 export async function getFavorites({ userId, page }: historyData) {
     const response = await fetch(`/api/profile/${userId}/favorites?page=${page}`, {
-        method: 'GET'
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
+        credentials: 'include',
     });
 
     const result = await response.json();

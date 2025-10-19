@@ -5,13 +5,25 @@ type Genre = {
 }
 
 export const getFeatureNovels = async () => {
-    const res = await fetch(`/api/novels/feature-novels`);
+    const res = await fetch(`/api/novels/feature-novels`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
+    });
     if (!res.ok) throw Error('Lỗi khi fetch dữ liệu');
     return res.json();
 }
 
 export const getGenres = async () => {
-    const res = await fetch(`/api/genres`);
+    const res = await fetch(`/api/genres`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
+    });
     if (!res.ok) throw Error('Lỗi khi fetch dữ liệu');
     return res.json();
 }
@@ -23,7 +35,13 @@ export const getNovelByFilter = async (data: Genre[], sortBy: string): Promise<I
 
     const url = `/api/novels/filter-novels${query}${query ? '&' : '?'}sortBy=${encodeURIComponent(sortBy)}`;
 
-    const res = await fetch(url);
+    const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
+    });
     if (!res.ok) {
         throw Error(`Lỗi khi fetch dữ liệu: ${res.status} - ${res.statusText}`);
     }
@@ -33,7 +51,13 @@ export const getNovelByFilter = async (data: Genre[], sortBy: string): Promise<I
 };
 
 export const getNovelById = async (id: string) => {
-    const res = await fetch(`/api/novels/${id}`);
+    const res = await fetch(`/api/novels/${id}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
+    });
 
     if (!res.ok) {
         throw Error('Không thể lấy tiểu thuyết!');
@@ -44,7 +68,13 @@ export const getNovelById = async (id: string) => {
 }
 
 export const getNovelForNewPost = async (title: string) => {
-    const res = await fetch(`/api/search-in-post?query=${encodeURIComponent(title)}`);
+    const res = await fetch(`/api/search-in-post?query=${encodeURIComponent(title)}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
+    });
 
     if (!res.ok) {
         throw Error('Không thể lấy tiểu thuyết!');
@@ -75,6 +105,10 @@ export const createAct = async (postData: {
 
     const response = await fetch(`/api/novels/${postData.novelId}`, {
         method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
         body: formData,
     });
 
@@ -112,6 +146,10 @@ export const createNovel = async (postData: {
 
     const response = await fetch(`/api/novels/create-novel`, {
         method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
         body: formData,
     });
 
@@ -150,6 +188,10 @@ export const updateNovel = async (postData: {
 
     const response = await fetch(`/api/novels/${postData.novelId}`, {
         method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
         body: formData,
     });
 
@@ -184,6 +226,10 @@ export const updateAct = async (postData: {
 
     const response = await fetch(`/api/novels/${postData.novelId}`, {
         method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
         body: formData,
     });
 
@@ -207,6 +253,10 @@ export const deleteAct = async (postData: {
 
     const response = await fetch(`/api/novels/${postData.novelId}`, {
         method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
         body: formData,
     });
 
