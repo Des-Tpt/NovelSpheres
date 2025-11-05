@@ -1,3 +1,4 @@
+import { getCurrentUser } from "@/lib/auth";
 import cloudinary from "@/lib/cloudinary";
 import { connectDB } from "@/lib/db";
 import { Act } from "@/model/Act";
@@ -44,7 +45,17 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
             .sort({ createdAt: -1 })
             .lean();
 
-        const optimizedComments = optimizeComment(comments);
+        const user = await getCurrentUser();
+
+
+        let optimizedComments = optimizeComment(comments);
+
+
+        optimizedComments = optimizedComments.map(comment => ({
+            ...comment,
+            hasLiked: user ? (comment.likes?.userIds?.includes(user._id) ?? false) : false,
+            likes: { count: comment.likes?.count ?? 0 }
+        }));
 
         const acts = await Act.find({ novelId: novelId })
             .select("title actNumber actType publicId formatId")

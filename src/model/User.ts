@@ -18,18 +18,18 @@ export interface IUser extends Document {
 
 const UserSchema = new Schema<IUser>({
   _id: { type: Schema.Types.ObjectId, auto: true },
-  username: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  role: { type: String, enum: ['reader', 'writer', 'admin'], default: 'reader' },
+  username: { type: Schema.Types.String, required: true },
+  email: { type: Schema.Types.String, required: true, unique: true },
+  password: { type: Schema.Types.String, required: true },
+  role: { type: Schema.Types.String, enum: ['reader', 'writer', 'admin'], default: 'reader' },
   profile: {
     profileId: { type: Schema.Types.ObjectId, require: false, ref: 'Profile' },
     avatar: {
-      publicId: { type: String },
-      format: { type: String },
+      publicId: { type: Schema.Types.String },
+      format: { type: Schema.Types.String },
     },
   },
-  createdAt: { type: Date, default: Date.now },
+  createdAt: { type: Schema.Types.Date, default: Date.now },
 });
 
 UserSchema.pre('findOneAndDelete', async function (next) {

@@ -36,9 +36,27 @@ const itemVariants = {
 
 interface Comment {
     _id: string;
-    userId: { _id: string; username: string; role: string; profile?: { avatar?: { publicId: string; format: string } } };
+    userId: {
+        _id: string;
+        username: string;
+        role: string;
+        profile?: {
+            avatar?: {
+                publicId: string;
+                format: string
+            }
+        }
+    };
     content: string;
-    replyToUserId?: { username: string; _id: string };
+    likes: {
+        count: number;
+        userIds: string[];
+    };
+    hasLiked: boolean;
+    replyToUserId?: {
+        username: string;
+        _id: string
+    };
     replies: Comment[];
     createdAt: string;
 }
@@ -219,7 +237,6 @@ const NovelDetail = () => {
             });
             notifySuccess('Bình luận thành công!');
         },
-        onError: () => notifyError('Bình luận thất bại!'),
     });
 
     const likeMutation = useMutation({
@@ -300,7 +317,8 @@ const NovelDetail = () => {
             setReplyContent('');
             setReplyToUser(null);
         } catch (error) {
-            notifyError('Gặp lỗi bất thường khi bình luận!');
+            const message = error instanceof Error ? error.message : 'Lỗi không xác định';
+            notifyError(message);
         }
     };
 
@@ -316,7 +334,8 @@ const NovelDetail = () => {
             });
             setNewCommentContent('');
         } catch (error) {
-            notifyError('Gặp lỗi bất thường khi bình luận!');
+            const message = error instanceof Error ? error.message : 'Lỗi không xác định';
+            notifyError(message);
         }
     };
 

@@ -67,6 +67,10 @@ export async function POST(request: NextRequest) {
       sourceType: sourceType,
       sourceId: sourceId,
       content: content,
+      likes: {
+        count: 0,
+        userIds: [],
+      },
       createdAt: new Date(),
     });
 

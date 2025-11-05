@@ -1,7 +1,6 @@
 import cloudinary from "@/lib/cloudinary";
 import { connectDB } from "@/lib/db";
 import { User } from "@/model/User";
-import { profile } from "console";
 import { NextRequest, NextResponse } from "next/server";
 
 interface CloudinaryUploadResult {

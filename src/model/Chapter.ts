@@ -18,12 +18,12 @@ const ChapterSchema = new Schema<IChapter>({
     _id: { type: Schema.Types.ObjectId, auto: true },
     novelId: { type: Schema.Types.ObjectId, ref: 'Novel', required: true },
     actId: { type: Schema.Types.ObjectId, ref: 'Act', required: true },
-    title: { type: String, required: true },
-    content: { type: String, required: true },
-    chapterNumber: { type: Number, required: true },
-    wordCount: { type: Number },
-    updatedAt: { type: Date, default: Date.now },
-    createdAt: { type: Date, default: Date.now }
+    title: { type: Schema.Types.String, required: true },
+    content: { type: Schema.Types.String, required: true },
+    chapterNumber: { type: Schema.Types.Number, required: true },
+    wordCount: { type: Schema.Types.Number },
+    updatedAt: { type: Schema.Types.Date, default: Date.now },
+    createdAt: { type: Schema.Types.Date, default: Date.now }
 })
 
 ChapterSchema.index({ novelId: 1, chapterNumber: 1 });

@@ -39,7 +39,7 @@ const Header = () => {
     const [isLoading, setIsLoading] = useState(true);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
-    const avatar = useUserStore((state) => state.avatar);
+    const { avatar, setAvatar } = useUserStore();
 
     const handleClick = (buttonId: string) => {
         setActiveButton(buttonId);
@@ -90,15 +90,28 @@ const Header = () => {
     }, []);
 
     useEffect(() => {
-        if (avatar)
-            getImage(avatar.publicId, avatar.format)
-                .then((imageUrl) => {
-                    setUserImage(imageUrl);
-                })
-                .catch((error) => {
-                    setUserImage(defaultFallback);
-                });
+        if (currentUser) {
+            setAvatar({
+                publicId: currentUser.publicId,
+                format: currentUser.format,
+            });
+        }
+    }, [currentUser]);
+    
+    useEffect(() => {
+        if (!avatar?.publicId) {
+            setUserImage(defaultFallback);
+            return;
+        }
+
+        getImage(avatar.publicId, avatar.format)
+            .then((imageUrl) => setUserImage(imageUrl))
+            .catch(() => {
+                setUserImage(defaultFallback);
+            });
+
     }, [avatar]);
+
 
     const handleLogout = async () => {
         try {

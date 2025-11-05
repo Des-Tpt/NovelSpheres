@@ -8,8 +8,8 @@ export interface IGenre extends Document{
 
 const GenreSchema = new Schema<IGenre>({
     _id: { type: Schema.Types.ObjectId, auto: true },
-    name: { type: String, required: true , unique: true},
-    description: {type: String, required: true}
+    name: { type: Schema.Types.String, required: true , unique: true},
+    description: {type: Schema.Types.String, required: true}
 })
 
 export const Genre = models.Genre || model<IGenre>('Genre', GenreSchema, 'Genre');

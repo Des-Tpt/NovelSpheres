@@ -5,6 +5,9 @@ import { MessageCircle, ThumbsUp, Send, MoreHorizontal } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import handleRole from '@/utils/handleRole';
+import { useEffect, useState } from 'react';
+import { getUserFromCookies } from '@/action/userAction';
+import { toggleCommentLike } from '@/action/commentActions';
 
 interface Comment {
     _id: string;
@@ -23,6 +26,10 @@ interface Comment {
     replyToUserId?: { username: string; _id: string };
     replies: Comment[];
     createdAt: string;
+    likes?: {
+        count: number;
+        userIds: string[];
+    }
 }
 
 interface CommentItemProps {
@@ -74,6 +81,48 @@ const CommentItem: React.FC<CommentItemProps> = ({
         return `${formatDistanceToNow(new Date(updatedAt), { addSuffix: true, locale: vi })}`;
     };
 
+    const [currentUser, setCurrentUser] = useState<any | null>(null);
+    const [isLiking, setIsLiking] = useState(false);
+    const [likeCount, setLikeCount] = useState(comment.likes?.count || 0);
+    const [hasLiked, setHasLiked] = useState(false);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const { user } = await getUserFromCookies();
+            setCurrentUser(user);
+            if (user && comment.likes?.userIds) {
+                setHasLiked(comment.likes.userIds.includes(user._id));
+            }
+        };
+        fetchUser();
+    }, [comment._id]);
+
+    const handleLikeClick = async () => {
+        if (!currentUser || isLiking) return;
+
+        setIsLiking(true);
+
+        const previousHasLiked = hasLiked;
+        const previousLikeCount = likeCount;
+
+        setHasLiked(!hasLiked);
+        setLikeCount(hasLiked ? likeCount - 1 : likeCount + 1);
+
+        try {
+            const result = await toggleCommentLike(comment._id);
+            if (result.success) {
+                setLikeCount(result.likes.count);
+                setHasLiked(result.likes.hasLiked);
+            }
+        } catch (error) {
+            console.error('Error liking comment:', error);
+            setHasLiked(previousHasLiked);
+            setLikeCount(previousLikeCount);
+        } finally {
+            setIsLiking(false);
+        }
+    };
+
     return (
         <motion.div
             variants={commentVariants}
@@ -97,7 +146,9 @@ const CommentItem: React.FC<CommentItemProps> = ({
                     <div className="flex items-center gap-1 sm:gap-2 mb-1">
                         <div
                             onClick={() => onProfileClick(comment.userId._id)}
-                            className="font-semibold cursor-pointer text-sm sm:text-[1.15rem] text-white hover:text-blue-400 transition-colors truncate max-w-[120px] sm:max-w-none"
+                            className={`font-semibold cursor-pointer text-sm sm:text-[1.15rem] hover:text-blue-400 transition-colors truncate max-w-[120px] sm:max-w-none
+                                ${currentUser && currentUser._id === comment.userId._id ? 'bg-gradient-to-r from-amber-400 to-orange-600 bg-clip-text text-transparent' : 'text-white'}    
+                            `}
                         >
                             {comment.userId.username}
                         </div>
@@ -116,18 +167,20 @@ const CommentItem: React.FC<CommentItemProps> = ({
                         )}
                         <span className="break-words">{comment.content}</span>
                     </div>
-                    
-                    {/* Mobile-first action bar */}
+
                     <div className="flex items-center justify-between">
                         <div className='flex gap-2 sm:gap-4'>
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                className="flex items-center gap-1 text-gray-400 hover:text-blue-400 transition-colors text-xs sm:text-sm"
-                                disabled={isSubmitting}
+                                onClick={handleLikeClick}
+                                className={`flex items-center gap-1 transition-colors text-xs sm:text-sm ${hasLiked ? 'text-blue-400' : 'text-gray-400 hover:text-blue-400'
+                                    }`}
+                                disabled={isLiking || !currentUser}
                             >
-                                <ThumbsUp className="w-3 h-3 sm:w-4 sm:h-4" />
+                                <ThumbsUp className={`w-3 h-3 sm:w-4 sm:h-4 ${hasLiked ? 'fill-current' : ''}`} />
                                 <span className='hidden sm:inline'>Thích</span>
+                                {likeCount > 0 && <span className='text-sm ml-1'>({likeCount})</span>}
                             </motion.button>
 
                             <motion.button
@@ -141,14 +194,13 @@ const CommentItem: React.FC<CommentItemProps> = ({
                                 <span className='hidden sm:inline'>Trả lời</span>
                             </motion.button>
                         </div>
-                        
+
                         <span className="text-xs sm:text-sm text-gray-400 whitespace-nowrap">
                             {getTimeAgo(comment.createdAt)}
                         </span>
                     </div>
                 </div>
 
-                {/* Reply input form - Mobile optimized */}
                 <AnimatePresence>
                     {replyingTo === comment._id && (
                         <motion.div

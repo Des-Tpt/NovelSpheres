@@ -16,26 +16,26 @@ export interface INovel extends Document {
     rating: number;
     ratingsCount: number;
     createdAt: Date,
-    updatedAt: Date
+    updatedAt: Date,
 }
 
 const NovelSchema = new Schema<INovel>({
     _id: { type: Schema.Types.ObjectId, auto: true },
     title: { type: String, required: true },
     authorId: { type: Schema.Types.ObjectId, ref: 'User' },
-    description: { type: String, required: true },
+    description: { type: Schema.Types.String, required: true },
     coverImage: {
-        publicId: String,
-        format: String,
+        publicId: Schema.Types.String,
+        format: Schema.Types.String,
     },
     genresId: { type: [Schema.Types.ObjectId], ref: 'Genre' },
-    status: { type: String, enum: ['Ongoing', 'Completed', 'Hiatus'], default: 'Ongoing' },
-    views: { type: Number, default: 0 },
-    likes: { type: Number, default: 0 },
-    rating: { type: Number, default: 0 },
-    ratingsCount: { type: Number, default: 0 },
-    createdAt: Date,
-    updatedAt: Date
+    status: { type: Schema.Types.String, enum: ['Ongoing', 'Completed', 'Hiatus'], default: 'Ongoing' },
+    views: { type: Schema.Types.Number, default: 0 },
+    likes: { type: Schema.Types.Number, default: 0 },
+    rating: { type: Schema.Types.Number, default: 0 },
+    ratingsCount: { type: Schema.Types.Number, default: 0 },
+    createdAt: { type: Schema.Types.Date, default: new Date() },
+    updatedAt: { type: Schema.Types.Date, default: new Date() },
 })
 
 NovelSchema.index({ title: 1 });

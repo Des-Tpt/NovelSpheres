@@ -24,7 +24,12 @@ export interface IComment extends Document {
         username: string;
         role: string;
     };
+    likes: {
+        count: number;
+        userIds: Schema.Types.ObjectId[];
+    };
     createdAt: Date;
+    isDeleted: boolean;
 }
 
 const CommentSchema = new Schema<IComment>({
@@ -34,7 +39,7 @@ const CommentSchema = new Schema<IComment>({
     parentId: { type: Schema.Types.ObjectId, ref: 'Comment', default: null },
     replyToUserId: { type: Schema.Types.ObjectId, ref: 'User', default: null },
     sourceType: {
-        type: String,
+        type: Schema.Types.String,
         enum: ['ForumPost', 'NovelChapter', 'Novel'],
         required: true
     },
@@ -42,7 +47,12 @@ const CommentSchema = new Schema<IComment>({
         type: Schema.Types.ObjectId,
         required: true
     },
-    createdAt: { type: Date, default: Date.now }
+    likes: {
+        count: { type: Schema.Types.Number, default: 0 },
+        userIds: [{ type: Schema.Types.ObjectId, ref: 'User', default: [] }]
+    },
+    createdAt: { type: Date, default: Date.now },
+    isDeleted: { type: Schema.Types.Boolean, default: false }
 });
 
 CommentSchema.post('save', async function (doc) {
@@ -58,5 +68,7 @@ CommentSchema.post('save', async function (doc) {
         console.error('Error updating lastCommentAt:', error);
     }
 })
+
+CommentSchema.index({ sourceId: 1 });
 
 export const Comment = models.Comment || model<IComment>('Comment', CommentSchema, 'Comment');

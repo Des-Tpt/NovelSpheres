@@ -7,6 +7,7 @@ import { IUser } from '@/model/User';
 import { Genre, IGenre } from '@/model/Genre';
 import { Chapter } from '@/model/Chapter';
 import { connectDB } from '@/lib/db';
+import { modelNames } from 'mongoose';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,6 +27,8 @@ export async function GET(req: NextRequest) {
 }
 
 async function getFeaturedNovelData(novel: INovel) {
+    console.log(modelNames, User);
+    
     const chapterCount = await Chapter.countDocuments({ novelId: novel._id });
     const user = await User.findById(novel.authorId).lean<IUser>();
     const firstGenreId = novel.genresId[0];

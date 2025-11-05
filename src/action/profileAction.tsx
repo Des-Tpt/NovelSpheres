@@ -66,7 +66,6 @@ export async function updateProfile({ userId, data }: UpdateProfileVariables) {
     const response = await fetch(`/api/profile/${userId}`, {
         method: 'PATCH',
         headers: {
-            'Content-Type': 'application/json',
             'x-api-key': process.env.PRIVATE_API_KEY!,
         },
         body: formData,

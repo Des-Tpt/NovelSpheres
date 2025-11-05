@@ -13,7 +13,7 @@ const ReadingHistorySchema = new Schema<IReadingHistory>({
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     novelId: { type: Schema.Types.ObjectId, ref: 'Novel', required: true },
     chapterId: { type: Schema.Types.ObjectId, ref: 'Chapter', required: true },
-    lastReadAt: { type: Date, default: Date.now }
+    lastReadAt: { type: Schema.Types.Date, default: Date.now }
 });
   
 export const History = models.ReadingHistory || model<IReadingHistory>('ReadingHistory', ReadingHistorySchema, 'ReadingHistory');

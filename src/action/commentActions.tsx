@@ -26,3 +26,21 @@ export const createComment = async (commentData: {
     throw error;
   }
 };
+
+export async function toggleCommentLike(commentId: string) {
+  const res = await fetch(`/api/comment/${commentId}/like`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': process.env.PRIVATE_API_KEY!,
+
+    },
+    credentials: 'include'
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed to toggle like');
+  }
+
+  return res.json();
+}

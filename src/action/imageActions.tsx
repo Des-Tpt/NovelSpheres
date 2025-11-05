@@ -31,7 +31,6 @@ export const editAvatar = async ({ userId, file }: ImageData) => {
     const response = await fetch(`/api/profile/${userId}/change-avatar`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
             'x-api-key': process.env.PRIVATE_API_KEY!,
         },
         body: formData,

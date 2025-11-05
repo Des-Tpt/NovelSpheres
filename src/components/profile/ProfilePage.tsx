@@ -10,7 +10,8 @@ import {
     Shield,
     BookOpen,
     Trophy,
-    Loader
+    Loader,
+    BookHeart
 } from 'lucide-react';
 import { getProfile } from '@/action/profileAction';
 import { getUserFromCookies } from '@/action/userAction';
@@ -34,7 +35,6 @@ interface IUser {
     email: string;
     role: 'reader' | 'admin' | 'writer';
     profile?: {
-        bio?: string;
         avatar?: {
             publicId: string;
             format: string;
@@ -653,6 +653,13 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                         <div className="bg-gray-950 backdrop-blur-sm rounded-sm border border-gray-700/50 p-6">
                             <h3 className="text-white font-semibold mb-4">Thông tin cá nhân</h3>
                             <div className="space-y-3 text-sm">
+                                {profile.bio && (
+                                    <div className="flex gap-3">
+                                        <BookHeart className="w-4 h-4 text-gray-400 flex-shrink-1 mt-1" />
+                                        <span className="text-gray-300">{profile.bio}</span>
+                                    </div>
+                                )}
+
                                 <div className="flex items-center gap-3">
                                     <Calendar className="w-4 h-4 text-gray-400" />
                                     <span className="text-gray-300">Tham gia {formatDate(user.createdAt)}</span>

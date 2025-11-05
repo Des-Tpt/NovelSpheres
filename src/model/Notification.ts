@@ -13,11 +13,11 @@ export interface INotification extends Document {
 const NotificationSchema = new Schema<INotification>({
   _id: { type: Schema.Types.ObjectId, auto: true },
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  type: { type: String, enum: ['chapter_update', 'comment_reply', 'follow_update'], required: true },
-  message: { type: String, required: true },
-  href: { type: String, required: true },
-  isRead: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now }
+  type: { type: Schema.Types.String, enum: ['chapter_update', 'comment_reply', 'follow_update'], required: true },
+  message: { type: Schema.Types.String, required: true },
+  href: { type: Schema.Types.String, required: true },
+  isRead: { type: Schema.Types.Boolean, default: false },
+  createdAt: { type: Schema.Types.Date, default: Date.now }
 });
 
 NotificationSchema.index({ userId: 1, createdAt: -1 });

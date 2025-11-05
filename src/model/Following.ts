@@ -12,7 +12,7 @@ const FollowSchema = new Schema<IFollow>(
     {
         userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
         followingUserId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-        createdAt: { type: Date, default: Date.now },
+        createdAt: { type: Schema.Types.Date, default: Date.now },
     }
 );
 

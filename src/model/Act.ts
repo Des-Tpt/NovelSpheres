@@ -16,12 +16,12 @@ export interface IAct extends Document {
 const ActSchema = new Schema<IAct>({
     _id: { type: Schema.Types.ObjectId, auto: true },
     novelId: { type: Schema.Types.ObjectId, ref: 'Novel', required: true },
-    title: { type: String, required: true },
-    actNumber: { type: Number, required: true },
-    actType: { type: String, required: false },
-    createdAt: { type: Date, default: Date.now },
-    publicId: { type: String, required: false },
-    format: { type: String, required: false }
+    title: { type: Schema.Types.String, required: true },
+    actNumber: { type: Schema.Types.Number, required: true },
+    actType: { type: Schema.Types.String, required: false },
+    createdAt: { type: Schema.Types.Date, default: Date.now },
+    publicId: { type: Schema.Types.String, required: false },
+    format: { type: Schema.Types.String, required: false }
 })
 
 ActSchema.index({ novelId: 1, actNumber: 1 });
