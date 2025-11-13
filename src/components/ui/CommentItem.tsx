@@ -6,31 +6,9 @@ import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import handleRole from '@/utils/handleRole';
 import { useEffect, useState } from 'react';
-import { getUserFromCookies } from '@/action/userAction';
 import { toggleCommentLike } from '@/action/commentActions';
-
-interface Comment {
-    _id: string;
-    userId: {
-        _id: string;
-        username: string;
-        role: string;
-        profile?: {
-            avatar?: {
-                publicId: string;
-                format: string
-            }
-        }
-    };
-    content: string;
-    replyToUserId?: { username: string; _id: string };
-    replies: Comment[];
-    createdAt: string;
-    likes?: {
-        count: number;
-        userIds: string[];
-    }
-}
+import { CurrentUser } from '@/type/CurrentUser';
+import { Comment } from '@/type/Comment';
 
 interface CommentItemProps {
     comment: Comment;
@@ -41,7 +19,7 @@ interface CommentItemProps {
     replyContent: string;
     replyToUser: { id: string; username: string } | null;
     isSubmitting: boolean;
-    currentUser: any;
+    currentUser: CurrentUser | null;
     onReply: (commentId: string, username: string, userId: string) => void;
     onReplyContentChange: (content: string) => void;
     onSubmitReply: (parentCommentId: string) => void;

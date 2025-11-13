@@ -1,11 +1,4 @@
-interface Comment {
-    _id: string;
-    userId: { _id: string; username: string; role: string; profile?: { avatar?: { publicId: string; format: string } } };
-    content: string;
-    replyToUserId?: { username: string; _id: string };
-    replies: Comment[];
-    createdAt: string;
-}
+import { Comment } from "@/type/Comment";
 
 const findParentComment = (targetCommentId: string, commentsList: Comment[]): string => {
     for (const comment of commentsList) {

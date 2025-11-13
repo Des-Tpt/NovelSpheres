@@ -9,7 +9,6 @@ import { Book, BookMarked, Heart, Share2, StepForward, Calendar, Eye, Clock, Boo
 import { createComment } from '@/action/commentActions';
 import findParentComment from '@/utils/findParentComment';
 import CommentItem from '../ui/CommentItem';
-import handleToProfile from '@/utils/handleToProfile';
 import { AnimatePresence, motion } from 'framer-motion';
 import countTotalComments from '@/utils/countComment';
 import { getUserFromCookies } from '@/action/userAction';
@@ -26,6 +25,8 @@ import { getLike, Like, UnLike } from '@/action/likeAction';
 import RatingPopup from './RateNovel';
 import CustomImage from '../ui/CustomImage';
 import NewestRatings from './NewestRatings';
+import { CurrentUser } from '@/type/CurrentUser';
+import { Comment } from '@/type/Comment';
 
 const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 const defaultFallback = `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
@@ -35,32 +36,6 @@ const itemVariants = {
     visible: { opacity: 1, x: 0, transition: { duration: 0.4 } }
 };
 
-interface Comment {
-    _id: string;
-    userId: {
-        _id: string;
-        username: string;
-        role: string;
-        profile?: {
-            avatar?: {
-                publicId: string;
-                format: string
-            }
-        }
-    };
-    content: string;
-    replyToUserId?: {
-        username: string;
-        _id: string
-    };
-    replies: Comment[];
-    createdAt: string;
-    likes?: {
-        count: number;
-        userIds: string[];
-    }
-}
-
 interface Genres {
     _id: string;
     name: string;
@@ -69,7 +44,17 @@ interface Genres {
 interface Novel {
     _id: string;
     title: string;
-    authorId: { _id: string; username: string; profile?: { avatar?: { publicId: string; format: string } } };
+    authorId: {
+        _id: string;
+        username: string;
+        profile?: {
+            avatar?:
+            {
+                publicId: string;
+                format: string
+            }
+        }
+    };
     description: string;
     rating: number;
     likes: number;
@@ -98,15 +83,6 @@ interface Act {
     chapters: Chapter[];
     publicId?: string;
     format?: string;
-}
-
-interface CurrentUser {
-    _id: string;
-    username: string;
-    email: string;
-    publicId: string;
-    format: string;
-    role: string;
 }
 
 interface ActData {
@@ -576,6 +552,8 @@ const NovelDetail = () => {
     };
 
     const renderComment = (comment: Comment, isReply: boolean = false) => {
+        if (!currentUser) return null;
+
         return (
             <CommentItem
                 key={comment._id}

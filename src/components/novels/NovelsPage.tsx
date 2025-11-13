@@ -5,7 +5,6 @@ import { Search, Grid, List, Eye, Heart, Star, BookOpen, Calendar, TrendingUp, F
 import { getNovelsForNovelsPage, getGenres } from '@/action/novelActions';
 import getImage from '@/action/imageActions';
 import stripHtml from '@/utils/stripHtml';
-import Image from 'next/image';
 import handleStatus from '@/utils/handleStatus';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,6 +14,7 @@ import { notifyError } from '@/utils/notify';
 import { getUserFromCookies } from '@/action/userAction';
 import LoadingComponent from '../ui/Loading';
 import CustomImage from '../ui/CustomImage';
+import { CurrentUser } from '@/type/CurrentUser';
 
 interface Genre {
     _id: string;
@@ -55,15 +55,6 @@ interface Novel {
 interface ApiResponse {
     novel: Novel[];
     hasMore: boolean;
-}
-
-interface CurrentUser {
-    _id: string;
-    username: string;
-    email: string;
-    publicId: string;
-    format: string;
-    role: string;
 }
 
 const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_NAME as string;

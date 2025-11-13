@@ -15,52 +15,10 @@ import CommentItem from '../ui/CommentItem';
 import findParentComment from '@/utils/findParentComment';
 import { notifyError, notifySuccess } from '@/utils/notify';
 import LoadingComponent from '../ui/Loading';
-
-interface Post {
-  _id: string;
-  userId: {
-    _id: string;
-    username: string;
-    role: string;
-    profile?: {
-      avatar?: {
-        publicId: string;
-        format: string
-      }
-    }
-  };
-  novelId?: {
-    _id: string;
-    title: string;
-  };
-  title: string;
-  content: string;
-  category: string;
-  views: number;
-  createdAt: string;
-}
-
-interface Comment {
-  _id: string;
-  userId: {
-    _id: string;
-    username: string;
-    role: string;
-    profile?: {
-      avatar?: {
-        publicId: string;
-        format: string
-      }
-    }
-  };
-  content: string;
-  replyToUserId?: {
-    username: string;
-    _id: string
-  };
-  replies: Comment[];
-  createdAt: string;
-}
+import { getUserFromCookies } from '@/action/userAction';
+import { CurrentUser } from '@/type/CurrentUser';
+import { Comment } from '@/type/Comment';
+import { Post } from '@/type/Post';
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -97,6 +55,20 @@ const PostDetail = () => {
   const [replyToUser, setReplyToUser] = useState<{ id: string; username: string } | null>(null);
   const [showAllReplies, setShowAllReplies] = useState<Set<string>>(new Set());
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const response = await getUserFromCookies();
+        if (response?.user) setCurrentUser(response?.user);
+      } catch (error) {
+        setCurrentUser(null);
+      }
+    };
+    fetchCurrentUser();
+  }, []);
+
 
   const { data, isLoading, error } = useQuery<{ post: Post; comments: Comment[] }>({
     queryKey: ['post', id],
@@ -297,6 +269,7 @@ const PostDetail = () => {
         onSubmitReply={handleSubmitReply}
         onCancelReply={handleCancelReply}
         onProfileClick={handleToProfile}
+        currentUser={currentUser}
       />
     )
   };
@@ -357,7 +330,7 @@ const PostDetail = () => {
           >
             <div>{handleCategoryColor(post.category)}</div>
             <h1 className="text-xl md:text-3xl font-bold text-gray-900 dark:text-white py-1 leading-tight">{post.title}</h1>
-            
+
             {post.novelId && (
               <div className='pb-3 md:pb-4'>
                 <div onClick={() => handlePushNovel(post.novelId?._id)} className="font-inter text-sm md:text-[0.95rem] pl-0.5 mt-2 block">
@@ -365,7 +338,7 @@ const PostDetail = () => {
                 </div>
               </div>
             )}
-            
+
             {/* Author info - Mobile optimized */}
             <div className="flex items-start md:items-center gap-3">
               <Image

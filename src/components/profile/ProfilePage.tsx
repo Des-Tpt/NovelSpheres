@@ -25,6 +25,7 @@ import { followAction } from '@/action/followAction';
 import { notifyError, notifySuccess } from '@/utils/notify';
 import { useUserStore } from '@/store/avatarUserStore';
 import handleRole from '@/utils/handleRole';
+import { CurrentUser } from '@/type/CurrentUser';
 
 const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 const defaultFallback = `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
@@ -101,15 +102,6 @@ interface ProfileData {
     novels: INovel[];
     likes: ILike[];
     isFollowed: boolean
-}
-
-interface CurrentUser {
-    _id: string;
-    username: string;
-    email: string;
-    publicId: string;
-    format: string;
-    role: string;
 }
 
 interface PageProps {

@@ -8,6 +8,7 @@ import { getChapterById } from '@/action/chapterActions';
 import { useSettingChapterStore } from '@/store/settingChapterStore';
 import ChapterSettingPopup from './SettingChapterPopup';
 import { getUserFromCookies } from '@/action/userAction';
+import { CurrentUser } from '@/type/CurrentUser';
 
 
 interface Novel {
@@ -68,16 +69,6 @@ interface ChapterData {
     acts: ActWithChapters[];
     chaptersInAct: ChapterInAct[];
 }
-
-interface CurrentUser {
-    _id: string;
-    username: string;
-    email: string;
-    publicId: string;
-    format: string;
-    role: string;
-}
-
 
 const ChapterPage = () => {
     const router = useRouter();
