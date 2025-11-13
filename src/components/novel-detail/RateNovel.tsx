@@ -37,6 +37,7 @@ const ratingDescriptions = {
 
 export default function RatingPopup({ isOpen, onClose, novelId, userId }: RatingPopupProps) {
     const [rating, setRating] = useState<number>(0);
+    const [textRate, setTextRate] = useState<string>('');
     const [hoverRating, setHoverRating] = useState<number>(0);
     const queryClient = useQueryClient();
 
@@ -49,11 +50,13 @@ export default function RatingPopup({ isOpen, onClose, novelId, userId }: Rating
 
     // Create rating mutation
     const createMutation = useMutation({
-        mutationFn: (data: { novelId: string; userId: string; score: number }) => createRating(data),
+        mutationFn: (data: { novelId: string; userId: string; score: number; rate: string }) => createRating(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['novelDetail', novelId] });
             queryClient.invalidateQueries({ queryKey: ['rating', novelId, userId] });
             queryClient.invalidateQueries({ queryKey: ['feature-novels'] });
+            queryClient.invalidateQueries({ queryKey: ['ratingData', novelId] });
+
             notifySuccess('Đánh giá đã được gửi thành công!');
             setTimeout(() => {
                 onClose();
@@ -66,10 +69,12 @@ export default function RatingPopup({ isOpen, onClose, novelId, userId }: Rating
 
     // Update rating mutation  
     const updateMutation = useMutation({
-        mutationFn: (data: { novelId: string; userId: string; score: number }) => updateRating(data),
+        mutationFn: (data: { novelId: string; userId: string; score: number; rate: string; }) => updateRating(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['novelDetail', novelId] });
             queryClient.invalidateQueries({ queryKey: ['rating', novelId, userId] });
+            queryClient.invalidateQueries({ queryKey: ['ratingData', novelId] });
+
             notifySuccess('Đánh giá đã được cập nhật thành công!');
             setTimeout(() => {
                 onClose();
@@ -101,8 +106,9 @@ export default function RatingPopup({ isOpen, onClose, novelId, userId }: Rating
 
     // Set initial rating when data loads
     useEffect(() => {
-        if (ratingData?.rated && ratingData?.ratings?.score) {
+        if (ratingData?.rated && ratingData?.ratings?.score && ratingData?.ratings?.rate) {
             setRating(ratingData.ratings.score);
+            setTextRate(ratingData.ratings.rate)
         }
     }, [ratingData]);
 
@@ -120,7 +126,7 @@ export default function RatingPopup({ isOpen, onClose, novelId, userId }: Rating
 
     const handleSubmit = () => {
         if (rating > 0) {
-            const data = { novelId, userId, score: rating };
+            const data = { novelId, userId, score: rating, rate: textRate };
 
             if (ratingData?.rated) {
                 updateMutation.mutate(data);
@@ -227,7 +233,6 @@ export default function RatingPopup({ isOpen, onClose, novelId, userId }: Rating
 
                 {/* Rating Section */}
                 <div className="space-y-6">
-                    {/* Stars Container - Fixed height to prevent layout shift */}
                     <div className="flex justify-center gap-2 py-2">
                         {[1, 2, 3, 4, 5].map((star) => (
                             <button
@@ -236,20 +241,19 @@ export default function RatingPopup({ isOpen, onClose, novelId, userId }: Rating
                                 onMouseLeave={() => setHoverRating(0)}
                                 onClick={() => setRating(star)}
                                 disabled={isSubmitting}
-                                className="transition-all duration-150 ease-out hover:scale-110 active:scale-95 disabled:cursor-not-allowed p-1"
+                                className="hover:cursor-pointer transition-all duration-150 ease-out hover:scale-110 active:scale-95 disabled:cursor-not-allowed p-1"
                             >
                                 <Star
                                     size={36}
                                     className={`${star <= currentRating
-                                            ? 'fill-yellow-400 text-yellow-400'
-                                            : 'text-gray-600 hover:text-gray-500'
+                                        ? 'fill-yellow-400 text-yellow-400'
+                                        : 'text-gray-600 hover:text-gray-500'
                                         } transition-colors duration-150`}
                                 />
                             </button>
                         ))}
                     </div>
 
-                    {/* Fixed height container for description to prevent layout shift */}
                     <div className="min-h-[80px] flex items-center justify-center">
                         {currentDescription ? (
                             <motion.div
@@ -300,7 +304,6 @@ export default function RatingPopup({ isOpen, onClose, novelId, userId }: Rating
                         )}
                     </div>
 
-                    {/* Current Rating Display - Only show when not hovering and has existing rating */}
                     {ratingData?.rated && !hoverRating && !currentDescription && ratingData.ratings && (
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
@@ -315,12 +318,26 @@ export default function RatingPopup({ isOpen, onClose, novelId, userId }: Rating
                             </div>
                         </motion.div>
                     )}
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                    >
+                        <textarea
+                            value={textRate}
+                            placeholder='Vui lòng viết đánh giá của bạn tại đây...'
+                            onChange={(e) => {
+                                setTextRate(e.target.value);
+                            }}
+                            className="w-full h-32 px-3 py-2 bg-black border-2 border-blue-500 rounded text-white focus:outline-none focus:border-blue-400 transition-colors disabled:opacity-50"
+                            disabled={createMutation.isPending}
+                        />
+                    </motion.div>
 
                     {/* Action Buttons */}
                     <div className="flex gap-3 pt-2">
                         <button
                             onClick={handleClose}
-                            className="flex-1 px-4 py-2.5 border border-gray-600 text-white rounded-md hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                            className="flex-1 px-4 py-2.5 hover:cursor-pointer border border-gray-600 text-white rounded-md hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                             disabled={isSubmitting}
                         >
                             Hủy
@@ -328,9 +345,9 @@ export default function RatingPopup({ isOpen, onClose, novelId, userId }: Rating
                         <button
                             onClick={handleSubmit}
                             disabled={rating === 0 || isSubmitting}
-                            className={`flex-1 px-4 py-2.5 rounded-md transition-all font-medium flex items-center justify-center gap-2 ${rating > 0 && !isSubmitting
-                                    ? 'bg-yellow-500 hover:bg-yellow-400 text-black shadow-lg hover:shadow-xl'
-                                    : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                            className={`hover:cursor-pointer flex-1 px-4 py-2.5 rounded-md transition-all font-medium flex items-center justify-center gap-2 ${rating > 0 && !isSubmitting
+                                ? 'bg-yellow-500 hover:bg-yellow-400 text-black shadow-lg hover:shadow-xl'
+                                : 'bg-gray-800 text-gray-500 cursor-not-allowed'
                                 }`}
                         >
                             {isSubmitting ? (

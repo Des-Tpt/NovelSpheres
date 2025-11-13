@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, X, Check, MessageCircle, BookOpen, UserPlus, Loader2 } from 'lucide-react';
+import { Bell, X, Check, MessageCircle, BookOpen, UserPlus, Loader2, Star } from 'lucide-react';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPusherWithSession } from '@/lib/pusher-client';
 import { notifyError, notifySuccess } from '@/utils/notify';
@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 interface Notification {
     _id: string;
     userId: string;
-    type: 'chapter_update' | 'comment_reply' | 'follow_update';
+    type: 'chapter_update' | 'comment_reply' | 'follow_update' | 'new_ratings';
     message: string;
     href: string;
     isRead: boolean;
@@ -77,21 +77,18 @@ const NotificationComponent: React.FC<NotificationProps> = ({ userId }) => {
         };
     }, [isOpen]);
 
-    // Setup Pusher
     useEffect(() => {
         if (!userId) return;
 
         const pusher = createPusherWithSession();
         const channel = pusher.subscribe(`private-user-${userId}`);
 
-        // Logic to handle incoming notifications
         const handleNewNotification = (data: { message: string }) => {
             notifySuccess(data.message);
             queryClient.invalidateQueries({ queryKey: ['notifications'] });
             setUnreadCount(prev => prev + 1);
         };
 
-        // Subscribe to the channel and handle events
         channel.bind("new-notification", handleNewNotification);
 
         return () => {
@@ -116,14 +113,12 @@ const NotificationComponent: React.FC<NotificationProps> = ({ userId }) => {
         };
     }, [isOpen]);
 
-    // Flatten notifications
     const notifications = data?.pages.flatMap(page => page.data) || [];
 
     const filteredNotifications = filter === 'unread'
         ? notifications.filter(n => !n.isRead)
         : notifications;
 
-    // Handlers
     const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
         const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
         if (scrollHeight - scrollTop <= clientHeight + 10 && hasNextPage && !isFetchingNextPage) {
@@ -139,12 +134,9 @@ const NotificationComponent: React.FC<NotificationProps> = ({ userId }) => {
             });
         }
 
-        // Navigate to href
         if (notification.href) {
             router.push(notification.href);
         }
-        
-        // Close the notification dropdown after clicking
         setIsOpen(false);
     };
 
@@ -152,14 +144,12 @@ const NotificationComponent: React.FC<NotificationProps> = ({ userId }) => {
         markAsReadMutation.mutate({ userId, markAllAsRead: true });
     };
 
-    // Handle backdrop click
     const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
         if (e.target === e.currentTarget) {
             setIsOpen(false);
         }
     };
 
-    // Helper functions
     const getNotificationIcon = (type: string) => {
         switch (type) {
             case 'chapter_update':
@@ -168,6 +158,8 @@ const NotificationComponent: React.FC<NotificationProps> = ({ userId }) => {
                 return <MessageCircle className="w-4 h-4 text-green-400" />;
             case 'follow_update':
                 return <UserPlus className="w-4 h-4 text-purple-400" />;
+            case 'new_ratings':
+                return <Star className="w-4 h-4 text-yellow-400" />;
             default:
                 return <Bell className="w-4 h-4 text-gray-400" />;
         }
@@ -260,11 +252,10 @@ const NotificationComponent: React.FC<NotificationProps> = ({ userId }) => {
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => setFilter('all')}
-                                        className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                                            filter === 'all' 
-                                                ? 'bg-blue-600 text-white border-2 border-blue-400' 
+                                        className={`px-3 py-1 text-sm rounded-full transition-colors ${filter === 'all'
+                                                ? 'bg-blue-600 text-white border-2 border-blue-400'
                                                 : 'text-gray-300 hover:bg-gray-800 border-2 border-gray-600'
-                                        }`}
+                                            }`}
                                     >
                                         Tất cả
                                     </motion.button>
@@ -272,11 +263,10 @@ const NotificationComponent: React.FC<NotificationProps> = ({ userId }) => {
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => setFilter('unread')}
-                                        className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                                            filter === 'unread' 
-                                                ? 'bg-blue-600 text-white border-2 border-blue-400' 
+                                        className={`px-3 py-1 text-sm rounded-full transition-colors ${filter === 'unread'
+                                                ? 'bg-blue-600 text-white border-2 border-blue-400'
                                                 : 'text-gray-300 hover:bg-gray-800 border-2 border-gray-600'
-                                        }`}
+                                            }`}
                                     >
                                         Chưa đọc ({unreadCount})
                                     </motion.button>
@@ -328,11 +318,10 @@ const NotificationComponent: React.FC<NotificationProps> = ({ userId }) => {
                                                 initial={{ opacity: 0, x: -20 }}
                                                 animate={{ opacity: 1, x: 0 }}
                                                 transition={{ delay: index * 0.05 }}
-                                                className={`p-4 border-b border-gray-800 hover:bg-gray-800 cursor-pointer transition-colors ${
-                                                    !notification.isRead 
-                                                        ? 'bg-gray-800/50 border-l-4 border-l-blue-500' 
+                                                className={`p-4 border-b border-gray-800 hover:bg-gray-800 cursor-pointer transition-colors ${!notification.isRead
+                                                        ? 'bg-gray-800/50 border-l-4 border-l-blue-500'
                                                         : ''
-                                                }`}
+                                                    }`}
                                                 onClick={() => handleNotificationClick(notification)}
                                                 whileHover={{ x: 4 }}
                                             >
@@ -341,11 +330,10 @@ const NotificationComponent: React.FC<NotificationProps> = ({ userId }) => {
                                                         {getNotificationIcon(notification.type)}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className={`text-sm ${
-                                                            !notification.isRead 
-                                                                ? 'font-medium text-white' 
+                                                        <p className={`text-sm ${!notification.isRead
+                                                                ? 'font-medium text-white'
                                                                 : 'text-gray-300'
-                                                        }`}>
+                                                            }`}>
                                                             {notification.message}
                                                         </p>
                                                         <p className="text-xs text-gray-500 mt-1">

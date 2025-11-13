@@ -29,7 +29,7 @@ export async function POST(
             );
         }
 
-        const userId = user._id;
+        const userId = user._id.toString();
 
         if (!comment.likes || !comment.likes.userIds) {
             comment.likes = { count: 0, userIds: [] };

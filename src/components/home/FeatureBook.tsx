@@ -15,6 +15,7 @@ import { Sparkle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import stripHtml from "@/utils/stripHtml";
 import CustomImage from "../ui/CustomImage";
+import './swiper.css'
 
 type Novel = {
     _id: string;
@@ -73,7 +74,7 @@ const BookCard: React.FC<BookCardProps> = ({ novel, imageUrls, index = 0, showAn
                 </div>
             </div>
 
-            <div className="bg-black rounded-b-lg h-[220px] relative">
+            <div className="bg-black rounded-b-lg min-h-[220px] relative flex flex-col">
                 <div className="flex flex-col p-4 h-full">
                     <h3 className="font-bold text-xl text-white group-hover:text-amber-500 transition-colors line-clamp-2 duration-300 mb-2">
                         {novel.title}
@@ -196,13 +197,15 @@ const FeatureBook = () => {
                 >
                     {data.map((novel, index) => (
                         <SwiperSlide key={novel._id}>
-                            <div className="pt-5 pb-12">
-                                <BookCard
-                                    novel={novel}
-                                    imageUrls={imageUrls}
-                                    index={index}
-                                    showAnimation={false}
-                                />
+                            <div className="w-full flex justify-center py-5 pb-10">
+                                <div className="w-96 h-[28rem]">
+                                    <BookCard
+                                        novel={novel}
+                                        imageUrls={imageUrls}
+                                        index={index}
+                                        showAnimation={false}
+                                    />
+                                </div>
                             </div>
                         </SwiperSlide>
                     ))}

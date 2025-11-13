@@ -1,10 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
-import { Chapter } from "@/model/Chapter";
-import { Genre } from "@/model/Genre";
 import { History } from "@/model/History";
-import { Novel } from "@/model/Novel";
-import { User } from "@/model/User";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest, context: { params: Promise<{ userId: string }> }) {
@@ -32,37 +28,43 @@ export async function GET(request: NextRequest, context: { params: Promise<{ use
             );
         }
 
+        // Lấy tất cả novels của user, sắp xếp theo updatedAt
+        const allNovels = await History.find({ userId })
+            .distinct("novelId")
+            .lean<any>();
+
+        // Lấy history mới nhất của mỗi novel
+        const historyPromises = allNovels.map((novelId: string) =>
+            History.findOne({ userId, novelId })
+                .sort({ lastReadAt: -1 })
+                .populate({
+                    path: 'novelId',
+                    select: 'title coverImage status genresId',
+                    populate: {
+                        path: 'genresId',
+                        select: 'name _id',
+                    }
+                })
+                .populate({
+                    path: 'chapterId',
+                    select: 'title chapterNumber',
+                })
+                .lean()
+        );
+
+        const histories = await Promise.all(historyPromises);
+
+        // Sort theo lastReadAt
+        histories.sort((a, b) =>
+            new Date(b.lastReadAt).getTime() - new Date(a.lastReadAt).getTime()
+        );
+
+        // Pagination
         const skip = (page - 1) * limit;
+        const total = histories.length;
+        const paginatedHistories = histories.slice(skip, skip + limit);
 
-        const total = await History.countDocuments({ userId });
-
-        const histories = await History.find({ userId })
-            .sort({ updatedAt: -1 })
-            .skip(skip)
-            .limit(limit)
-            .populate({
-                path: 'novelId',
-                select: 'title coverImage status genresId',
-                model: Novel,
-                populate: {
-                    path: 'genresId',
-                    select: 'name _id',
-                    model: Genre
-                }
-            })
-            .populate({
-                path: 'userId',
-                select: 'username',
-                model: User
-            })
-            .populate({
-                path: 'chapterId',
-                select: 'title chapterNumber',
-                model: Chapter
-            })
-            .lean();
-
-        const formattedHistories = histories.map(history => ({
+        const formattedHistories = paginatedHistories.map(history => ({
             _id: history._id,
             novels: {
                 _id: history.novelId._id,
@@ -88,7 +90,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ use
                 total,
                 currentPage: page,
                 totalPages: Math.ceil(total / limit),
-                hasMore: skip + histories.length < total
+                hasMore: skip + paginatedHistories.length < total
             }
         });
 

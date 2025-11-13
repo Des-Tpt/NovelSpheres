@@ -41,6 +41,7 @@ interface CommentItemProps {
     replyContent: string;
     replyToUser: { id: string; username: string } | null;
     isSubmitting: boolean;
+    currentUser: any;
     onReply: (commentId: string, username: string, userId: string) => void;
     onReplyContentChange: (content: string) => void;
     onSubmitReply: (parentCommentId: string) => void;
@@ -71,6 +72,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
     replyContent,
     replyToUser,
     isSubmitting,
+    currentUser,
     onReply,
     onReplyContentChange,
     onSubmitReply,
@@ -81,21 +83,33 @@ const CommentItem: React.FC<CommentItemProps> = ({
         return `${formatDistanceToNow(new Date(updatedAt), { addSuffix: true, locale: vi })}`;
     };
 
-    const [currentUser, setCurrentUser] = useState<any | null>(null);
     const [isLiking, setIsLiking] = useState(false);
     const [likeCount, setLikeCount] = useState(comment.likes?.count || 0);
     const [hasLiked, setHasLiked] = useState(false);
 
+    // useEffect(() => {
+    //     const fetchUser = async () => {
+    //         const result = await getUserFromCookies();
+    //         if (!result) return; 
+    //         const { user } = result;
+    //         setCurrentUser(user);
+    //         if (user && comment.likes?.userIds) {
+    //             const liked = comment.likes.userIds.includes(user._id);
+    //             setHasLiked(liked);
+    //             setLikeCount(comment.likes.count || 0);
+    //         }
+
+    //     };
+    //     fetchUser();
+    // }, [comment._id, comment.likes?.userIds]);
+
     useEffect(() => {
-        const fetchUser = async () => {
-            const { user } = await getUserFromCookies();
-            setCurrentUser(user);
-            if (user && comment.likes?.userIds) {
-                setHasLiked(comment.likes.userIds.includes(user._id));
-            }
-        };
-        fetchUser();
-    }, [comment._id]);
+        if (currentUser && comment.likes?.userIds) {
+            const liked = comment.likes.userIds.includes(currentUser._id);
+            setHasLiked(liked);
+            setLikeCount(comment.likes.count || 0);
+        }
+    }, [comment._id, comment.likes?.userIds, currentUser]);
 
     const handleLikeClick = async () => {
         if (!currentUser || isLiking) return;

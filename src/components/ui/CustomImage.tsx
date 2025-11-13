@@ -24,7 +24,7 @@ const CustomImage = ({ src, alt, objectCenter, timeAdd, className = '', ...props
     }, [src]);
 
     return (
-        <div className={`relative w-full h-full overflow-hidden ${className}`}>
+        <div className={`relative overflow-hidden ${className}`}>
             {isLoading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-200 z-10">
                     <div className="w-8 h-8 border-4 border-t-blue-500 border-gray-300 rounded-full animate-spin"></div>

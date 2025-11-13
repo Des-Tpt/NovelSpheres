@@ -1,22 +1,86 @@
-/* styles/swiper.css */
+/* Swiper Base */
 .mySwiper {
     width: 100%;
-    max-height: 5rem;
+}
+
+.swiper-wrapper {
+    display: flex;
 }
 
 .swiper-slide {
+    width: 100%;
+    height: auto;
+    flex-shrink: 0;
     display: flex;
     justify-content: center;
-    align-items: center;
-    background: #e0e0e0;
-    font-size: 24px;
 }
 
+/* Navigation */
 .swiper-button-next,
 .swiper-button-prev {
-    color: #333;
+    position: absolute;
+    top: 50%;
+    width: 40px;
+    height: 40px;
+    margin-top: -20px;
+    z-index: 10;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fbbf24;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
+    transition: background 0.3s;
 }
 
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.swiper-button-next {
+    right: 10px;
+}
+
+.swiper-button-prev {
+    left: 10px;
+}
+
+.swiper-button-next.swiper-button-disabled,
+.swiper-button-prev.swiper-button-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.swiper-pagination {
+    position: relative !important;
+    bottom: auto !important;
+    margin-top: 6rem;
+    margin-left: 43%;
+    width: 100%;
+}
+
+
 .swiper-pagination-bullet {
-    background: #333;
+    width: 8px;
+    height: 8px;
+    display: inline-block;
+    border-radius: 50%;
+    background: #9ca3af;
+    opacity: 0.4;
+    margin: 0 4px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.swiper-pagination-bullet.swiper-pagination-bullet-active {
+    background: #fbbf24;
+    opacity: 1;
 }

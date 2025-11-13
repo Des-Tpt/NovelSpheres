@@ -137,10 +137,14 @@ const Header = () => {
         };
     }, [isAuthOpen, isSidebarOpen]);
 
+    const handleClickIcon = () => {
+        router.push('/')
+    }
+
     return (
         <div>
             <header className="bg-black top-0 text-white px-[5%] py-2.5 fixed flex justify-between items-center w1080:px-[15%] w-full z-40">
-                <div className="flex justify-center mr-2.5">
+                <div className="flex justify-center mr-2.5 hover:cursor-pointer" onClick={handleClickIcon}>
                     <BookOpenIcon className="h-8 w-8" />
                     <span className="text-2xl font-semibold pl-4">NovelSphere</span>
                 </div>
@@ -174,7 +178,7 @@ const Header = () => {
                     <SearchBar />
                 </div>
 
-                {/* Desktop Auth Section với Loading */}
+                {/* Desktop Auth Section */}
                 <div className="hidden md:flex items-center gap-5 relative" ref={dropdownRef}>
                     {currentUser?._id &&
                         <NotificationComponent userId={currentUser._id} />
@@ -190,8 +194,8 @@ const Header = () => {
                                     <CustomImage
                                         src={userImage}
                                         alt={currentUser.username || 'avatar người dùng'}
-                                        width={32}
-                                        height={32}
+                                        width={100}
+                                        height={100}
                                         className="rounded-full w-8 h-8 object-cover"
                                     />
                                 )}
@@ -213,9 +217,9 @@ const Header = () => {
                                                     <Image
                                                         src={userImage}
                                                         alt={currentUser.username || 'avatar người dùng'}
-                                                        width={48}
-                                                        height={48}
-                                                        className="rounded-full w-12 h-12 object-cover"
+                                                        width={100}
+                                                        height={100}
+                                                        className="rounded-full w-18 h-18 object-cover"
                                                     />
                                                 )}
                                                 <div className='hidden md:flex flex-col'>

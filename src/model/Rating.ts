@@ -6,6 +6,11 @@ export interface IRating extends Document {
     userId: Schema.Types.ObjectId;
     novelId: Schema.Types.ObjectId;
     score: number;
+    rate: string;
+    likes: {
+        count: number;
+        userIds: string[];
+    };
     createdAt: Date;
 }
 
@@ -14,6 +19,11 @@ const RatingSchema = new Schema<IRating>({
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     novelId: { type: Schema.Types.ObjectId, ref: 'Novel', required: true },
     score: { type: Schema.Types.Number, min: 1, max: 5, required: true },
+    rate: { type: Schema.Types.String, default: ' ' },
+    likes: {
+        count: { type: Schema.Types.Number, default: 0 },
+        userIds: [{ type: Schema.Types.String, default: [] }]
+    },
     createdAt: { type: Schema.Types.Date, default: Date.now }
 });
 
@@ -53,7 +63,7 @@ async function updateNovelStats(novelId: Schema.Types.ObjectId) {
             );
         }
     } catch (error) {
-        console.error('❌ Error updating novel stats:', error);
+        console.error('Error updating novel stats:', error);
     }
 }
 

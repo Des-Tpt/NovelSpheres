@@ -26,39 +26,21 @@ export async function GET(request: NextRequest, context: { params: Promise<{ cha
             return NextResponse.json({ error: 'Chương không tồn tại!' }, { status: 404 });
         }
 
-        let lastTrackedChapter = null;
+        let lastUpdateTime = 0;
+        const UPDATE_INTERVAL = 5000; // 5 giây
 
         if (chapter && userId && userId !== '') {
-            const currentChapterId = chapter._id.toString();
+            const now = Date.now();
 
-            // Chỉ xử lý khi thay đổi chapter
-            if (lastTrackedChapter !== currentChapterId) {
-                lastTrackedChapter = currentChapterId;
+            // Chỉ update nếu đã cách đủ 5 giây
+            if (now - lastUpdateTime >= UPDATE_INTERVAL) {
+                lastUpdateTime = now;
 
-                // Cập nhật ngay khi vào chapter mới
                 await History.findOneAndUpdate(
                     { userId, novelId: chapter.novelId._id, chapterId: chapter._id },
                     { $set: { lastReadAt: new Date() } },
                     { upsert: true }
                 );
-            } else {
-                // Debounce cho cùng 1 chapter
-                const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
-
-                const existingHistory = await History.findOne({
-                    userId,
-                    novelId: chapter.novelId._id,
-                    chapterId: chapter._id,
-                    lastReadAt: { $gte: threeMinutesAgo }
-                });
-
-                if (!existingHistory) {
-                    await History.findOneAndUpdate(
-                        { userId, novelId: chapter.novelId._id, chapterId: chapter._id },
-                        { $set: { lastReadAt: new Date() } },
-                        { upsert: true }
-                    );
-                }
             }
         }
 

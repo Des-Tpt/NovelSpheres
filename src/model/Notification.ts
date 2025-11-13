@@ -13,7 +13,7 @@ export interface INotification extends Document {
 const NotificationSchema = new Schema<INotification>({
   _id: { type: Schema.Types.ObjectId, auto: true },
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  type: { type: Schema.Types.String, enum: ['chapter_update', 'comment_reply', 'follow_update'], required: true },
+  type: { type: Schema.Types.String, enum: ['chapter_update', 'comment_reply', 'follow_update', 'new_ratings'], required: true },
   message: { type: Schema.Types.String, required: true },
   href: { type: Schema.Types.String, required: true },
   isRead: { type: Schema.Types.Boolean, default: false },

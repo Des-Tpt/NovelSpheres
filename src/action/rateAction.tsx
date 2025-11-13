@@ -2,6 +2,7 @@ interface RatingData {
     novelId: string;
     userId: string;
     score: number;
+    rate: string;
 }
 
 interface RatingResponse {
@@ -11,6 +12,7 @@ interface RatingResponse {
         userId: string;
         novelId: string;
         score: number;
+        rate: string;
         createdAt: string;
         updatedAt: string;
     };
@@ -51,7 +53,7 @@ export const createRating = async (data: RatingData): Promise<ApiResponse> => {
                 'Content-Type': 'application/json',
                 'x-api-key': process.env.PRIVATE_API_KEY!,
             },
-            body: JSON.stringify({ userId: data.userId, score: data.score }),
+            body: JSON.stringify({ userId: data.userId, score: data.score, rate: data.rate }),
         });
 
         if (!response.ok) {
@@ -73,7 +75,7 @@ export const updateRating = async (data: RatingData): Promise<ApiResponse> => {
                 'Content-Type': 'application/json',
                 'x-api-key': process.env.PRIVATE_API_KEY!,
             },
-            body: JSON.stringify({ userId: data.userId, score: data.score }),
+            body: JSON.stringify({ userId: data.userId, score: data.score, rate: data.rate }),
         });
 
         if (!response.ok) {
@@ -86,3 +88,38 @@ export const updateRating = async (data: RatingData): Promise<ApiResponse> => {
         throw error;
     }
 };
+
+export const getNewRatings = async (novelId: string) => {
+    try {
+        const response = await fetch(`/api/novels/${novelId}/rating/new-ratings`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': process.env.PRIVATE_API_KEY!,
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Lỗi khi cập nhật đánh giá');
+        }
+
+        return await response.json();
+    } catch (error) {
+        throw error;
+    }
+};
+
+interface RatingDataForContainer {
+    novelId: string;
+    pageParam: number;
+}
+
+export async function getRatingsForContainer({ pageParam = 1, novelId }: RatingDataForContainer) {
+    const res = await fetch(
+        `/api/novels/${novelId}/rating/ratings-container?page=${pageParam}`,
+        { cache: "no-store" }
+    );
+    if (!res.ok) throw new Error("Failed to load");
+    return res.json();
+}

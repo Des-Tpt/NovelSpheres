@@ -25,6 +25,7 @@ import EditNovelPopup from './UpdateNovel';
 import { getLike, Like, UnLike } from '@/action/likeAction';
 import RatingPopup from './RateNovel';
 import CustomImage from '../ui/CustomImage';
+import NewestRatings from './NewestRatings';
 
 const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 const defaultFallback = `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
@@ -48,17 +49,16 @@ interface Comment {
         }
     };
     content: string;
-    likes: {
-        count: number;
-        userIds: string[];
-    };
-    hasLiked: boolean;
     replyToUserId?: {
         username: string;
         _id: string
     };
     replies: Comment[];
     createdAt: string;
+    likes?: {
+        count: number;
+        userIds: string[];
+    }
 }
 
 interface Genres {
@@ -241,8 +241,13 @@ const NovelDetail = () => {
 
     const likeMutation = useMutation({
         mutationFn: Like,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['likeRes', novelId, currentUser?._id] });
+        onMutate: async () => {
+            await queryClient.cancelQueries({ queryKey: ['likeRes', novelId, currentUser?._id] });
+
+            const previousData = queryClient.getQueryData(['novelDetail', novelId]);
+            const previousLikeData = queryClient.getQueryData(['likeRes', novelId, currentUser?._id]);
+
+            queryClient.setQueryData(['likeRes', novelId, currentUser?._id], { liked: true });
             queryClient.setQueryData(['novelDetail', novelId], (oldData: any) => {
                 if (!oldData) return oldData;
                 return {
@@ -252,26 +257,58 @@ const NovelDetail = () => {
                         likes: (oldData.novel.likes ?? 0) + 1,
                     },
                 };
-            })
+            });
+
+            return { previousData, previousLikeData };
         },
-    })
+        onError: (err, newData, context: any) => {
+            if (context?.previousData) {
+                queryClient.setQueryData(['novelDetail', novelId], context.previousData);
+            }
+            if (context?.previousLikeData) {
+                queryClient.setQueryData(['likeRes', novelId, currentUser?._id], context.previousLikeData);
+            }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['likeRes', novelId, currentUser?._id] });
+        },
+    });
 
     const unLikeMutation = useMutation({
         mutationFn: UnLike,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['likeRes', novelId, currentUser?._id] });
+        onMutate: async () => {
+            await queryClient.cancelQueries({ queryKey: ['likeRes', novelId, currentUser?._id] });
+
+            const previousData = queryClient.getQueryData(['novelDetail', novelId]);
+            const previousLikeData = queryClient.getQueryData(['likeRes', novelId, currentUser?._id]);
+
+            queryClient.setQueryData(['likeRes', novelId, currentUser?._id], { liked: false });
             queryClient.setQueryData(['novelDetail', novelId], (oldData: any) => {
                 if (!oldData) return oldData;
                 return {
                     ...oldData,
                     novel: {
                         ...oldData.novel,
-                        likes: Math.max((oldData.novel.likes ?? 0) - 1, 0)
+                        likes: Math.max((oldData.novel.likes ?? 0) - 1, 0),
                     },
                 };
-            })
+            });
+
+            return { previousData, previousLikeData };
         },
-    })
+        onError: (err, newData, context: any) => {
+            if (context?.previousData) {
+                queryClient.setQueryData(['novelDetail', novelId], context.previousData);
+            }
+            if (context?.previousLikeData) {
+                queryClient.setQueryData(['likeRes', novelId, currentUser?._id], context.previousLikeData);
+            }
+            notifyError('Lỗi khi bỏ thích bài viết');
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['likeRes', novelId, currentUser?._id] });
+        },
+    });
 
     const deleteMutation = useMutation({
         mutationFn: deleteAct,
@@ -554,7 +591,8 @@ const NovelDetail = () => {
                 onReplyContentChange={setReplyContent}
                 onSubmitReply={handleSubmitReply}
                 onCancelReply={handleCancelReply}
-                onProfileClick={handleToProfile}
+                onProfileClick={onClickProfile}
+                currentUser={currentUser}
             />
         );
     };
@@ -579,7 +617,7 @@ const NovelDetail = () => {
         });
     };
 
-    const onClickAuthor = (userId: string) => {
+    const onClickProfile = (userId: string) => {
         router.push(`/profile/${userId}`);
     }
 
@@ -674,7 +712,7 @@ const NovelDetail = () => {
                                             </div>
                                         )}
                                         <span className='font-extrabold text-blue-400 text-sm'
-                                            onClick={() => onClickAuthor(data?.novel?.authorId?._id ?? '')}
+                                            onClick={() => onClickProfile(data?.novel?.authorId?._id ?? '')}
                                         >
                                             {data?.novel?.authorId?.username ?? 'Vô danh'}
                                         </span>
@@ -882,6 +920,11 @@ const NovelDetail = () => {
                         </div>
                     </motion.div>
 
+                    <div className='mt-0 md:mt-5'>
+                        <NewestRatings
+                            novelId={data.novel._id}
+                        />
+                    </div>
                     {/* Tab Navigation */}
                     <motion.div className='flex w-full my-4 sm:my-6' variants={itemVariants}>
                         <nav className='flex w-full bg-gray-900 border border-blue-600 text-sm sm:text-lg rounded-lg p-1'>
@@ -917,6 +960,8 @@ const NovelDetail = () => {
                             </button>
                         </nav>
                     </motion.div>
+
+
 
                     {/* Tab Content */}
                     <motion.div

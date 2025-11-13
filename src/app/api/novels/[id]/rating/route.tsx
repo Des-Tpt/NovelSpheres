@@ -1,7 +1,9 @@
 import { connectDB } from "@/lib/db";
-import { Likes } from "@/model/Likes";
+import { pusherServer } from "@/lib/pusher-server";
+import { Notification } from "@/model/Notification";
 import { Novel } from "@/model/Novel";
 import { Rating } from "@/model/Rating";
+import { User } from "@/model/User";
 import { modelNames } from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -35,7 +37,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
 export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
     try {
         const { id: novelId } = await context.params;
-        const { userId, score } = await request.json();
+        const { userId, score, rate } = await request.json();
 
         if (!userId) {
             return NextResponse.json({ error: 'Thiếu thông tin người dùng' }, { status: 400 });
@@ -54,15 +56,33 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
             return NextResponse.json({ error: 'Điểm đánh giá phải từ 1 đến 5' }, { status: 400 });
         }
 
+        const user = await User.findById(userId)
+            .select('username')
+
         const newRate = new Rating({
             userId: userId,
             novelId: novelId,
             score: score,
+            rate: rate,
         })
         await newRate.save();
 
-        return NextResponse.json({ message: 'Rate thành công' }, { status: 200 });
+        await Notification.create({
+            userId: userId,
+            type: 'new_ratings',
+            message: `Người dùng ${user.username} vừa đánh giá tác phẩm của bạn.`,
+            herf: `/novels/${novelId}`,
+            createAt: Date.now(),
+        })
 
+        await pusherServer.trigger(`private-user-${userId}`, "new-notification", {
+            id: userId,
+            message: `Người dùng ${user.username} vừa đánh giá tác phẩm của bạn.`,
+            herf: `/novels/${novelId}`,
+            createdAt: Date.now(),
+        });
+
+        return NextResponse.json({ message: 'Rate thành công' }, { status: 200 });
     } catch (error) {
         return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
     }
@@ -71,7 +91,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
     try {
         const { id: novelId } = await context.params;
-        const { userId, score } = await request.json();
+        const { userId, score, rate } = await request.json();
 
         if (!userId) {
             return NextResponse.json({ error: 'Thiếu thông tin người dùng' }, { status: 400 });
@@ -104,7 +124,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
 
         const updatedRating = await Rating.findOneAndUpdate(
             { userId: userId, novelId: novelId },
-            { score: score },
+            { score: score, rate: rate },
             { new: true }
         );
 

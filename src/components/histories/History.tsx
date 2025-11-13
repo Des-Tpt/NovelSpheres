@@ -84,8 +84,7 @@ const Histories: React.FC<HistoriesProp> = ({ userId }) => {
             return lastPage.pagination.hasMore ? allPages.length + 1 : undefined;
         },
         initialPageParam: 1,
-        staleTime: 5 * 60 * 1000,
-        gcTime: 10 * 60 * 1000,
+        staleTime: 0,
     });
 
     // Flatten all histories from all pages

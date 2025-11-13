@@ -50,11 +50,12 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
 
         let optimizedComments = optimizeComment(comments);
 
-
         optimizedComments = optimizedComments.map(comment => ({
             ...comment,
-            hasLiked: user ? (comment.likes?.userIds?.includes(user._id) ?? false) : false,
-            likes: { count: comment.likes?.count ?? 0 }
+            likes: {
+                count: comment.likes?.count ?? 0,
+                userIds: comment.likes?.userIds ?? []
+            }
         }));
 
         const acts = await Act.find({ novelId: novelId })

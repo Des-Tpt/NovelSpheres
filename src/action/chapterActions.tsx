@@ -95,7 +95,6 @@ export const deleteChapter = async (postData: {
     const response = await fetch(`/api/novels/${postData.novelId}/${postData.actId}`, {
         method: 'DELETE',
         headers: {
-            'Content-Type': 'application/json',
             'x-api-key': process.env.PRIVATE_API_KEY!,
         },
         body: formData,
@@ -129,7 +128,6 @@ export async function getNovelsForNovelsPage({
     const res = await fetch('/api/novels', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
             'x-api-key': process.env.PRIVATE_API_KEY!,
         },
         body: formData,

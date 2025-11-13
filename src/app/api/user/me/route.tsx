@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { User } from "@/model/User";
+import { modelNames } from "mongoose";
 
 export async function GET() {
   const data = await getCurrentUser();
   if (!data) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  console.log(modelNames, User);
 
   const user = await User.findById({ _id: data._id })
     .select('_id username email role profile');

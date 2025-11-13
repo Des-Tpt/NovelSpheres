@@ -106,7 +106,6 @@ export const createAct = async (postData: {
     const response = await fetch(`/api/novels/${postData.novelId}`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
             'x-api-key': process.env.PRIVATE_API_KEY!,
         },
         body: formData,
@@ -147,7 +146,6 @@ export const createNovel = async (postData: {
     const response = await fetch(`/api/novels/create-novel`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
             'x-api-key': process.env.PRIVATE_API_KEY!,
         },
         body: formData,
@@ -189,7 +187,6 @@ export const updateNovel = async (postData: {
     const response = await fetch(`/api/novels/${postData.novelId}`, {
         method: 'PUT',
         headers: {
-            'Content-Type': 'application/json',
             'x-api-key': process.env.PRIVATE_API_KEY!,
         },
         body: formData,
@@ -227,7 +224,6 @@ export const updateAct = async (postData: {
     const response = await fetch(`/api/novels/${postData.novelId}`, {
         method: 'PATCH',
         headers: {
-            'Content-Type': 'application/json',
             'x-api-key': process.env.PRIVATE_API_KEY!,
         },
         body: formData,
@@ -254,7 +250,6 @@ export const deleteAct = async (postData: {
     const response = await fetch(`/api/novels/${postData.novelId}`, {
         method: 'DELETE',
         headers: {
-            'Content-Type': 'application/json',
             'x-api-key': process.env.PRIVATE_API_KEY!,
         },
         body: formData,
@@ -288,6 +283,9 @@ export const getNovelsForNovelsPage = async ({
 
     const res = await fetch('/api/novels', {
         method: 'POST',
+        headers: {
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
         body: formData,
     });
 

@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
             const followers = await Follow.find({ followingUserId: userId })
                 .select('userId');
 
-            const notifPromises = followers.map(async (follower) => {
+            const notifyPromises = followers.map(async (follower) => {
                 const message = `Tác giả ${user.username} vừa đăng tiểu thuyết mới: ${newNovel.title}`;
                 const href = `/novels/${newNovel._id.toString()}`;
 
@@ -94,9 +94,12 @@ export async function POST(request: NextRequest) {
                 });
             });
 
-            await Promise.all(notifPromises);
+            await Promise.all(notifyPromises);
 
-            await User.findByIdAndUpdate(userId, { $set: { role: 'writer' } });
+            await User.findByIdAndUpdate(
+                { _id: userId, role: { $ne: 'admin' } },
+                { $set: { role: 'writer' } }
+            );
 
             return NextResponse.json({ success: true }, { status: 201 });
         } catch (novelError) {
