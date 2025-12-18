@@ -1,3 +1,6 @@
+import { connectDB } from "@/lib/db";
+import { Rating } from "@/model/Rating";
+
 type LikeInput = {
     novelId: string;
     userId: string;
@@ -50,3 +53,18 @@ export async function UnLike(Like: LikeInput) {
 
     return res.json();
 }
+
+// export async function likeRating({ ratingId, userId }: { ratingId: string, userId: string }) {
+//     const rating = await Rating.findOne({ _id: ratingId });
+//     if (!rating) throw Error('Rating not found');
+
+//     if (rating.likes.userIds.includes(userId)) {
+//         rating.likes.count--;
+//         rating.likes.userIds = rating.likes.userIds.filter((_id: string) => _id !== userId);
+//     } else {
+//         rating.likes.count++;
+//         rating.likes.userIds.push(userId);
+//     }
+//     await rating.save();
+//     return rating;
+// }

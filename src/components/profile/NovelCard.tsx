@@ -174,9 +174,9 @@ const NovelCard: React.FC<NovelCardProps> = ({ novel, index, showAuthor = false 
             </div>
 
             {/* Desktop/Tablet Layout (>= sm) */}
-            <div className="hidden sm:flex gap-4 lg:gap-6 p-4 lg:p-6">
+            <div className="hidden sm:flex gap-3 lg:gap-4 p-3 lg:p-4">
                 {/* Cover Image - Desktop */}
-                <div className="w-24 h-32 md:w-28 md:h-40 lg:w-32 lg:h-48 flex-shrink-0">
+                <div className="w-20 h-28 md:w-24 md:h-32 lg:w-28 lg:h-40 flex-shrink-0">
                     <CustomImage
                         src={imageUrl || defaultFallback}
                         height={300}
@@ -186,20 +186,19 @@ const NovelCard: React.FC<NovelCardProps> = ({ novel, index, showAuthor = false 
                 </div>
 
                 {/* Content - Desktop */}
-                <div className="flex-1 flex flex-col justify-between min-h-0">
-                    {/* Header */}
-                    <div className="space-y-2 mb-3">
-                        <div className="flex items-start justify-between gap-3">
-                            <h3 className="font-bold text-white group-hover:text-blue-400 transition-colors leading-tight text-base lg:text-lg line-clamp-2">
+                <div className="flex-1 flex flex-col justify-between min-w-0 overflow-hidden">
+                    <div className="space-y-1.5 mb-2">
+                        <div className="flex items-start justify-between gap-2">
+                            <h3 className="font-bold text-white group-hover:text-blue-400 transition-colors leading-tight text-sm lg:text-base line-clamp-2">
                                 {novel.title}
                             </h3>
-                            <span className={`px-2 py-1 rounded-lg text-sm font-semibold whitespace-nowrap flex-shrink-0 ${getStatusColor(novel.status)}`}>
+                            <span className={`px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-md lg:rounded-lg text-xs font-semibold whitespace-nowrap flex-shrink-0 ${getStatusColor(novel.status)}`}>
                                 {handleStatus(novel.status)}
                             </span>
                         </div>
 
                         {showAuthor && (
-                            <div className="flex items-center gap-2 text-sm">
+                            <div className="flex items-center gap-2 text-xs lg:text-sm">
                                 <span className="text-gray-500">của</span>
                                 <span className="text-blue-400 font-medium truncate">
                                     {novel.authorId?.username || 'Ẩn danh'}
@@ -209,45 +208,45 @@ const NovelCard: React.FC<NovelCardProps> = ({ novel, index, showAuthor = false 
                     </div>
 
                     {/* Description - Desktop */}
-                    <p className="text-sm lg:text-base text-gray-400 line-clamp-2 lg:line-clamp-3 leading-relaxed mb-3">
+                    <p className="text-xs lg:text-sm text-gray-400 line-clamp-2 leading-relaxed mb-2">
                         {stripHtml(novel.description)}
                     </p>
 
                     {/* Genres - Desktop */}
-                    <div className="flex flex-wrap gap-1.5 mb-3">
-                        {novel.genresId?.slice(0, 3).map((genre) => (
+                    <div className="flex flex-wrap gap-1 mb-2">
+                        {novel.genresId?.slice(0, 2).map((genre) => (
                             <span
                                 key={genre._id}
-                                className="px-2.5 py-1 bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-300 border border-purple-500/30 rounded-full text-xs font-medium backdrop-blur-sm"
+                                className="px-2 py-0.5 bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-300 border border-purple-500/30 rounded-full text-xs font-medium backdrop-blur-sm"
                             >
                                 {genre.name}
                             </span>
                         ))}
-                        {novel.genresId && novel.genresId.length > 3 && (
-                            <span className="px-2.5 py-1 bg-gray-700/50 text-gray-400 rounded-full text-xs backdrop-blur-sm">
-                                +{novel.genresId.length - 3}
+                        {novel.genresId && novel.genresId.length > 2 && (
+                            <span className="px-2 py-0.5 bg-gray-700/50 text-gray-400 rounded-full text-xs backdrop-blur-sm">
+                                +{novel.genresId.length - 2}
                             </span>
                         )}
                     </div>
 
                     {/* Stats - Desktop */}
-                    <div className="mt-auto pt-3 border-t border-gray-800/50">
+                    <div className="mt-auto pt-2 border-t border-gray-800/50">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4 text-xs lg:text-sm">
+                            <div className="flex items-center gap-3 text-xs">
                                 <div className="flex items-center gap-1 text-emerald-400">
-                                    <Eye size={14} />
+                                    <Eye size={12} />
                                     <span className="font-medium">{formatNumber(novel.views || 0)}</span>
                                 </div>
                                 <div className="flex items-center gap-1 text-rose-400">
-                                    <Heart size={14} />
+                                    <Heart size={12} />
                                     <span className="font-medium">{formatNumber(novel.likes || 0)}</span>
                                 </div>
                                 <div className="flex items-center gap-1 text-yellow-400">
-                                    <Star size={14} />
+                                    <Star size={12} />
                                     <span className="font-medium">{Number(novel.rating || 0).toFixed(1)}</span>
                                 </div>
                             </div>
-                            <div className="text-xs lg:text-sm text-gray-500 font-medium">
+                            <div className="text-xs text-gray-500 font-medium">
                                 {formatDate(novel.updatedAt)}
                             </div>
                         </div>

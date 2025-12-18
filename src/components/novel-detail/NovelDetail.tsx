@@ -612,10 +612,10 @@ const NovelDetail = () => {
     if (!data) return <div className="text-white p-4">Không có dữ liệu</div>;
 
     return (
-        <div className='container px-4 py-4 sm:px-5 sm:py-5'>
+        <div className='container px-4 py-4 sm:px-5 sm:py-5 lg:px-3 xl:px-2'>
             <title>{data.novel.title}</title>
             <motion.div
-                className='flex flex-col lg:flex-row gap-6 lg:gap-8'
+                className='flex flex-col lg:flex-row gap-6'
                 initial="hidden"
                 animate="visible"
                 variants={itemVariants}
@@ -779,7 +779,7 @@ const NovelDetail = () => {
                 >
                     {/* Header thông tin */}
                     <motion.div
-                        className='hidden md:block bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 py-4 px-5 border border-blue-600 rounded-lg'
+                        className='hidden md:block bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 py-4 px-4 border border-blue-600 rounded-lg'
                         variants={itemVariants}
                     >
                         <div className='flex gap-2 items-center flex-wrap mb-3 sm:mb-4'>
@@ -870,7 +870,7 @@ const NovelDetail = () => {
                             </div>
                         </div>
                         {/* Desktop version */}
-                        <div className='hidden sm:flex flex-wrap gap-6 px-10 justify-between'>
+                        <div className='hidden sm:flex flex-wrap gap-4 lg:gap-6 px-4 lg:px-6 justify-between'>
                             <div className='flex flex-col justify-center items-center'>
                                 <BookOpenIcon className='w-5 h-5 mb-1 text-blue-400' />
                                 <span className='text-lg font-bold'>{data?.novel.chaptersCount}</span>
@@ -1375,7 +1375,7 @@ const NovelDetail = () => {
                     />
                 )}
                 {isShowRatingContainer && (
-                    <RatingsContainer 
+                    <RatingsContainer
                         isOpen={isShowRatingContainer}
                         onClose={() => setIsShowRatingContainer(false)}
                         novelId={data.novel._id}

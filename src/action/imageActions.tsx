@@ -1,5 +1,5 @@
 'use client'
-const getImage = async (publicId?: string, format?: string) => {
+export const getImage = async (publicId?: string, format?: string): Promise<string> => {
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 
     const fallback = `https://res.cloudinary.com/${cloudName!}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;

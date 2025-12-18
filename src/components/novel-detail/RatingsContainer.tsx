@@ -1,10 +1,13 @@
 'use client'
 import { getRatingsForContainer } from "@/action/rateAction";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import React, { useEffect, useRef, useCallback } from "react";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useEffect, useRef, useCallback, useState } from "react";
 import LoadingComponent from "../ui/Loading";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, X } from "lucide-react";
+// import { likeRating } from "@/action/likeAction";
+import getImage from "@/action/imageActions";
+import Image from "next/image";
 
 interface RatingData {
     _id: string;
@@ -41,9 +44,14 @@ interface RatingsContainerProps {
     currentUserId?: string;
 }
 
+const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
+const defaultFallback = `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
+
 const RatingsContainer: React.FC<RatingsContainerProps> = ({ isOpen, onClose, novelId, currentUserId }) => {
     const observerTarget = useRef<HTMLDivElement>(null);
-    
+    const queryClient = useQueryClient();
+    const [avatars, setAvatar] = useState<Record<string, string>>({});
+
     const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } = useInfiniteQuery<RatingResponse>({
         queryKey: ["ratings", novelId],
         queryFn: ({ pageParam = 1 }) =>
@@ -65,7 +73,7 @@ const RatingsContainer: React.FC<RatingsContainerProps> = ({ isOpen, onClose, no
         const element = observerTarget.current;
         const option = { threshold: 0.1 };
         const observer = new IntersectionObserver(handleObserver, option);
-        
+
         if (element) observer.observe(element);
         return () => {
             if (element) observer.unobserve(element);
@@ -95,6 +103,23 @@ const RatingsContainer: React.FC<RatingsContainerProps> = ({ isOpen, onClose, no
 
     const allRatings = data?.pages.flatMap(page => page.ratings || []) || [];
 
+    // const likeMutation = useMutation({
+    //     mutationFn: likeRating,
+    //     onSuccess: (res: any) => {
+    //         const newRating = res.rating;
+
+    //         queryClient.setQueryData(['ratings', novelId], (oldData: any) => {
+    //             if (!oldData) return;
+    //             return {
+    //                 ...oldData,
+    //                 ratings: oldData.ratings.map((rating: any) =>
+    //                     rating._id === newRating._id ? newRating : rating
+    //                 )
+    //             };
+    //         });
+    //     }
+    // });
+
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: { opacity: 1, transition: { duration: 0.2 } },
@@ -112,6 +137,23 @@ const RatingsContainer: React.FC<RatingsContainerProps> = ({ isOpen, onClose, no
         visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
     };
 
+    useEffect(() => {
+        if (allRatings.length < 1) return;
+
+        const fetchImage = async () => {
+            for (let rating of allRatings) {
+                const publicId = rating.userId.profile?.avatar?.publicId;
+                const format = rating.userId.profile?.avatar?.format;
+                if (publicId && !avatars[publicId]) {
+                    const res = await getImage(publicId, format);
+                    if (res) setAvatar((prev) => ({ ...prev, [publicId]: res }));
+                }
+            }
+        }
+
+        fetchImage();
+    }, [allRatings]);
+
     return (
         <AnimatePresence>
             {isOpen && (
@@ -120,7 +162,7 @@ const RatingsContainer: React.FC<RatingsContainerProps> = ({ isOpen, onClose, no
                     initial="hidden"
                     animate="visible"
                     exit="exit"
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
                     onClick={onClose}
                 >
                     <motion.div
@@ -162,9 +204,13 @@ const RatingsContainer: React.FC<RatingsContainerProps> = ({ isOpen, onClose, no
                                         >
                                             <div className="flex justify-between items-start mb-3">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
-                                                        {rating.userId.username.charAt(0).toUpperCase()}
-                                                    </div>
+                                                    <Image
+                                                        src={rating.userId.profile?.avatar?.publicId ? avatars[rating.userId.profile?.avatar?.publicId] : defaultFallback}
+                                                        alt={rating.userId.username}
+                                                        width={40}
+                                                        height={40}
+                                                        className='rounded-full object-cover mt-1 flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10'
+                                                    />
                                                     <div>
                                                         <p className="text-[1.1rem] font-bold text-blue-400">
                                                             {rating.userId.username}

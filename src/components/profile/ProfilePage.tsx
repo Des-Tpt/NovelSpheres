@@ -484,8 +484,8 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
 
             {/* Stats Dashboard */}
             <div className="max-w-full mx-4 mt-4 mb-8 border border-gray-800 rounded-sm">
-                <div className="backdrop-blur-sm rounded-xl p-2 md:p-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <div className="backdrop-blur-sm rounded-xl p-2 md:p-4 lg:p-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 lg:gap-3">
                         {/* Truyện đã đăng */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
@@ -493,19 +493,19 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                             transition={{ delay: 0.1 }}
                             className="relative group"
                         >
-                            <div className="bg-gradient-to-br from-blue-500/20 to-blue-700/20 backdrop-blur-sm rounded-2xl border border-blue-400/30 p-6 hover:border-blue-400/50 transition-all duration-300">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg">
-                                        <Book className="w-6 h-6 text-white" />
+                            <div className="bg-gradient-to-br from-blue-500/20 to-blue-700/20 backdrop-blur-sm rounded-xl lg:rounded-2xl border border-blue-400/30 p-3 lg:p-4 xl:p-6 hover:border-blue-400/50 transition-all duration-300">
+                                <div className="flex items-center justify-between mb-2 lg:mb-4">
+                                    <div className="p-2 lg:p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg lg:rounded-xl shadow-lg">
+                                        <Book className="w-4 h-4 lg:w-5 lg:h-5 xl:w-6 xl:h-6 text-white" />
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-2xl font-bold text-white">{formatNumber(profile.stats.totalNovels)}</div>
+                                        <div className="text-lg lg:text-xl xl:text-2xl font-bold text-white">{formatNumber(profile.stats.totalNovels)}</div>
                                         <div className="text-xs text-blue-300">Truyện</div>
                                     </div>
                                 </div>
-                                <div className="text-sm text-blue-200/80">Đã đăng</div>
+                                <div className="text-xs lg:text-sm text-blue-200/80">Đã đăng</div>
                                 {/* Progress bar effect */}
-                                <div className="mt-3 h-1 bg-blue-900/30 rounded-full overflow-hidden">
+                                <div className="mt-2 lg:mt-3 h-1 bg-blue-900/30 rounded-full overflow-hidden">
                                     <motion.div
                                         className="h-full bg-gradient-to-r from-blue-400 to-blue-600"
                                         initial={{ width: 0 }}
@@ -523,18 +523,18 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                             transition={{ delay: 0.2 }}
                             className="relative group"
                         >
-                            <div className="bg-gradient-to-br from-purple-500/20 to-purple-700/20 backdrop-blur-sm rounded-2xl border border-purple-400/30 p-6 hover:border-purple-400/50 transition-all duration-300">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg">
-                                        <Eye className="w-6 h-6 text-white" />
+                            <div className="bg-gradient-to-br from-purple-500/20 to-purple-700/20 backdrop-blur-sm rounded-xl lg:rounded-2xl border border-purple-400/30 p-3 lg:p-4 xl:p-6 hover:border-purple-400/50 transition-all duration-300">
+                                <div className="flex items-center justify-between mb-2 lg:mb-4">
+                                    <div className="p-2 lg:p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg lg:rounded-xl shadow-lg">
+                                        <Eye className="w-4 h-4 lg:w-5 lg:h-5 xl:w-6 xl:h-6 text-white" />
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-2xl font-bold text-white">{formatNumber(profile.stats.totalViews)}</div>
+                                        <div className="text-lg lg:text-xl xl:text-2xl font-bold text-white">{formatNumber(profile.stats.totalViews)}</div>
                                         <div className="text-xs text-purple-300">Views</div>
                                     </div>
                                 </div>
-                                <div className="text-sm text-purple-200/80">Lượt xem</div>
-                                <div className="mt-3 h-1 bg-purple-900/30 rounded-full overflow-hidden">
+                                <div className="text-xs lg:text-sm text-purple-200/80">Lượt xem</div>
+                                <div className="mt-2 lg:mt-3 h-1 bg-purple-900/30 rounded-full overflow-hidden">
                                     <motion.div
                                         className="h-full bg-gradient-to-r from-purple-400 to-purple-600"
                                         initial={{ width: 0 }}
@@ -552,18 +552,18 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                             transition={{ delay: 0.3 }}
                             className="relative group"
                         >
-                            <div className="bg-gradient-to-br from-green-500/20 to-green-700/20 backdrop-blur-sm rounded-2xl border border-green-400/30 p-6 hover:border-green-400/50 transition-all duration-300">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg">
-                                        <Users className="w-6 h-6 text-white" />
+                            <div className="bg-gradient-to-br from-green-500/20 to-green-700/20 backdrop-blur-sm rounded-xl lg:rounded-2xl border border-green-400/30 p-3 lg:p-4 xl:p-6 hover:border-green-400/50 transition-all duration-300">
+                                <div className="flex items-center justify-between mb-2 lg:mb-4">
+                                    <div className="p-2 lg:p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-lg lg:rounded-xl shadow-lg">
+                                        <Users className="w-4 h-4 lg:w-5 lg:h-5 xl:w-6 xl:h-6 text-white" />
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-2xl font-bold text-white">{formatNumber(profile.stats.followers)}</div>
+                                        <div className="text-lg lg:text-xl xl:text-2xl font-bold text-white">{formatNumber(profile.stats.followers)}</div>
                                         <div className="text-xs text-green-300">Followers</div>
                                     </div>
                                 </div>
-                                <div className="text-sm text-green-200/80">Theo dõi</div>
-                                <div className="mt-3 h-1 bg-green-900/30 rounded-full overflow-hidden">
+                                <div className="text-xs lg:text-sm text-green-200/80">Theo dõi</div>
+                                <div className="mt-2 lg:mt-3 h-1 bg-green-900/30 rounded-full overflow-hidden">
                                     <motion.div
                                         className="h-full bg-gradient-to-r from-green-400 to-green-600"
                                         initial={{ width: 0 }}
@@ -581,18 +581,18 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                             transition={{ delay: 0.4 }}
                             className="relative group"
                         >
-                            <div className="bg-gradient-to-br from-pink-500/20 to-pink-700/20 backdrop-blur-sm rounded-2xl border border-pink-400/30 p-6 hover:border-pink-400/50 transition-all duration-300">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="p-3 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl shadow-lg">
-                                        <Heart className="w-6 h-6 text-white" />
+                            <div className="bg-gradient-to-br from-pink-500/20 to-pink-700/20 backdrop-blur-sm rounded-xl lg:rounded-2xl border border-pink-400/30 p-3 lg:p-4 xl:p-6 hover:border-pink-400/50 transition-all duration-300">
+                                <div className="flex items-center justify-between mb-2 lg:mb-4">
+                                    <div className="p-2 lg:p-3 bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg lg:rounded-xl shadow-lg">
+                                        <Heart className="w-4 h-4 lg:w-5 lg:h-5 xl:w-6 xl:h-6 text-white" />
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-2xl font-bold text-white">{formatNumber(profile.stats.following)}</div>
+                                        <div className="text-lg lg:text-xl xl:text-2xl font-bold text-white">{formatNumber(profile.stats.following)}</div>
                                         <div className="text-xs text-pink-300">Following</div>
                                     </div>
                                 </div>
-                                <div className="text-sm text-pink-200/80">Đang theo dõi</div>
-                                <div className="mt-3 h-1 bg-pink-900/30 rounded-full overflow-hidden">
+                                <div className="text-xs lg:text-sm text-pink-200/80">Đang theo dõi</div>
+                                <div className="mt-2 lg:mt-3 h-1 bg-pink-900/30 rounded-full overflow-hidden">
                                     <motion.div
                                         className="h-full bg-gradient-to-r from-pink-400 to-pink-600"
                                         initial={{ width: 0 }}
