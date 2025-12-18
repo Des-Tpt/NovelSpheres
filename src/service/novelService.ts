@@ -47,7 +47,6 @@ export const NovelService = {
             );
 
             if (!novel) {
-                console.log('Novel not found:', novelId);
                 return;
             }
 

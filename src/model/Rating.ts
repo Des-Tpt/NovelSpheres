@@ -32,8 +32,6 @@ RatingSchema.index({ novelId: 1 });
 
 // Function để update novel stats
 async function updateNovelStats(novelId: Schema.Types.ObjectId) {
-    console.log('🎯 Updating novel stats for:', novelId);
-
     try {
         const stats = await Rating.aggregate([
             { $match: { novelId: novelId } },

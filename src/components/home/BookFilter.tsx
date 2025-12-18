@@ -16,7 +16,6 @@ import getStatusColor from '@/utils/getStatusColor';
 import { Star } from "lucide-react";
 import CustomImage from "../ui/CustomImage";
 
-
 type Genre = {
     _id: string;
     name: string;

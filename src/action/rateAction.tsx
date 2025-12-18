@@ -1,3 +1,5 @@
+import { method } from "lodash";
+
 interface RatingData {
     novelId: string;
     userId: string;
@@ -112,14 +114,19 @@ export const getNewRatings = async (novelId: string) => {
 
 interface RatingDataForContainer {
     novelId: string;
-    pageParam: number;
+    page: number;
 }
 
-export async function getRatingsForContainer({ pageParam = 1, novelId }: RatingDataForContainer) {
-    const res = await fetch(
-        `/api/novels/${novelId}/rating/ratings-container?page=${pageParam}`,
-        { cache: "no-store" }
+export async function getRatingsForContainer({ novelId, page }: RatingDataForContainer) {
+    const res = await fetch(`/api/novels/${novelId}/rating/ratings-container?page=${page}`, { 
+        cache: "no-store", 
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
+        },
     );
-    if (!res.ok) throw new Error("Failed to load");
+    if (!res.ok) throw new Error("Failed to fetch ratings for container");
     return res.json();
 }

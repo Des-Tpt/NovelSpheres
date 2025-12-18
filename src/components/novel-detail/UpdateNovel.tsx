@@ -10,11 +10,6 @@ const JoditEditor = dynamic(() => import("jodit-react"), {
     ssr: false,
 });
 
-interface Genre {
-    _id: string;
-    name: string;
-}
-
 interface Genres {
     _id: string;
     name: string;
@@ -121,7 +116,6 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
             }, 100);
         },
         onError: (error: any) => {
-            console.error('Error updating novel:', error);
             notifyError(error.message || 'Có lỗi xảy ra khi cập nhật tiểu thuyết!');
         }
     });
@@ -434,7 +428,7 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto bg-black border-2 border-blue-500 rounded p-3">
-                                        {genres.map((genre: Genre) => (
+                                        {genres.map((genre: Genres) => (
                                             <motion.label
                                                 key={genre._id}
                                                 className="flex items-center space-x-2 cursor-pointer hover:bg-gray-800 p-2 rounded transition-colors"

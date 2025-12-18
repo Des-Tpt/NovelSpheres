@@ -27,6 +27,7 @@ import CustomImage from '../ui/CustomImage';
 import NewestRatings from './NewestRatings';
 import { CurrentUser } from '@/type/CurrentUser';
 import { Comment } from '@/type/Comment';
+import RatingsContainer from './RatingsContainer';
 
 const cloudname = process.env.NEXT_PUBLIC_CLOUDINARY_NAME! as string;
 const defaultFallback = `https://res.cloudinary.com/${cloudname}/image/upload/LightNovel/BookCover/96776418_p0_qov0r8.png`;
@@ -147,6 +148,7 @@ const NovelDetail = () => {
     const [isShowEditNovelPopup, setIsShowEditNovelPopup] = useState<boolean>(false);
     const [selectedNovel, setSelectedNovel] = useState<NovelData | null>(null);
     const [isShowRatingPopup, setIsShowRatingPopup] = useState<boolean>(false);
+    const [isShowRatingContainer, setIsShowRatingContainer] = useState<boolean>(false);
 
     const { data, isLoading, error } = useQuery<{ novel: Novel, comments: Comment[], acts: Act[] }>({
         queryKey: ['novelDetail', novelId],
@@ -314,6 +316,10 @@ const NovelDetail = () => {
         setReplyToUser(null);
     };
 
+    const handleOnClickNewestRating = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsShowRatingContainer(true);
+    }
 
     const handleSubmitReply = async (parentCommentId: string) => {
         if (!replyContent.trim() || !replyToUser || !data?.comments) return;
@@ -355,7 +361,6 @@ const NovelDetail = () => {
     const handleLikeClick = async () => {
         if (isLiked && currentUser && data) {
             try {
-                console.log('unLike');
                 await unLikeMutation.mutateAsync({
                     userId: currentUser?._id,
                     novelId: data?.novel._id,
@@ -366,8 +371,6 @@ const NovelDetail = () => {
             }
         } else if (!isLiked && currentUser && data) {
             try {
-                console.log('Like');
-
                 await likeMutation.mutateAsync({
                     userId: currentUser?._id,
                     novelId: data?.novel._id,
@@ -552,8 +555,6 @@ const NovelDetail = () => {
     };
 
     const renderComment = (comment: Comment, isReply: boolean = false) => {
-        if (!currentUser) return null;
-
         return (
             <CommentItem
                 key={comment._id}
@@ -898,7 +899,8 @@ const NovelDetail = () => {
                         </div>
                     </motion.div>
 
-                    <div className='mt-0 md:mt-5'>
+                    {/* Khu vuc hien thi danh gia */}
+                    <div className='mt-0 md:mt-5' onClick={(e) => handleOnClickNewestRating(e)}>
                         <NewestRatings
                             novelId={data.novel._id}
                         />
@@ -938,8 +940,6 @@ const NovelDetail = () => {
                             </button>
                         </nav>
                     </motion.div>
-
-
 
                     {/* Tab Content */}
                     <motion.div
@@ -1372,6 +1372,14 @@ const NovelDetail = () => {
                         onClose={() => setIsShowRatingPopup(false)}
                         novelId={data.novel._id}
                         userId={currentUser._id}
+                    />
+                )}
+                {isShowRatingContainer && (
+                    <RatingsContainer 
+                        isOpen={isShowRatingContainer}
+                        onClose={() => setIsShowRatingContainer(false)}
+                        novelId={data.novel._id}
+                        currentUserId={currentUser?._id}
                     />
                 )}
             </AnimatePresence>

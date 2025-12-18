@@ -48,7 +48,6 @@ const config = {
     }
 };
 
-
 const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, userId, novelId, chapter }) => {
     const [title, setTitle] = useState<string>('');
     const [content, setContent] = useState<string>('');
@@ -256,7 +255,7 @@ const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, us
                             )}
                         </AnimatePresence>
 
-                        {/* Fixed Header */}
+                        {/* Header */}
                         <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-700">
                             <h2 className="text-lg font-semibold text-white flex items-center gap-2">
                                 <Edit3 size={20} className="text-blue-500" />

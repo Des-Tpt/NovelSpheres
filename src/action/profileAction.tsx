@@ -115,7 +115,6 @@ export async function getFavorites({ userId, page }: historyData) {
     const result = await response.json();
 
     if (!response.ok) {
-        console.log(result.error)
         throw Error('Lỗi khi lấy lịch sử đọc truyện!');
     }
 

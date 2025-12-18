@@ -129,7 +129,6 @@ const UpdateProfilePopup: React.FC<UpdateProfilePopupProps> = ({
     const updateProfileMutation = useMutation({
         mutationFn: updateProfile,
         onSuccess: (res) => {
-            console.log('Profile updated successfully:', res);
             if (res.avatar) {
                 setAvatar({ publicId: res.avatar.publicId, format: res.avatar.format });
             }
