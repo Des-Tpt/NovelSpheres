@@ -24,6 +24,7 @@ module.exports = {
       },
     ],
   },
+  productionBrowserSourceMaps: false,
 };
 
 export default nextConfig;
