@@ -1,5 +1,4 @@
 import { connectDB } from "@/lib/db";
-import { Notification } from "@/model/Notification";
 import { Novel } from "@/model/Novel";
 import { Rating } from "@/model/Rating";
 import { NextRequest, NextResponse } from "next/server";

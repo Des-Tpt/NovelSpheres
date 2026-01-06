@@ -20,13 +20,13 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
         const novel = await Novel.findById(novelId);
         if (!novel) return NextResponse.json({ error: 'Không tim thấy tiểu thuyết!' }, { status: 404 })
 
-        const ratings = await Rating.find({novelId: novel._id})
+        const ratings = await Rating.find({ novelId: novel._id })
             .skip(skip)
             .limit(limit)
             .sort({ createdAt: -1 })
-            .select('_id userId score rate likes createdAt')
+            .select('_id userId score rate likes dislikes createdAt')
             .populate('userId', '_id username role profile')
-        
+
         const total = await Rating.countDocuments();
 
         return NextResponse.json({

@@ -118,15 +118,44 @@ interface RatingDataForContainer {
 }
 
 export async function getRatingsForContainer({ novelId, page }: RatingDataForContainer) {
-    const res = await fetch(`/api/novels/${novelId}/rating/ratings-container?page=${page}`, { 
-        cache: "no-store", 
+    const res = await fetch(`/api/novels/${novelId}/rating/ratings-container?page=${page}`, {
+        cache: "no-store",
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
             'x-api-key': process.env.PRIVATE_API_KEY!,
         },
-        },
+    },
     );
     if (!res.ok) throw new Error("Failed to fetch ratings for container");
+    return res.json();
+}
+
+
+export async function likeRating({ ratingId, userId, novelId }: { ratingId: string, userId: string, novelId: string }) {
+    const res = await fetch(`/api/novels/${novelId}/rating/ratings-container/like/${ratingId}?userId=${userId}&action=like`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
+    });
+
+    if (!res.ok) throw new Error("Lỗi khi thích đánh giá");
+
+    return res.json();
+}
+
+export async function dislikeRating({ ratingId, userId, novelId }: { ratingId: string, userId: string, novelId: string }) {
+    const res = await fetch(`/api/novels/${novelId}/rating/ratings-container/like/${ratingId}?userId=${userId}&action=dislike`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.PRIVATE_API_KEY!,
+        },
+    });
+
+    if (!res.ok) throw new Error("Lỗi khi không thích đánh giá");
+
     return res.json();
 }

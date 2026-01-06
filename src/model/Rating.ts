@@ -11,6 +11,10 @@ export interface IRating extends Document {
         count: number;
         userIds: string[];
     };
+    dislikes: {
+        count: number;
+        userIds: string[];
+    };
     createdAt: Date;
 }
 
@@ -22,7 +26,11 @@ const RatingSchema = new Schema<IRating>({
     rate: { type: Schema.Types.String, default: ' ' },
     likes: {
         count: { type: Schema.Types.Number, default: 0 },
-        userIds: [{ type: Schema.Types.String, default: [] }]
+        userIds: { type: [String], default: [] }
+    },
+    dislikes: {
+        count: { type: Schema.Types.Number, default: 0 },
+        userIds: { type: [String], default: [] }
     },
     createdAt: { type: Schema.Types.Date, default: Date.now }
 });
@@ -45,7 +53,7 @@ async function updateNovelStats(novelId: Schema.Types.ObjectId) {
         ]);
 
         if (stats.length > 0) {
-            const result = await Novel.findByIdAndUpdate(
+            await Novel.findByIdAndUpdate(
                 novelId,
                 {
                     rating: Math.round(stats[0].averageScore * 100) / 100,
@@ -54,7 +62,7 @@ async function updateNovelStats(novelId: Schema.Types.ObjectId) {
                 { new: true }
             );
         } else {
-            const result = await Novel.findByIdAndUpdate(
+            await Novel.findByIdAndUpdate(
                 novelId,
                 { rating: 0, ratingsCount: 0 },
                 { new: true }

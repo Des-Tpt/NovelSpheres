@@ -39,8 +39,8 @@ const BookFilter = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const getTimeAgo = (updatedAt: string | Date) => {
-        return `Cập nhật ${formatDistanceToNow(new Date(updatedAt), { addSuffix: true, locale: vi })}`;
-    }
+        return `${formatDistanceToNow(new Date(updatedAt), { addSuffix: true, locale: vi })}`;
+    };
 
     useEffect(() => {
         if (!novels) return;

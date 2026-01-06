@@ -101,7 +101,7 @@ export default function ForumPage() {
     }, [data]);
 
     const getTimeAgo = (updatedAt: string | Date) => {
-        return `Cập nhật ${formatDistanceToNow(new Date(updatedAt), { addSuffix: true, locale: vi })}`;
+        return `${formatDistanceToNow(new Date(updatedAt), { addSuffix: true, locale: vi })}`;
     };
 
     const startItem = (page - 1) * limit + 1;

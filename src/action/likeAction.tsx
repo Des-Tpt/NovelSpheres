@@ -29,7 +29,7 @@ export async function Like(Like: LikeInput) {
     });
 
     if (!res.ok) {
-        const errorData = await res.json(); // Lấy error message từ server
+        const errorData = await res.json();
         throw Error(errorData.error || `Lỗi khi fetch dữ liệu: ${res.status} - ${res.statusText}`);
     }
 
@@ -53,18 +53,3 @@ export async function UnLike(Like: LikeInput) {
 
     return res.json();
 }
-
-// export async function likeRating({ ratingId, userId }: { ratingId: string, userId: string }) {
-//     const rating = await Rating.findOne({ _id: ratingId });
-//     if (!rating) throw Error('Rating not found');
-
-//     if (rating.likes.userIds.includes(userId)) {
-//         rating.likes.count--;
-//         rating.likes.userIds = rating.likes.userIds.filter((_id: string) => _id !== userId);
-//     } else {
-//         rating.likes.count++;
-//         rating.likes.userIds.push(userId);
-//     }
-//     await rating.save();
-//     return rating;
-// }

@@ -45,9 +45,6 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
             .sort({ createdAt: -1 })
             .lean();
 
-        const user = await getCurrentUser();
-
-
         let optimizedComments = optimizeComment(comments);
 
         optimizedComments = optimizedComments.map(comment => ({

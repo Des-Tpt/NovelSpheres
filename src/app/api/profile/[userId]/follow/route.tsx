@@ -31,10 +31,8 @@ export async function POST(req: Request, context: { params: Promise<{ userId: st
         const isFollowing = await Follow.findOne({ userId: userId, followingUserId: followingUserId });
 
         if (isFollowing) {
-            // Unfollow
             await Follow.findOneAndDelete({ userId: userId, followingUserId: followingUserId });
 
-            // Cập nhật stats song song để tăng hiệu suất
             const [followersCount, followingCount] = await Promise.all([
                 Follow.countDocuments({ followingUserId: followingUserId }),
                 Follow.countDocuments({ userId: userId })
@@ -53,11 +51,9 @@ export async function POST(req: Request, context: { params: Promise<{ userId: st
 
             return NextResponse.json({ message: "Hủy theo dõi thành công!", isFollowing: false }, { status: 200 });
         } else {
-            // Follow
             const newFollow = new Follow({ userId, followingUserId });
-            await newFollow.save(); // ✅ Thêm await
+            await newFollow.save();
 
-            // Cập nhật stats song song
             const [followersCount, followingCount] = await Promise.all([
                 Follow.countDocuments({ followingUserId: followingUserId }),
                 Follow.countDocuments({ userId: userId })

@@ -12,6 +12,14 @@ interface RatingPopupProps {
     userId: string;
 }
 
+interface RattingData {
+    rated?: boolean;
+    ratings?: {
+        score?: number;
+        rate?: string;
+    }
+}
+
 const ratingDescriptions = {
     1: {
         title: "Rất tệ",
@@ -42,7 +50,7 @@ export default function RatingPopup({ isOpen, onClose, novelId, userId }: Rating
     const queryClient = useQueryClient();
 
     // Get existing rating
-    const { data: ratingData, isLoading } = useQuery({
+    const { data: ratingData, isLoading } = useQuery<RattingData>({
         queryKey: ['rating', novelId, userId],
         queryFn: () => getRating(novelId, userId),
         enabled: isOpen && !!novelId && !!userId,
@@ -106,9 +114,11 @@ export default function RatingPopup({ isOpen, onClose, novelId, userId }: Rating
 
     // Set initial rating when data loads
     useEffect(() => {
-        if (ratingData?.rated && ratingData?.ratings?.score && ratingData?.ratings?.rate) {
+        if (ratingData?.rated && ratingData?.ratings?.score) {
             setRating(ratingData.ratings.score);
-            setTextRate(ratingData.ratings.rate)
+            if (ratingData.ratings.rate) {
+                setTextRate(ratingData.ratings.rate)
+            }
         }
     }, [ratingData]);
 
@@ -276,48 +286,12 @@ export default function RatingPopup({ isOpen, onClose, novelId, userId }: Rating
                                     {currentDescription.description}
                                 </p>
                             </motion.div>
-                        ) : ratingData?.rated && ratingData.ratings ? (
-                            <motion.div
-                                initial={{ opacity: 1 }}
-                                className="text-center space-y-2 w-full"
-                            >
-                                <div className="flex items-center justify-center gap-2">
-                                    <span className="text-yellow-400 text-lg font-medium">
-                                        {ratingData.ratings.score} sao
-                                    </span>
-                                    <span className="text-gray-300">-</span>
-                                    <span className="text-white font-medium">
-                                        {ratingDescriptions[ratingData.ratings.score as keyof typeof ratingDescriptions]?.title}
-                                    </span>
-                                </div>
-                                <p className="text-sm text-gray-400 leading-relaxed px-2">
-                                    {ratingDescriptions[ratingData.ratings.score as keyof typeof ratingDescriptions]?.description}
-                                </p>
-                                <div className="text-xs text-gray-500 mt-2">
-                                    Hover vào sao để xem đánh giá khác
-                                </div>
-                            </motion.div>
                         ) : (
                             <div className="text-center text-gray-500 text-sm">
                                 Chọn số sao để đánh giá tác phẩm
                             </div>
                         )}
                     </div>
-
-                    {ratingData?.rated && !hoverRating && !currentDescription && ratingData.ratings && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="bg-gray-800/50 rounded-lg p-3 text-center border border-gray-600"
-                        >
-                            <div className="text-sm text-gray-400 mb-1">
-                                Đánh giá hiện tại của bạn:
-                            </div>
-                            <div className="text-yellow-400 font-medium">
-                                {ratingData.ratings.score} sao - {ratingDescriptions[ratingData.ratings.score as keyof typeof ratingDescriptions]?.title}
-                            </div>
-                        </motion.div>
-                    )}
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}

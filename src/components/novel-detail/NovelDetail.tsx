@@ -288,22 +288,6 @@ const NovelDetail = () => {
         },
     });
 
-    const deleteMutation = useMutation({
-        mutationFn: deleteAct,
-        onSuccess: (response) => {
-            queryClient.setQueryData(['novelDetail', novelId], (oldData: any) => {
-                if (!oldData) return oldData;
-                return {
-                    ...oldData,
-                    acts: {
-                        ...oldData.act,
-                        acts: oldData.acts.filter((act: Act) => act._id !== response.deleteActId),
-                    }
-                };
-            })
-        }
-    })
-
     const handleReply = (commentId: string, username: string, userId: string) => {
         setReplyingTo(commentId);
         setReplyToUser({ id: userId, username });
@@ -615,7 +599,7 @@ const NovelDetail = () => {
         <div className='container px-4 py-4 sm:px-5 sm:py-5 lg:px-3 xl:px-2'>
             <title>{data.novel.title}</title>
             <motion.div
-                className='flex flex-col lg:flex-row gap-6'
+                className='flex flex-col lg:flex-row gap-6 w-full max-w-full'
                 initial="hidden"
                 animate="visible"
                 variants={itemVariants}
@@ -629,7 +613,7 @@ const NovelDetail = () => {
                         <div className='flex flex-col p-4 sm:p-5 rounded-lg bg-gray-950'>
 
                             <div className='flex items-start md:items-center '>
-                                <div className='max-w-2/6 flex-shrink-0 md:max-w-[24rem]'>
+                                <div className='max-w-2/6 flex-shrink-0 md:max-w-[20rem] 2xl:max-w-[24rem]'>
                                     <CustomImage
                                         src={coverImage || defaultFallback}
                                         width={400}
@@ -690,7 +674,7 @@ const NovelDetail = () => {
                                                 />
                                             </div>
                                         )}
-                                        <span className='font-extrabold text-blue-400 text-sm'
+                                        <span className='font-extrabold text-blue-400 text-sm hover:text-blue-300 hover:cursor-pointer'
                                             onClick={() => onClickProfile(data?.novel?.authorId?._id ?? '')}
                                         >
                                             {data?.novel?.authorId?.username ?? 'Vô danh'}
@@ -774,7 +758,7 @@ const NovelDetail = () => {
 
                 {/* Thông tin chính */}
                 <motion.div
-                    className='flex-1'
+                    className='flex-1 min-w-0'
                     variants={itemVariants}
                 >
                     {/* Header thông tin */}
@@ -823,7 +807,9 @@ const NovelDetail = () => {
                                 />
                             )}
                             <div className='text-gray-300 flex flex-col'>
-                                <span className='text-blue-400 font-bold text-base sm:text-lg'>
+                                <span className='text-blue-400 font-bold text-base sm:text-lg hover:text-blue-300 hover:cursor-pointer'
+                                    onClick={() => onClickProfile(data?.novel?.authorId?._id ?? '')}
+                                >
                                     {data?.novel?.authorId?.username ?? 'Vô danh'}
                                 </span>
                                 <span className='text-[0.65rem] sm:text-[0.75rem] flex items-center gap-2 sm:gap-3'>
@@ -1058,8 +1044,8 @@ const NovelDetail = () => {
                                                         <div className='border-t border-blue-600 bg-gray-950'>
                                                             <div className="flex flex-col lg:flex-row gap-6 p-6">
                                                                 {/* Act Cover Section */}
-                                                                <div className="w-full flex flex-col items-center lg:block lg:w-48">
-                                                                    <div className="relative group w-48">
+                                                                <div className="w-full flex flex-col items-center lg:block lg:w-40 2xl:w-48">
+                                                                    <div className="relative group w-40 2xl:w-48">
                                                                         <CustomImage
                                                                             src={act.publicId && imageUrls[act.publicId] ? imageUrls[act.publicId] : defaultFallback}
                                                                             width={400}
@@ -1069,14 +1055,14 @@ const NovelDetail = () => {
                                                                         />
                                                                         <div className="absolute inset-0 bg-black/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
                                                                     </div>
-                                                                    <div className="mt-3 text-center border-blue-600 rounded-lg py-2 w-48">
+                                                                    <div className="mt-3 text-center border-blue-600 rounded-lg py-2 w-40 2xl:w-48">
                                                                         <p className="text-sm font-semibold text-gray-300">
                                                                             {act.chapters.length} chương
                                                                         </p>
                                                                     </div>
                                                                 </div>
                                                                 {/* Chapters Section */}
-                                                                <div className='flex-1 min-w-0'>
+                                                                <div className='flex-1 min-w-0 w-full lg:w-auto overflow-hidden'>
                                                                     <div className='mb-4'>
                                                                         <h4 className='text-lg font-semibold text-white mb-3 flex items-center gap-2'>
                                                                             <BookOpenIcon className='w-5 h-5 text-white' />

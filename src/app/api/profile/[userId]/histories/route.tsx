@@ -54,15 +54,18 @@ export async function GET(request: NextRequest, context: { params: Promise<{ use
 
         const histories = await Promise.all(historyPromises);
 
-        // Sort theo lastReadAt
-        histories.sort((a, b) =>
+        const validHistories = histories.filter(history =>
+            history && history.novelId && history.chapterId
+        );
+
+        validHistories.sort((a, b) =>
             new Date(b.lastReadAt).getTime() - new Date(a.lastReadAt).getTime()
         );
 
         // Pagination
         const skip = (page - 1) * limit;
-        const total = histories.length;
-        const paginatedHistories = histories.slice(skip, skip + limit);
+        const total = validHistories.length;
+        const paginatedHistories = validHistories.slice(skip, skip + limit);
 
         const formattedHistories = paginatedHistories.map(history => ({
             _id: history._id,

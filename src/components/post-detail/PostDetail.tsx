@@ -334,7 +334,7 @@ const PostDetail = () => {
             {post.novelId && (
               <div className='pb-3 md:pb-4'>
                 <div onClick={() => handlePushNovel(post.novelId?._id)} className="font-inter text-sm md:text-[0.95rem] pl-0.5 mt-2 block">
-                  Liên quan đến: <span className='text-yellow-500 hover:underline break-words'>{post.novelId.title}</span>
+                  Liên quan đến: <span className='text-yellow-500 hover:cursor-pointer hover:underline break-words'>{post.novelId.title}</span>
                 </div>
               </div>
             )}

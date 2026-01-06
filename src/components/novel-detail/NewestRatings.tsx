@@ -26,16 +26,10 @@ const NewestRatings = ({ novelId }: { novelId: string }) => {
         visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
     };
 
-    const getTimeAgo = (date: string | undefined) => {
-        if (!date) return 'Gần đây';
-        const diffDays = Math.floor((new Date().getTime() - new Date(date).getTime()) / (1000 * 60 * 60 * 24));
-        return diffDays === 0 ? 'Hôm nay' : `${diffDays} ngày`;
-    };
-
     const reviews = Array.isArray(data) ? data.slice(0, 3) : [];
 
     return (
-        <motion.div className='w-full bg-gray-950 border border-blue-500 rounded-lg p-4'>
+        <motion.div className={`w-full hover:cursor-pointer bg-gray-950 border border-blue-500 rounded-lg p-4 ${reviews.length < 1 ? 'hidden' : ''}`}>
             <h3 className='text-white text-[1.3rem] font-semibold mb-4'>Đánh giá gần nhất</h3>
 
             <div className='space-y-2'>
@@ -59,7 +53,6 @@ const NewestRatings = ({ novelId }: { novelId: string }) => {
 
                         <div className='flex justify-between items-start gap-2'>
                             <p className='text-[1.05rem] text-gray-300 line-clamp-2 flex-1'>{review.rate}</p>
-                            <span className='text-[1rem] text-gray-500 whitespace-nowrap flex-shrink-0'>{getTimeAgo(review.createdAt)}</span>
                         </div>
                     </motion.div>
                 ))}
