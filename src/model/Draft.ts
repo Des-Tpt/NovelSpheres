@@ -1,7 +1,7 @@
 import { Schema, Document, models, model } from 'mongoose';
 import { Novel } from './Novel';
 
-export interface IChapter extends Document {
+export interface IDraft extends Document {
     _id: Schema.Types.ObjectId,
     novelId: Schema.Types.ObjectId,
     actId: Schema.Types.ObjectId,
@@ -13,7 +13,7 @@ export interface IChapter extends Document {
     createdAt: Date
 }
 
-const ChapterSchema = new Schema<IChapter>({
+const DraftSchema = new Schema<IDraft>({
     _id: { type: Schema.Types.ObjectId, auto: true },
     novelId: { type: Schema.Types.ObjectId, ref: 'Novel', required: true },
     actId: { type: Schema.Types.ObjectId, ref: 'Act', required: true },
@@ -25,10 +25,10 @@ const ChapterSchema = new Schema<IChapter>({
     createdAt: { type: Schema.Types.Date, default: Date.now }
 })
 
-ChapterSchema.index({ novelId: 1, chapterNumber: 1 });
-ChapterSchema.index({ actId: 1 });
+DraftSchema.index({ novelId: 1, chapterNumber: 1 });
+DraftSchema.index({ actId: 1 });
 
-ChapterSchema.pre('save', async function (next) {
+DraftSchema.pre('save', async function (next) {
     this.updatedAt = new Date();
 
     if (this.novelId) {
@@ -40,4 +40,4 @@ ChapterSchema.pre('save', async function (next) {
 });
 
 
-export const Chapter = models.Chapter || model<IChapter>('Chapter', ChapterSchema, 'Chapter');
+export const Draft = models.Draft || model<IDraft>('Draft', DraftSchema, 'Draft');

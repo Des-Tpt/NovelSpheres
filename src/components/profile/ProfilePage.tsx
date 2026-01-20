@@ -332,7 +332,7 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
     // Error state
     if (profileError) {
         return (
-            <div className="min-h-screen bg-gray-950">
+            <div className="min-h-screen bg-gray-950 pt-20">
                 <div className="pt-24 pb-12">
                     <div className="max-w-6xl mx-auto px-4">
                         <div className="bg-red-900/30 backdrop-blur-sm rounded-2xl border border-red-500/30 p-8 text-center">

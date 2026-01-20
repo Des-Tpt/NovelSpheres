@@ -97,7 +97,7 @@ const Header = () => {
             });
         }
     }, [currentUser]);
-    
+
     useEffect(() => {
         if (!avatar?.publicId) {
             setUserImage(defaultFallback);
@@ -141,9 +141,26 @@ const Header = () => {
         router.push('/')
     }
 
+    const [isScrolled, setIsScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 40) {
+                setIsScrolled(true);
+            } else {
+                setIsScrolled(false);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
     return (
         <div>
-            <header className="bg-black top-0 text-white px-[5%] py-2.5 fixed flex justify-between items-center w1080:px-[15%] w-full z-40">
+            <header className={`fixed top-0 text-white px-[5%] py-2.5 flex justify-between items-center w1080:px-[15%] w-full z-40 transition-all duration-300 
+                ${isScrolled ? 'bg-black/70 backdrop-blur-md shadow-lg' : 'bg-transparent bg-gradient-to-b from-black/80 to-transparent'}`}
+            >
                 <div className="flex justify-center mr-2.5 hover:cursor-pointer" onClick={handleClickIcon}>
                     <BookOpenIcon className="h-8 w-8" />
                     <span className="text-2xl font-semibold pl-4">NovelSphere</span>

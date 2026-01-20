@@ -20,8 +20,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         })
     );
 
+    const hidePathName = ['/chapter/', '/workspace/', '/workspace'];
+
     const pathname = usePathname();
-    const hideHeader = pathname.includes('/chapter/');
+
+    const hideHeader = hidePathName.some((path) => pathname.includes(path));
 
     useEffect(() => {
         if (typeof window === 'undefined') return;

@@ -1,5 +1,4 @@
-import mongoose, { Schema, Document, models, model } from 'mongoose';
-import { v4 as uuidv4 } from 'uuid';
+import { Schema, Document, models, model } from 'mongoose';
 import { Chapter } from './Chapter';
 
 export interface IAct extends Document {
