@@ -4,12 +4,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateChapter } from '@/action/chapterActions';
 import { notifyError, notifySuccess } from '@/utils/notify';
 import { motion, AnimatePresence } from 'framer-motion';
-import dynamic from "next/dynamic";
+import TiptapEditor from '@/components/ui/TiptapEditor';
 import getWordCountFromHtml from '@/utils/getWordCountFromHtml';
-
-const JoditEditor = dynamic(() => import("jodit-react"), {
-    ssr: false,
-});
 
 interface Chapter {
     _id: string;
@@ -27,27 +23,6 @@ interface EditChapterPopupProps {
     chapter: Chapter | null;
 }
 
-const config = {
-    height: 200,
-    readonly: false,
-    style: {
-        color: '#ffffff',
-        backgroundColor: '#0a0a0a',
-    },
-    placeholder: 'Dáng nội dung của chapter ở đây...',
-    toolbar: false,
-    statusbar: false,
-    showCharsCounter: false,
-    showWordsCounter: false,
-    showXPathInStatusbar: false,
-    events: {
-        beforePaste: (html: string) => {
-            return html.replace(/color\s*:\s*[^;"]+;?/gi, '')
-                .replace(/background(-color)?\s*:\s*[^;"]+;?/gi, '');
-        }
-    }
-};
-
 const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, userId, novelId, chapter }) => {
     const [title, setTitle] = useState<string>('');
     const [content, setContent] = useState<string>('');
@@ -56,6 +31,7 @@ const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, us
     const [hasContentChanged, setHasContentChanged] = useState<boolean>(false);
     const queryClient = useQueryClient();
     const [wordCount, setWordCount] = useState<number>(0);
+    const mouseDownTargetRef = React.useRef<EventTarget | null>(null);
 
     // Lock body scroll when popup is open
     useEffect(() => {
@@ -179,11 +155,20 @@ const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, us
         onClose();
     };
 
-    // Handle backdrop click
-    const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.target === e.currentTarget && !updateChapterMutation.isPending) {
+    // Handle backdrop click - only close if mousedown and mouseup both on backdrop
+    const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+        mouseDownTargetRef.current = e.target;
+    };
+
+    const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (
+            e.target === e.currentTarget &&
+            mouseDownTargetRef.current === e.currentTarget &&
+            !updateChapterMutation.isPending
+        ) {
             handleClose();
         }
+        mouseDownTargetRef.current = null;
     };
 
     // Handle ESC key
@@ -219,7 +204,8 @@ const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, us
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
                     className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
-                    onClick={handleBackdropClick}
+                    onMouseDown={handleMouseDown}
+                    onMouseUp={handleMouseUp}
                     style={{
                         backdropFilter: 'blur(2px)',
                         WebkitBackdropFilter: 'blur(2px)'
@@ -365,10 +351,11 @@ const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, us
                                         )}
                                     </label>
 
-                                    <JoditEditor
-                                        value={content}
-                                        config={config}
-                                        onBlur={(newContent) => setContent(newContent)}
+                                    <TiptapEditor
+                                        content={content}
+                                        onChange={setContent}
+                                        placeholder="Viết nội dung mới (tùy chọn)..."
+                                        minHeight="300px"
                                     />
 
                                     {/* Word Count Display */}

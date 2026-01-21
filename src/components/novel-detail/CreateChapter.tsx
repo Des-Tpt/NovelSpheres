@@ -4,12 +4,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createChapter } from '@/action/chapterActions';
 import { notifyError, notifySuccess } from '@/utils/notify';
 import { motion, AnimatePresence } from 'framer-motion';
-import dynamic from "next/dynamic";
+import TiptapEditor from '@/components/ui/TiptapEditor';
 import getWordCountFromHtml from '@/utils/getWordCountFromHtml';
-
-const JoditEditor = dynamic(() => import("jodit-react"), {
-    ssr: false,
-});
 
 interface CreateChapterPopupProps {
     isOpen: boolean;
@@ -19,27 +15,6 @@ interface CreateChapterPopupProps {
     actId: string;
 }
 
-const config = {
-    height: 200,
-    readonly: false,
-    style: {
-        color: '#ffffff',
-        backgroundColor: '#0a0a0a',
-    },
-    placeholder: 'Dáng nội dung của chapter ở đây...',
-    toolbar: false,
-    statusbar: false,
-    showCharsCounter: false,
-    showWordsCounter: false,
-    showXPathInStatusbar: false,
-    events: {
-        beforePaste: (html: string) => {
-            return html.replace(/color\s*:\s*[^;"]+;?/gi, '')
-                .replace(/background(-color)?\s*:\s*[^;"]+;?/gi, '');
-        }
-    }
-};
-
 const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose, userId, novelId, actId }) => {
     const [title, setTitle] = useState<string>('');
     const [content, setContent] = useState<string>('');
@@ -47,6 +22,7 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
     const [chapterNumberStr, setChapterNumberStr] = useState<string>("1");
     const queryClient = useQueryClient();
     const [wordCount, setWordCount] = useState<number>(0);
+    const mouseDownTargetRef = React.useRef<EventTarget | null>(null);
 
     // Lock body scroll when popup is open
     useEffect(() => {
@@ -88,7 +64,7 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
                                 newChapter
                             ].sort((a, b) => a.chapterNumber - b.chapterNumber)
                         }
-                        : act
+                            : act
                     )
                 };
             });
@@ -143,11 +119,20 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
     };
 
 
-    // Handle backdrop click
-    const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.target === e.currentTarget && !createChapterMutation.isPending) {
+    // Handle backdrop click - only close if mousedown and mouseup both on backdrop
+    const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+        mouseDownTargetRef.current = e.target;
+    };
+
+    const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (
+            e.target === e.currentTarget &&
+            mouseDownTargetRef.current === e.currentTarget &&
+            !createChapterMutation.isPending
+        ) {
             handleClose();
         }
+        mouseDownTargetRef.current = null;
     };
 
     // Handle ESC key
@@ -176,7 +161,8 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
                     className="fixed inset-0 bg-black/60 flex items-center justify-center z-70 p-4"
-                    onClick={handleBackdropClick}
+                    onMouseDown={handleMouseDown}
+                    onMouseUp={handleMouseUp}
                     style={{
                         backdropFilter: 'blur(2px)',
                         WebkitBackdropFilter: 'blur(2px)'
@@ -213,9 +199,9 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
                         </AnimatePresence>
 
                         {/* Scrollable Content */}
-                        <div className="max-h-[90vh] overflow-y-auto">
+                        <div className="overflow-y-auto" style={{ maxHeight: 'calc(90vh - 120px)' }}>
                             {/* Header */}
-                            <div className="flex items-center justify-between mb-6 sticky top-0 bg-gray-900 pb-2">
+                            <div className="flex items-center justify-between mb-6 sticky top-0 bg-gray-900 pb-2 z-10">
                                 <h2 className="text-lg font-semibold text-white flex items-center gap-2">
                                     <FileText size={20} className="text-orange-500" />
                                     Tạo Chapter Mới
@@ -231,7 +217,7 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
                                 </motion.button>
                             </div>
 
-                            <div className="space-y-4">
+                            <div className="space-y-4 pb-4">
                                 {/* Chapter Title */}
                                 <motion.div
                                     initial={{ x: -20, opacity: 0 }}
@@ -295,10 +281,11 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
                                         Nội dung Chapter *
                                     </label>
 
-                                    <JoditEditor
-                                        value={content}
-                                        config={config}
-                                        onBlur={(newContent) => setContent(newContent)}
+                                    <TiptapEditor
+                                        content={content}
+                                        onChange={setContent}
+                                        placeholder="Viết nội dung chapter..."
+                                        minHeight="300px"
                                     />
 
                                     {/* Word Count Display */}
@@ -323,45 +310,45 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
                                         <p>• Thời gian tạo và cập nhật sẽ được lưu tự động</p>
                                     </div>
                                 </motion.div>
-
-                                {/* Buttons */}
-                                <motion.div
-                                    className="flex gap-3 sticky bottom-0 bg-gray-900 pt-4"
-                                    initial={{ y: 20, opacity: 0 }}
-                                    animate={{ y: 0, opacity: 1 }}
-                                    transition={{ delay: 0.5 }}
-                                >
-                                    <motion.button
-                                        whileHover={{ scale: createChapterMutation.isPending ? 1 : 1.02 }}
-                                        whileTap={{ scale: createChapterMutation.isPending ? 1 : 0.98 }}
-                                        onClick={handleClose}
-                                        className="flex-1 px-4 py-2 border border-gray-600 cursor-pointer text-white rounded hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        disabled={createChapterMutation.isPending}
-                                    >
-                                        Hủy
-                                    </motion.button>
-                                    <motion.button
-                                        whileHover={{ scale: createChapterMutation.isPending ? 1 : 1.02 }}
-                                        whileTap={{ scale: createChapterMutation.isPending ? 1 : 0.98 }}
-                                        onClick={handleSubmit}
-                                        className="flex-1 px-4 py-2 bg-orange-600 cursor-pointer text-white rounded hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                        disabled={createChapterMutation.isPending}
-                                    >
-                                        {createChapterMutation.isPending ? (
-                                            <>
-                                                <Loader2 className="w-4 h-4 animate-spin" />
-                                                Đang tạo...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <FileText size={16} />
-                                                Tạo Chapter
-                                            </>
-                                        )}
-                                    </motion.button>
-                                </motion.div>
                             </div>
                         </div>
+
+                        {/* Action Buttons - Fixed at bottom */}
+                        <motion.div
+                            className="flex gap-3 pt-4 border-t border-gray-700 bg-gray-900"
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.5 }}
+                        >
+                            <motion.button
+                                whileHover={{ scale: createChapterMutation.isPending ? 1 : 1.02 }}
+                                whileTap={{ scale: createChapterMutation.isPending ? 1 : 0.98 }}
+                                onClick={handleClose}
+                                className="flex-1 px-4 py-2 border border-gray-600 cursor-pointer text-white rounded hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={createChapterMutation.isPending}
+                            >
+                                Hủy
+                            </motion.button>
+                            <motion.button
+                                whileHover={{ scale: createChapterMutation.isPending ? 1 : 1.02 }}
+                                whileTap={{ scale: createChapterMutation.isPending ? 1 : 0.98 }}
+                                onClick={handleSubmit}
+                                className="flex-1 px-4 py-2 bg-orange-600 cursor-pointer text-white rounded hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                disabled={createChapterMutation.isPending}
+                            >
+                                {createChapterMutation.isPending ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        Đang tạo...
+                                    </>
+                                ) : (
+                                    <>
+                                        <FileText size={16} />
+                                        Tạo Chapter
+                                    </>
+                                )}
+                            </motion.button>
+                        </motion.div>
                     </motion.div>
                 </motion.div>
             )}

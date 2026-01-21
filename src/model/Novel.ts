@@ -11,6 +11,7 @@ export interface INovel extends Document {
     },
     genresId: [Schema.Types.ObjectId],
     status: 'Ongoing' | 'Completed' | 'Hiatus',
+    state: 'Draft' | 'Published',
     views: number;
     likes: number;
     rating: number;
@@ -30,6 +31,7 @@ const NovelSchema = new Schema<INovel>({
     },
     genresId: { type: [Schema.Types.ObjectId], ref: 'Genre' },
     status: { type: Schema.Types.String, enum: ['Ongoing', 'Completed', 'Hiatus'], default: 'Ongoing' },
+    state: { type: Schema.Types.String, enum: ['Draft', 'Published'], default: 'Draft' },
     views: { type: Schema.Types.Number, default: 0 },
     likes: { type: Schema.Types.Number, default: 0 },
     rating: { type: Schema.Types.Number, default: 0 },

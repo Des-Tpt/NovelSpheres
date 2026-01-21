@@ -1,5 +1,5 @@
 'use client'
-import { BookOpenIcon, ChatBubbleLeftIcon, HomeIcon, UserIcon, XMarkIcon, Bars3Icon, ChevronDownIcon, Cog6ToothIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
+import { BookOpenIcon, ChatBubbleLeftIcon, HomeIcon, UserIcon, XMarkIcon, Bars3Icon, ChevronDownIcon, Cog6ToothIcon, ArrowRightOnRectangleIcon, PencilIcon } from '@heroicons/react/24/outline';
 import Button from '../ui/Button';
 import { useEffect, useState, useRef } from 'react';
 import SearchBar from '../ui/SearchBar';
@@ -159,7 +159,7 @@ const Header = () => {
     return (
         <div>
             <header className={`fixed top-0 text-white px-[5%] py-2.5 flex justify-between items-center w1080:px-[15%] w-full z-40 transition-all duration-300 
-                ${isScrolled ? 'bg-black/70 backdrop-blur-md shadow-lg' : 'bg-transparent bg-gradient-to-b from-black/80 to-transparent'}`}
+                ${isScrolled ? 'bg-black/70 backdrop-blur-md shadow-lg' : 'bg-transparent bg-gradient-to-b from-black to-transparent'}`}
             >
                 <div className="flex justify-center mr-2.5 hover:cursor-pointer" onClick={handleClickIcon}>
                     <BookOpenIcon className="h-8 w-8" />
@@ -256,6 +256,15 @@ const Header = () => {
                                             >
                                                 <UserIcon className="h-5 w-5" />
                                                 <span>Hồ sơ</span>
+                                            </button>
+                                            <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-gray-100 hover:bg-gray-600 transition-colors"
+                                                onClick={() => {
+                                                    router.push(`/workspace`)
+                                                    setIsUserDropdownOpen(false);
+                                                }}
+                                            >
+                                                <PencilIcon className="h-5 w-5" />
+                                                <span>Khu vực sáng tác</span>
                                             </button>
                                             <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-gray-100 hover:bg-gray-600 transition-colors">
                                                 <Heart className="h-5 w-5" />

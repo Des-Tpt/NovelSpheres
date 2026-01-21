@@ -19,6 +19,7 @@ const CreateActPopup: React.FC<CreateActPopupProps> = ({ isOpen, onClose, userId
     const [actNumberStr, setActNumberStr] = useState("1");
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const queryClient = useQueryClient();
+    const mouseDownTargetRef = React.useRef<EventTarget | null>(null);
 
     // Lock body scroll when popup is open
     useEffect(() => {
@@ -91,11 +92,20 @@ const CreateActPopup: React.FC<CreateActPopupProps> = ({ isOpen, onClose, userId
         onClose();
     };
 
-    // Handle backdrop click
-    const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.target === e.currentTarget && !createActMutation.isPending) {
+    // Handle backdrop click - only close if mousedown and mouseup both on backdrop
+    const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+        mouseDownTargetRef.current = e.target;
+    };
+
+    const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (
+            e.target === e.currentTarget &&
+            mouseDownTargetRef.current === e.currentTarget &&
+            !createActMutation.isPending
+        ) {
             handleClose();
         }
+        mouseDownTargetRef.current = null;
     };
 
     // Handle ESC key
@@ -124,7 +134,8 @@ const CreateActPopup: React.FC<CreateActPopupProps> = ({ isOpen, onClose, userId
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
                     className="fixed inset-0 bg-black/60 flex items-center justify-center z-70 p-4"
-                    onClick={handleBackdropClick}
+                    onMouseDown={handleMouseDown}
+                    onMouseUp={handleMouseUp}
                     style={{
                         backdropFilter: 'blur(2px)',
                         WebkitBackdropFilter: 'blur(2px)'

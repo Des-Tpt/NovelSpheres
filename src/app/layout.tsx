@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         })
     );
 
-    const hidePathName = ['/chapter/', '/workspace/', '/workspace'];
+    const hidePathName = ['/chapter/', '/workspace/'];
 
     const pathname = usePathname();
 
@@ -29,17 +29,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     useEffect(() => {
         if (typeof window === 'undefined') return;
 
-        // Tạo named functions để có thể cleanup đúng cách
         const adjustForKeyboard = () => {
             const targets = document.querySelectorAll<HTMLElement>('#send-form, .chat-input-wrapper');
 
             targets.forEach((el) => {
                 const offset = window.innerHeight - (window.visualViewport?.height ?? window.innerHeight) - (window.visualViewport?.offsetTop ?? 0);
-
-                // Sử dụng !important để đảm bảo style không bị override
                 el.style.setProperty('transform', `translateY(-${offset}px)`, 'important');
-
-                // Thêm transition cho smooth animation
                 el.style.setProperty('transition', 'transform 0.3s ease', 'important');
             });
         };
@@ -63,17 +58,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         };
 
         const handleInputBlur = () => {
-            // Reset position khi blur để tránh UI bị stuck
             setTimeout(resetPosition, 300);
         };
 
-        // VisualViewport API
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', adjustForKeyboard);
             window.visualViewport.addEventListener('scroll', adjustForKeyboard);
         }
-
-        // Fallback cho các trình duyệt cũ
         window.addEventListener('resize', adjustForKeyboard);
 
         // Input focus/blur handlers

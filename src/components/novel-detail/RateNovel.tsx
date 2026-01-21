@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Star, X, Loader2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getRating, createRating, updateRating } from '@/action/rateAction';
@@ -48,6 +48,7 @@ export default function RatingPopup({ isOpen, onClose, novelId, userId }: Rating
     const [textRate, setTextRate] = useState<string>('');
     const [hoverRating, setHoverRating] = useState<number>(0);
     const queryClient = useQueryClient();
+    const mouseDownTargetRef = React.useRef<EventTarget | null>(null);
 
     // Get existing rating
     const { data: ratingData, isLoading } = useQuery<RattingData>({
@@ -151,11 +152,20 @@ export default function RatingPopup({ isOpen, onClose, novelId, userId }: Rating
         onClose();
     };
 
-    // Handle backdrop click
-    const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.target === e.currentTarget && !isSubmitting) {
+    // Handle backdrop click - only close if mousedown and mouseup both on backdrop
+    const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+        mouseDownTargetRef.current = e.target;
+    };
+
+    const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (
+            e.target === e.currentTarget &&
+            mouseDownTargetRef.current === e.currentTarget &&
+            !isSubmitting
+        ) {
             handleClose();
         }
+        mouseDownTargetRef.current = null;
     };
 
     // Handle ESC key
@@ -187,7 +197,8 @@ export default function RatingPopup({ isOpen, onClose, novelId, userId }: Rating
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 bg-black/60 flex items-center justify-center z-70 p-4"
-            onClick={handleBackdropClick}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
             style={{
                 backdropFilter: 'blur(2px)',
                 WebkitBackdropFilter: 'blur(2px)'

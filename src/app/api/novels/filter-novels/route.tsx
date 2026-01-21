@@ -21,31 +21,31 @@ export async function GET(req: NextRequest) {
     let sortQuery: Record<string, 1 | -1> = {};
 
     if (sortBy && allowedSortFields.includes(sortBy)) {
-        sortQuery[sortBy] = -1;
+      sortQuery[sortBy] = -1;
     } else {
-        sortQuery["createdAt"] = -1;
+      sortQuery["createdAt"] = -1;
     }
 
     // Kiểm tra ObjectId
     if (genreIds.some((id) => !mongoose.Types.ObjectId.isValid(id))) {
-        return NextResponse.json({ error: "ID không hợp lệ" }, { status: 400 });
+      return NextResponse.json({ error: "ID không hợp lệ" }, { status: 400 });
     }
 
     let novels: INovel[];
 
     // Nếu không lọc theo thể loại
     if (!genreIds || genreIds.length === 0) {
-      novels = await Novel.find({})
+      novels = await Novel.find({ state: 'Published' })
         .sort(sortQuery)
         .limit(12)
         .populate("authorId", "username")
         .populate("genresId", "name");
     } else {
-        const objectGenreIds = genreIds.map(
-            (id) => new mongoose.Types.ObjectId(id)
-    );
+      const objectGenreIds = genreIds.map(
+        (id) => new mongoose.Types.ObjectId(id)
+      );
 
-    novels = await Novel.find({ genresId: { $all: objectGenreIds } })
+      novels = await Novel.find({ genresId: { $all: objectGenreIds }, state: 'Published' })
         .sort(sortQuery)
         .limit(6)
         .populate("authorId", "username")
@@ -55,14 +55,14 @@ export async function GET(req: NextRequest) {
     // Đếm số chương + Add thể loại chính
     const novelsWithChapterCount = await Promise.all(
       novels.map(async (novel) => {
-        
+
         const chapterCount = await Chapter.countDocuments({
           novelId: novel._id,
         });
         const firstGenreId = novel.genresId[0]
         const genres = await Genre.findById(firstGenreId).lean<IGenre>();
         const user = await User.findById(novel.authorId).lean<IUser>();
-        
+
         return {
           ...novel.toObject(),
           authorName: user?.username || 'Vô danh',

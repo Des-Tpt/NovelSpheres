@@ -16,13 +16,16 @@ export async function GET(req: NextRequest) {
     if (!query || query.trim() === '') {
         return NextResponse.json([]);
     }
-    
+
     try {
         await connectDB();
 
         const decodedQuery = decodeURIComponent(query);
-        const novels = await Novel.find({ title: { $regex: new RegExp(decodedQuery, 'i') } })
-            .collation({ locale: 'vi', strength: 1 })         
+        const novels = await Novel.find({
+            title: { $regex: new RegExp(decodedQuery, 'i') },
+            state: 'Published'
+        })
+            .collation({ locale: 'vi', strength: 1 })
             .limit(5)
             .select('title coverImage _id genresId authorId rating status')
             .populate('authorId', 'username')

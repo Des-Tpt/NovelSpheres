@@ -5,16 +5,12 @@ import { X, Eye, Search, Loader2, ChevronDown } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPost } from '@/action/postActions';
 import { notifyError, notifySuccess } from '@/utils/notify';
-import dynamic from "next/dynamic";
+import TiptapEditor from '@/components/ui/TiptapEditor';
 import { debounce } from 'lodash';
 import { getNovelForNewPost } from '@/action/novelActions';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useScrollLock } from '@/hooks/useScrollLock';
 import handleStatus from '@/utils/handleStatus';
-
-const JoditEditor = dynamic(() => import("jodit-react"), {
-    ssr: false,
-});
 
 interface NewPostPopupProps {
     isOpen: boolean;
@@ -32,27 +28,6 @@ const CATEGORIES: { value: CategoryType; label: string }[] = [
     { value: "writing", label: "Viết lách" },
     { value: "support", label: "Hỗ trợ" },
 ];
-
-const config = {
-    height: 200,
-    readonly: false,
-    style: {
-        color: '#ffffff',
-        backgroundColor: '#0a0a0a',
-    },
-    placeholder: 'Dáng nội dung của chapter ở đây...',
-    toolbar: false,
-    statusbar: false,
-    showCharsCounter: false,
-    showWordsCounter: false,
-    showXPathInStatusbar: false,
-    events: {
-        beforePaste: (html: string) => {
-            return html.replace(/color\s*:\s*[^;"]+;?/gi, '')
-                .replace(/background(-color)?\s*:\s*[^;"]+;?/gi, '');
-        }
-    }
-};
 interface Novel {
     _id: string;
     title: string;
@@ -467,10 +442,11 @@ export default function NewPostPopup({ isOpen, onClose, novels = [] }: NewPostPo
                                     </div>
 
                                     {!isPreview ? (
-                                        <JoditEditor
-                                            value={formData.content}
-                                            config={config}
-                                            onBlur={(newContent) => updateFormData('content')(newContent)}
+                                        <TiptapEditor
+                                            content={formData.content}
+                                            onChange={(value) => updateFormData('content')(value)}
+                                            placeholder="Viết nội dung bài viết..."
+                                            minHeight="250px"
                                         />
                                     ) : (
                                         <div className="min-h-[200px] sm:min-h-[250px] p-3 border border-gray-700 rounded-md bg-gray-900">

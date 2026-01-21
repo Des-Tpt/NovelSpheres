@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
         const title = formData.get('title') as string;
         const description = formData.get('description') as string;
         const status = formData.get('status') as string;
+        const state = formData.get('state') as string || 'Draft';
         const genresId: string[] = formData.getAll('genresId') as string[];
         const file = formData.get('file') as File | null;
 
@@ -60,6 +61,7 @@ export async function POST(request: NextRequest) {
                 title: title,
                 description: cleanDescription,
                 status: status,
+                state: state,
                 authorId: userId,
                 genresId: genresId,
                 coverImage: publicId && format ? { publicId, format } : undefined,
@@ -69,32 +71,34 @@ export async function POST(request: NextRequest) {
 
             await newNovel.save();
 
-            const user = await User.findById(userId).select('username');
+            if (state === 'Published') {
+                const user = await User.findById(userId).select('username');
 
-            const followers = await Follow.find({ followingUserId: userId })
-                .select('userId');
+                const followers = await Follow.find({ followingUserId: userId })
+                    .select('userId');
 
-            const notifyPromises = followers.map(async (follower) => {
-                const message = `Tác giả ${user.username} vừa đăng tiểu thuyết mới: ${newNovel.title}`;
-                const href = `/novels/${newNovel._id.toString()}`;
+                const notifyPromises = followers.map(async (follower) => {
+                    const message = `Tác giả ${user.username} vừa đăng tiểu thuyết mới: ${newNovel.title}`;
+                    const href = `/novels/${newNovel._id.toString()}`;
 
-                const notif = await Notification.create({
-                    userId: follower.userId,
-                    type: 'chapter_update',
-                    message,
-                    href,
-                    createdAt: Date.now(),
-                })
+                    const notif = await Notification.create({
+                        userId: follower.userId,
+                        type: 'chapter_update',
+                        message,
+                        href,
+                        createdAt: Date.now(),
+                    })
 
-                await pusherServer.trigger(`private-user-${follower.userId.toString()}`, "new-notification", {
-                    id: notif._id,
-                    message,
-                    href,
-                    createdAt: notif.createdAt
+                    await pusherServer.trigger(`private-user-${follower.userId.toString()}`, "new-notification", {
+                        id: notif._id,
+                        message,
+                        href,
+                        createdAt: notif.createdAt
+                    });
                 });
-            });
 
-            await Promise.all(notifyPromises);
+                await Promise.all(notifyPromises);
+            }
 
             await User.findByIdAndUpdate(
                 { _id: userId, role: { $ne: 'admin' } },

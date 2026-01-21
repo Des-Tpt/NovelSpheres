@@ -4,11 +4,7 @@ import { X, Upload, Loader2, AlertTriangle, Info } from 'lucide-react';
 import { createNovel } from '@/action/novelActions';
 import { notifyError, notifySuccess } from '@/utils/notify';
 import { motion, AnimatePresence } from 'framer-motion';
-import dynamic from 'next/dynamic';
-
-const JoditEditor = dynamic(() => import("jodit-react"), {
-    ssr: false,
-});
+import TiptapEditor from '@/components/ui/TiptapEditor';
 
 interface Genre {
     _id: string;
@@ -21,22 +17,6 @@ interface CreateNovelPopupProps {
     userId: string;
     genres: Genre[];
 }
-
-const config = {
-    height: 250,
-    readonly: false,
-    placeholder: 'Nhập mô tả tiểu thuyết của bạn tại đây...',
-    style: {
-        color: '#000000'
-    },
-    events: {
-        beforePaste: (html: string) => {
-            return html
-                .replace(/color\s*:\s*[^;"]+;?/gi, '')
-                .replace(/background(-color)?\s*:\s*[^;"]+;?/gi, '');
-        }
-    }
-};
 
 const CreateNovelPopup: React.FC<CreateNovelPopupProps> = ({ isOpen, onClose, userId, genres = [] }) => {
     const [formData, setFormData] = useState({
@@ -345,10 +325,11 @@ const CreateNovelPopup: React.FC<CreateNovelPopupProps> = ({ isOpen, onClose, us
                                 <label className="block text-sm font-medium mb-2 text-gray-300">
                                     Mô tả <span className="text-red-400">*</span>
                                 </label>
-                                <JoditEditor
-                                    value={formData.description}
-                                    config={config}
-                                    onBlur={(content: string) => handleDescriptionChange(content)}
+                                <TiptapEditor
+                                    content={formData.description}
+                                    onChange={handleDescriptionChange}
+                                    placeholder="Nhập mô tả tiểu thuyết của bạn tại đây..."
+                                    minHeight="250px"
                                 />
                                 {formData.description && formData.description.length < 50 && (
                                     <p className="text-amber-400 text-xs mt-1">

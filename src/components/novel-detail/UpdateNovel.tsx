@@ -4,11 +4,7 @@ import { X, Upload, Loader2, AlertTriangle, Info } from 'lucide-react';
 import { getGenres, updateNovel } from '@/action/novelActions';
 import { notifyError, notifySuccess } from '@/utils/notify';
 import { motion, AnimatePresence } from 'framer-motion';
-import dynamic from 'next/dynamic';
-
-const JoditEditor = dynamic(() => import("jodit-react"), {
-    ssr: false,
-});
+import TiptapEditor from '@/components/ui/TiptapEditor';
 
 interface Genres {
     _id: string;
@@ -35,27 +31,6 @@ interface EditNovelPopupProps {
     userId: string;
 }
 
-const config = {
-    height: 200,
-    readonly: false,
-    style: {
-        color: '#ffffff',
-        backgroundColor: '#0a0a0a',
-    },
-    placeholder: 'Dáng nội dung của chapter ở đây...',
-    toolbar: false,
-    statusbar: false,
-    showCharsCounter: false,
-    showWordsCounter: false,
-    showXPathInStatusbar: false,
-    events: {
-        beforePaste: (html: string) => {
-            return html.replace(/color\s*:\s*[^;"]+;?/gi, '')
-                .replace(/background(-color)?\s*:\s*[^;"]+;?/gi, '');
-        }
-    }
-};
-
 const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelData, userId }) => {
     const [formData, setFormData] = useState({
         title: '',
@@ -65,6 +40,7 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
     });
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewImage, setPreviewImage] = useState<string>('');
+    const mouseDownTargetRef = React.useRef<EventTarget | null>(null);
 
     const queryClient = useQueryClient();
 
@@ -215,11 +191,20 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
         onClose();
     };
 
-    // Handle backdrop click
-    const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.target === e.currentTarget && !mutation.isPending) {
+    // Handle backdrop click - only close if mousedown and mouseup both on backdrop
+    const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+        mouseDownTargetRef.current = e.target;
+    };
+
+    const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (
+            e.target === e.currentTarget &&
+            mouseDownTargetRef.current === e.currentTarget &&
+            !mutation.isPending
+        ) {
             handleClose();
         }
+        mouseDownTargetRef.current = null;
     };
 
     // Handle ESC key
@@ -248,7 +233,8 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
                     className="fixed inset-0 bg-black/60 flex items-center justify-center z-70 p-4"
-                    onClick={handleBackdropClick}
+                    onMouseDown={handleMouseDown}
+                    onMouseUp={handleMouseUp}
                     style={{
                         backdropFilter: 'blur(2px)',
                         WebkitBackdropFilter: 'blur(2px)'
@@ -370,10 +356,11 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
                                 <label className="block text-sm font-medium mb-2 text-gray-300">
                                     Mô tả *
                                 </label>
-                                <JoditEditor
-                                    value={formData.description}
-                                    config={config}
-                                    onBlur={(content: string) => handleDescriptionChange(content)}
+                                <TiptapEditor
+                                    content={formData.description}
+                                    onChange={handleDescriptionChange}
+                                    placeholder="Nhập mô tả tiểu thuyết..."
+                                    minHeight="200px"
                                 />
                                 {formData.description && formData.description.length < 50 && (
                                     <p className="text-amber-400 text-xs mt-1">

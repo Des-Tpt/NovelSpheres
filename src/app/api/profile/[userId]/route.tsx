@@ -24,7 +24,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ use
             );
         }
 
-        const novels = await Novel.find({ authorId: userId })
+        const novels = await Novel.find({ authorId: userId, state: 'Published' })
             .populate('authorId', 'username')
             .populate('genresId', '_id name')
             .sort({ createdAt: -1 });
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ use
         let followed = null;
         if (currentUser) {
             followed = await Follow.findOne({
-                userId: currentUser._id,        
+                userId: currentUser._id,
                 followingUserId: profile.userId
             });
         }

@@ -1,6 +1,9 @@
 import { getCurrentUser } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import { Novel } from "@/model/Novel";
+import { Chapter } from "@/model/Chapter";
+import { Draft } from "@/model/Draft";
+import { Comment } from "@/model/Comment";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest, context: { params: Promise<{ userId: string }> }) {
@@ -23,11 +26,40 @@ export async function GET(request: NextRequest, context: { params: Promise<{ use
         const novels = await Novel.find({ authorId: userId })
             .populate('genresId', 'name')
             .skip(skip)
-            .limit(Number(limit));
+            .limit(Number(limit))
+            .sort({ updatedAt: -1 });
 
-        return NextResponse.json({ novels }, { status: 200 });
+        const detailedNovels = await Promise.all(novels.map(async (novel) => {
+            const [publishedCount, draftCount, wordCountAgg, commentCount] = await Promise.all([
+                Chapter.countDocuments({ novelId: novel._id }),
+                Draft.countDocuments({ novelId: novel._id }),
+                Chapter.aggregate([
+                    { $match: { novelId: novel._id } },
+                    { $group: { _id: null, totalWords: { $sum: "$wordCount" } } }
+                ]),
+                Comment.countDocuments({ sourceId: novel._id, sourceType: 'Novel' })
+            ]);
+
+            const totalWords = wordCountAgg.length > 0 ? wordCountAgg[0].totalWords : 0;
+
+            return {
+                ...novel.toObject(),
+                stats: {
+                    published: publishedCount,
+                    drafts: draftCount,
+                    words: totalWords,
+                    views: novel.views || 0,
+                    likes: novel.likes || 0,
+                    comments: commentCount,
+                }
+            };
+        }));
+
+        const hasMore = await Novel.countDocuments({ authorId: userId }) > Number(page) * Number(limit);
+
+        return NextResponse.json({ novels: detailedNovels, hasMore }, { status: 200 });
     } catch (error) {
-        console.log(error);
+        console.log("Workspace API Error:", error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

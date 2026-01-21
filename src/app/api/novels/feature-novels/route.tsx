@@ -14,7 +14,10 @@ export async function GET(req: NextRequest) {
     try {
         await connectDB();
 
-        const novels = await Novel.aggregate([{ $sample: {size: 4}}]) as INovel[];
+        const novels = await Novel.aggregate([
+            { $match: { state: 'Published' } },
+            { $sample: { size: 4 } }
+        ]) as INovel[];
 
         const featuredNovels = await Promise.all(novels.map(getFeaturedNovelData));
 
@@ -27,17 +30,17 @@ export async function GET(req: NextRequest) {
 
 async function getFeaturedNovelData(novel: INovel) {
     console.log(modelNames, User);
-    
+
     const chapterCount = await Chapter.countDocuments({ novelId: novel._id });
     const user = await User.findById(novel.authorId).lean<IUser>();
     const firstGenreId = novel.genresId[0];
-    const genres = await Genre.findById(firstGenreId).lean<IGenre>();    
+    const genres = await Genre.findById(firstGenreId).lean<IGenre>();
     const rating =
-            typeof novel.rating === 'object' &&
+        typeof novel.rating === 'object' &&
             novel.rating !== null &&
             typeof (novel.rating as any).toString === 'function'
-                ? parseFloat((novel.rating as any).toString())
-                : novel.rating;
+            ? parseFloat((novel.rating as any).toString())
+            : novel.rating;
     const base = {
         ...novel,
         chapterCount: chapterCount,

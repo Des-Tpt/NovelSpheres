@@ -21,6 +21,7 @@ const DeleteActPopup: React.FC<DeleteActPopupProps> = ({ isOpen, onClose, actDat
     const params = useParams();
     const novelId = params.id;
     const queryClient = useQueryClient();
+    const mouseDownTargetRef = React.useRef<EventTarget | null>(null);
 
     useEffect(() => {
         if (isOpen) {
@@ -70,11 +71,19 @@ const DeleteActPopup: React.FC<DeleteActPopupProps> = ({ isOpen, onClose, actDat
         onClose();
     };
 
-    // Handle backdrop click
-    const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.target === e.currentTarget && !deleteMutation.isPending) {
+    const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+        mouseDownTargetRef.current = e.target;
+    };
+
+    const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (
+            e.target === e.currentTarget &&
+            mouseDownTargetRef.current === e.currentTarget &&
+            !deleteMutation.isPending
+        ) {
             handleClose();
         }
+        mouseDownTargetRef.current = null;
     };
 
     // Handle ESC key
@@ -103,7 +112,8 @@ const DeleteActPopup: React.FC<DeleteActPopupProps> = ({ isOpen, onClose, actDat
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
                     className="fixed inset-0 bg-black/60 flex items-center justify-center z-70 p-4"
-                    onClick={handleBackdropClick}
+                    onMouseDown={handleMouseDown}
+                    onMouseUp={handleMouseUp}
                     style={{
                         backdropFilter: 'blur(2px)',
                         WebkitBackdropFilter: 'blur(2px)'
