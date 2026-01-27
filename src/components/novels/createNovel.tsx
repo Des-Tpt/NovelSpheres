@@ -329,7 +329,8 @@ const CreateNovelPopup: React.FC<CreateNovelPopupProps> = ({ isOpen, onClose, us
                                     content={formData.description}
                                     onChange={handleDescriptionChange}
                                     placeholder="Nhập mô tả tiểu thuyết của bạn tại đây..."
-                                    minHeight="250px"
+                                    minHeight="200px"
+                                    maxHeight="350px"
                                 />
                                 {formData.description && formData.description.length < 50 && (
                                     <p className="text-amber-400 text-xs mt-1">

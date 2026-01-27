@@ -22,13 +22,15 @@ interface TiptapEditorProps {
     onChange: (html: string) => void;
     placeholder?: string;
     minHeight?: string;
+    maxHeight?: string;
 }
 
 const TiptapEditor: React.FC<TiptapEditorProps> = ({
     content,
     onChange,
     placeholder = "Bắt đầu viết...",
-    minHeight = "300px"
+    minHeight = "300px",
+    maxHeight
 }) => {
     const editor = useEditor({
         extensions: [
@@ -88,11 +90,16 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
 
     if (!editor) return null;
 
+    const containerStyle = maxHeight
+        ? { height: maxHeight }
+        : {};
+
     return (
-        <div className="border border-gray-700 rounded-lg bg-gray-900 overflow-hidden">
-            {/* Toolbar */}
-            <div className="bg-gray-800 border-b border-gray-700 p-2 flex flex-wrap gap-1">
-                {/* Text Style */}
+        <div
+            className="border border-gray-700 rounded-lg bg-gray-900 overflow-hidden flex flex-col"
+            style={containerStyle}
+        >
+            <div className="bg-gray-800 border-b border-gray-700 p-2 flex flex-wrap gap-1 shrink-0">
                 <button
                     onClick={() => editor.chain().focus().toggleBold().run()}
                     className={`p-2 rounded hover:bg-gray-700 transition ${editor.isActive('bold') ? 'bg-gray-700 text-blue-400' : 'text-gray-300'}`}
@@ -257,7 +264,6 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
                 </button>
             </div>
 
-            {/* Editor Content */}
             <style>{`
                 .ProseMirror ul {
                     list-style-type: disc;
@@ -280,7 +286,11 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
                     margin: 0.5rem 0;
                 }
             `}</style>
-            <EditorContent editor={editor} className="bg-gray-900 text-gray-100" />
+
+            {/* Scrollable content area - takes remaining space and scrolls */}
+            <div className="flex-1 overflow-y-auto">
+                <EditorContent editor={editor} className="bg-gray-900 text-gray-100" />
+            </div>
         </div>
     );
 };

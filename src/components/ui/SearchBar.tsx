@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { random } from "lodash";
 import getImage from "@/action/imageActions";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 type Novel = {
     _id: string;
@@ -39,10 +40,11 @@ const SearchBar = () => {
     const [isSearching, setIsSearching] = useState(false);
     const [showNoResult, setShowNoResult] = useState(false);
     const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
+    const router = useRouter();
 
-    const fetchResult = async (text:string) => {
+    const fetchResult = async (text: string) => {
         setIsSearching(true);
-        try{
+        try {
             const res = await fetch(`/api/search?query=${encodeURIComponent(text)}`); //Tìm đến file route.tsx để gửi query về cho MongoDB.
             const dataRes = await res.json();
             setResults(dataRes);
@@ -96,7 +98,7 @@ const SearchBar = () => {
     const dropdownVariants = {
         hidden: { opacity: 0, y: -10 },
         visible: { opacity: 1, y: 0, transition: { duration: 0.2, ease: 'easeOut' as const } },
-        exit: { opacity: 0, y: -10, transition: { duration: 0.2, ease: 'easeIn' as const} },
+        exit: { opacity: 0, y: -10, transition: { duration: 0.2, ease: 'easeIn' as const } },
     };
 
     const renderContent = () => {
@@ -104,93 +106,97 @@ const SearchBar = () => {
             <ul className="result">
                 {results.length > 0 ? (
                     results.map((novel) => (
-                        <li className="novel-container" key={novel._id}>
+                        <li className="novel-container hover:cursor-pointer" key={novel._id}
+                            onClick={() => {
+                                router.push(`/novels/${novel._id}`);
+                            }}
+                        >
                             <div className="flex items-center gap-2">
                                 {novel.coverImage && imageUrls[novel.coverImage.publicId] && (
-                                <Image
-                                    src={imageUrls[novel.coverImage.publicId]}
-                                    alt={novel.title}
-                                    width={200}
-                                    height={280}
-                                    className="max-w-[38px] max-h-[72px] object-cover rounded m-0.5 mr-2"
-                                />
+                                    <Image
+                                        src={imageUrls[novel.coverImage.publicId]}
+                                        alt={novel.title}
+                                        width={200}
+                                        height={280}
+                                        className="max-w-[38px] max-h-[72px] object-cover rounded m-0.5 mr-2"
+                                    />
                                 )}
                                 <div className="flex-1 flex justify-between items-center">
-                                <div className="flex flex-col">
-                                    <span className="font-bold font-inter line-clamp-1 text-[0.9rem]">{novel.title}</span>
-                                    <div className="flex items-center font-sans text-[0.9rem]">
-                                        <span className="text-muted-foreground">của {novel.authorId?.username || 'Chưa có tác giả'}</span>
-                                        <span className="text-[10px] mx-2.5">● </span>
-                                        <span className="text-[12px]">{novel.rating ? `⭐ ${novel.rating.toFixed(1)}` : 'Chưa có đánh giá'} </span>
+                                    <div className="flex flex-col">
+                                        <span className="font-bold font-inter line-clamp-1 text-[0.9rem]">{novel.title}</span>
+                                        <div className="flex items-center font-sans text-[0.9rem]">
+                                            <span className="text-muted-foreground">của {novel.authorId?.username || 'Chưa có tác giả'}</span>
+                                            <span className="text-[10px] mx-2.5">● </span>
+                                            <span className="text-[12px]">{novel.rating ? `⭐ ${novel.rating.toFixed(1)}` : 'Chưa có đánh giá'} </span>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="flex flex-col items-end">
-                                    <span className="border-solid border-1 rounded-[20px] px-2 py-0.75 text-[13.5px] font-semibold mb-1">{novel.genresId ? novel.genresId[0].name : ''}</span>
-                                    <span className="text-[12px] mr-">{novel.chapterCount ? ` ${novel.chapterCount} ch` : ` ${random(1, 100)} ch`}</span>
-                                </div>
+                                    <div className="flex flex-col items-end">
+                                        <span className="border-solid border-1 rounded-[20px] px-2 py-0.75 text-[13.5px] font-semibold mb-1">{novel.genresId ? novel.genresId[0].name : ''}</span>
+                                        <span className="text-[12px] mr-">{novel.chapterCount ? ` ${novel.chapterCount} ch` : ` ${random(1, 100)} ch`}</span>
+                                    </div>
                                 </div>
                             </div>
                         </li>
                     ))
                 ) : (
-                showNoResult && (
-                    <li className="novel-container">
-                        <div className="no-result">
-                            <span>Không tìm thấy kết quả!</span>
-                        </div>
-                    </li>
-                )
+                    showNoResult && (
+                        <li className="novel-container">
+                            <div className="no-result">
+                                <span>Không tìm thấy kết quả!</span>
+                            </div>
+                        </li>
+                    )
                 )}
             </ul>
         )
     }
 
-    return ( 
+    return (
         <div className="relative w-full">
-            <div className="SearchBar"> 
-            <MagnifyingGlassIcon className="w-0.5 h-0.5"/>
-            <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Vui lòng nhập tên tiểu thuyết cần tìm..."
-                className="input"
-            />
-            {/* Search cho PC*/}
+            <div className="SearchBar">
+                <MagnifyingGlassIcon className="w-0.5 h-0.5" />
+                <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Vui lòng nhập tên tiểu thuyết cần tìm..."
+                    className="input"
+                />
+                {/* Search cho PC*/}
+                <AnimatePresence>
+                    {(results.length > 0 || showNoResult) && (
+                        <div className="hidden md:block">
+                            <motion.div
+                                className="dropdown"
+                                variants={dropdownVariants}
+                                initial="hidden"
+                                animate="visible"
+                                exit="exit"
+                            >
+                                {renderContent()}
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+            </div>
+
+            {/* Search cho di động*/}
             <AnimatePresence>
-                {(results.length > 0 || showNoResult) && (
-                <div className="hidden md:block">
-                    <motion.div
-                        className="dropdown"
-                        variants={dropdownVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
+                <div className="block md:hidden">
+                    {(results.length > 0 || showNoResult) && (
+                        <motion.div
+                            className="dropdown"
+                            variants={dropdownVariants}
+                            initial='hidden'
+                            animate="visible"
+                            exit="exit"
                         >
-                        {renderContent()}
-                    </motion.div>
+                            {renderContent()}
+                        </motion.div>
+                    )}
                 </div>
-                )}
             </AnimatePresence>
         </div>
-        
-        {/* Search cho di động*/}
-        <AnimatePresence>
-            <div className="block md:hidden">
-            {(results.length > 0 || showNoResult) && (
-                <motion.div
-                    className="dropdown"
-                    variants={dropdownVariants}
-                    initial='hidden'
-                    animate="visible"
-                    exit="exit"
-                    >
-                    {renderContent()}
-                </motion.div>
-            )}
-            </div>
-        </AnimatePresence>
-    </div>
     );
 }
 

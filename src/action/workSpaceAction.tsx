@@ -16,7 +16,7 @@ export async function getNovelsForWorkspace({ userId, page }: { userId: string, 
 }
 
 export async function getNovelForWorkspace({ novelId }: { novelId: string }) {
-    const res = await fetch(`/api/novels/${novelId}`, {
+    const res = await fetch(`/api/workspace/novels/${novelId}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -33,7 +33,7 @@ export async function getNovelForWorkspace({ novelId }: { novelId: string }) {
 }
 
 export async function getChapterForWorkspace({ novelId, chapterId }: { novelId: string, chapterId: string }) {
-    const res = await fetch(`/api/novels/${novelId}/chapters/${chapterId}`, {
+    const res = await fetch(`/api/workspace/novels/${novelId}/chapters/${chapterId}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -50,7 +50,7 @@ export async function getChapterForWorkspace({ novelId, chapterId }: { novelId: 
 }
 
 export async function getDraftForWorkspace({ novelId, draftId }: { novelId: string, draftId: string }) {
-    const res = await fetch(`/api/novels/${novelId}/drafts/${draftId}`, {
+    const res = await fetch(`/api/workspace/novels/${novelId}/drafts/${draftId}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',

@@ -285,7 +285,8 @@ const CreateChapterPopup: React.FC<CreateChapterPopupProps> = ({ isOpen, onClose
                                         content={content}
                                         onChange={setContent}
                                         placeholder="Viết nội dung chapter..."
-                                        minHeight="300px"
+                                        minHeight="200px"
+                                        maxHeight="400px"
                                     />
 
                                     {/* Word Count Display */}

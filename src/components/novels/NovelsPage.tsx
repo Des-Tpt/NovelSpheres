@@ -307,7 +307,7 @@ const NovelsPage = () => {
                                 <div className="grid grid-cols-2 sm:flex sm:items-center gap-4 sm:gap-6 text-sm text-gray-400">
                                     <div className="flex items-center gap-2">
                                         <BookOpen size={16} className="text-blue-400" />
-                                        <span className="text-white font-semibold">{novels.length}</span> 
+                                        <span className="text-white font-semibold">{novels.length}</span>
                                         <span>tiểu thuyết</span>
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -451,7 +451,7 @@ const NovelsPage = () => {
                                     <button
                                         onClick={applyFilters}
                                         disabled={!hasPendingChanges}
-                                        className="w-full bg-blue-600 hover:bg-blue-700 z-20 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2"
+                                        className="w-full hover:cursor-pointer bg-blue-600 hover:bg-blue-700 z-20 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2"
                                     >
                                         <TrendingUp size={16} />
                                         Áp dụng bộ lọc
@@ -469,7 +469,7 @@ const NovelsPage = () => {
                                         exit={{ opacity: 0, y: 30, scale: 0.5 }}
                                         onClick={resetPendingChanges}
                                         disabled={!hasPendingChanges}
-                                        className="w-full bg-gray-700 hover:bg-gray-600 z-0 text-gray-300 px-4 py-2 rounded-lg font-medium transition-all duration-300"
+                                        className="w-full hover:cursor-pointer bg-gray-700 hover:bg-gray-600 z-0 text-gray-300 px-4 py-2 rounded-lg font-medium transition-all duration-300"
                                     >
                                         Hủy thay đổi
                                     </motion.button>

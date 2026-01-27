@@ -361,6 +361,7 @@ const EditNovelPopup: React.FC<EditNovelPopupProps> = ({ isOpen, onClose, novelD
                                     onChange={handleDescriptionChange}
                                     placeholder="Nhập mô tả tiểu thuyết..."
                                     minHeight="200px"
+                                    maxHeight="350px"
                                 />
                                 {formData.description && formData.description.length < 50 && (
                                     <p className="text-amber-400 text-xs mt-1">

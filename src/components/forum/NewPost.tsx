@@ -446,7 +446,8 @@ export default function NewPostPopup({ isOpen, onClose, novels = [] }: NewPostPo
                                             content={formData.content}
                                             onChange={(value) => updateFormData('content')(value)}
                                             placeholder="Viết nội dung bài viết..."
-                                            minHeight="250px"
+                                            minHeight="200px"
+                                            maxHeight="400px"
                                         />
                                     ) : (
                                         <div className="min-h-[200px] sm:min-h-[250px] p-3 border border-gray-700 rounded-md bg-gray-900">

@@ -355,7 +355,8 @@ const EditChapterPopup: React.FC<EditChapterPopupProps> = ({ isOpen, onClose, us
                                         content={content}
                                         onChange={setContent}
                                         placeholder="Viết nội dung mới (tùy chọn)..."
-                                        minHeight="300px"
+                                        minHeight="200px"
+                                        maxHeight="400px"
                                     />
 
                                     {/* Word Count Display */}
