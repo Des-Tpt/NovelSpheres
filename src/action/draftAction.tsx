@@ -15,14 +15,14 @@ export async function fetchDrafts(userId: string): Promise<DraftsResponse> {
     return res.json();
 }
 
-export async function createDraft(userId: string): Promise<{ draft: Draft }> {
+export async function createDraft(userId: string, novelId: string, actId: string, title: string, chapterNumber: number): Promise<{ draft: Draft }> {
     const res = await fetch('/api/workspace/drafts', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'x-api-key': process.env.PRIVATE_API_KEY!
         },
-        body: JSON.stringify({ userId })
+        body: JSON.stringify({ userId, novelId, actId, title, chapterNumber })
     });
     if (!res.ok) throw new Error('Lỗi khi tạo bản nháp');
     return res.json();

@@ -14,33 +14,31 @@ interface NovelEditorProps {
 }
 
 export default function NovelEditor({ novelId, novelTitle }: NovelEditorProps) {
+    console.log('NovelEditor - props:', { novelId, novelTitle });
     const router = useRouter();
     const { theme, toggleTheme } = useEditorTheme();
     const [acts, setActs] = useState<any[]>([]);
     const [selectedChapter, setSelectedChapter] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchNovelData = async () => {
-            try {
-                setIsLoading(true);
-                const data = await getNovelForWorkspace({ novelId });
-                console.log("Novel Data:", data); // Debugging log
+    const fetchNovelData = async () => {
+        try {
+            setIsLoading(true);
+            const data = await getNovelForWorkspace({ novelId });
 
-                if (data && Array.isArray(data.responseData)) {
-                    setActs(data.responseData);
-                } else if (data.novel && Array.isArray(data.novel.acts)) {
-                    setActs(data.novel.acts);
-                } else {
-                    console.warn("Unexpected data structure:", data);
-                }
-            } catch (error) {
-                console.error("Failed to fetch novel data:", error);
-            } finally {
-                setIsLoading(false);
+            if (data && Array.isArray(data.responseData)) {
+                setActs(data.responseData);
+            } else if (data.novel && Array.isArray(data.novel.acts)) {
+                setActs(data.novel.acts);
             }
-        };
+        } catch (error) {
+            console.error("Failed to fetch novel data:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchNovelData();
     }, [novelId]);
 
@@ -82,13 +80,15 @@ export default function NovelEditor({ novelId, novelTitle }: NovelEditorProps) {
             <div className="flex-1 flex overflow-hidden gap-4 p-4 pt-4">
                 {/* Sidebar */}
                 <div className="w-80 flex-shrink-0 h-full overflow-hidden bg-opacity-50 rounded-lg">
-                    <div className="h-full overflow-y-auto custom-scrollbar">
+                    <div className="h-full">
                         <ChapterSidebar
                             acts={acts}
                             theme={theme}
                             selectedChapterId={selectedChapter?._id}
                             onSelectChapter={setSelectedChapter}
                             isLoading={isLoading}
+                            novelId={novelId}
+                            onUpdate={fetchNovelData}
                         />
                     </div>
                 </div>
@@ -98,7 +98,6 @@ export default function NovelEditor({ novelId, novelTitle }: NovelEditorProps) {
                     <EditorArea
                         chapter={selectedChapter}
                         theme={theme}
-                        novelId={novelId}
                     />
                 </div>
             </div>

@@ -10,10 +10,9 @@ import getWordCountFromHtml from '@/utils/getWordCountFromHtml';
 interface EditorAreaProps {
     chapter: any | null;
     theme: 'light' | 'dark';
-    novelId: string;
 }
 
-export default function EditorArea({ chapter, theme, novelId }: EditorAreaProps) {
+export default function EditorArea({ chapter, theme }: EditorAreaProps) {
     const [content, setContent] = useState<string>('');
     const [wordCount, setWordCount] = useState(0);
     const [isSaving, setIsSaving] = useState(false);

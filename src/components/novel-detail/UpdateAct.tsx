@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Upload, Loader2 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { updateAct } from '@/action/novelActions'; // Assume this action exists
+import { updateAct } from '@/action/novelActions';
 import { notifyError, notifySuccess } from '@/utils/notify';
 import { motion, AnimatePresence } from 'framer-motion';
 

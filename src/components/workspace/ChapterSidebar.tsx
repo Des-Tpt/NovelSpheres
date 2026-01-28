@@ -1,8 +1,16 @@
 "use client";
 
-import { FileText, ChevronDown, ChevronUp, Plus, Book } from 'lucide-react';
+import { FileText, ChevronDown, ChevronUp, Plus, Book, SquarePen, Layers, Settings, Trash2, Trash } from 'lucide-react';
+import { deleteChapter } from '@/action/chapterActions';
+import { notifyError, notifySuccess } from '@/utils/notify';
+import { getUserFromCookies } from '@/action/userAction';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import EditChapterPopup from './EditChapterPopup';
+import CreateChapterPopup from './CreateChapterPopup';
+import CreateActPopup from './CreateActPopup';
+import EditActPopup from './EditActPopup';
+import DeleteConfirmPopup from './DeleteConfirmPopup';
 
 interface ChapterSidebarProps {
     acts: any[];
@@ -10,12 +18,25 @@ interface ChapterSidebarProps {
     selectedChapterId?: string;
     onSelectChapter: (chapter: any) => void;
     isLoading: boolean;
+    novelId: string;
+    onUpdate: () => void;
 }
 
-export default function ChapterSidebar({ acts, theme, selectedChapterId, onSelectChapter, isLoading }: ChapterSidebarProps) {
+export default function ChapterSidebar({ acts, theme, selectedChapterId, onSelectChapter, isLoading, novelId, onUpdate }: ChapterSidebarProps) {
+    console.log('ChapterSidebar - novelId:', novelId);
     const [publishedOpen, setPublishedOpen] = useState(true);
     const [draftsOpen, setDraftsOpen] = useState(true);
     const [openActs, setOpenActs] = useState<Record<string, boolean>>({});
+    const [isEditChapterOpen, setIsEditChapterOpen] = useState(false);
+    const [editChapter, setEditChapter] = useState<any>(null);
+    const [isCreatePopupOpen, setIsCreatePopupOpen] = useState(false);
+    const [createData, setCreateData] = useState<{ actId: string, type: string } | null>(null);
+    const [isCreateActPopupOpen, setIsCreateActPopupOpen] = useState(false);
+    const [isEditActPopupOpen, setIsEditActPopupOpen] = useState(false);
+    const [editingAct, setEditingAct] = useState<any>(null);
+    const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
+    const [deletingChapter, setDeletingChapter] = useState<any>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const toggleAct = (actId: string) => {
         setOpenActs(prev => ({ ...prev, [actId]: !prev[actId] }));
@@ -32,16 +53,12 @@ export default function ChapterSidebar({ acts, theme, selectedChapterId, onSelec
     const selectedClass = theme === 'light' ? 'bg-blue-50 text-blue-600' : 'bg-blue-900/20 text-blue-400';
     const textMutedClass = theme === 'light' ? 'text-gray-500' : 'text-gray-400';
     const textHeaderClass = theme === 'light' ? 'text-gray-900' : 'text-gray-100';
-    const actBgClass = theme === 'light' ? 'bg-gray-50' : 'bg-gray-800/50';
 
     const allChapters = acts.flatMap(act => act.chapters || []);
     const allDrafts = acts.flatMap(act => act.drafts || []);
     const totalPublished = allChapters.length;
     const totalDrafts = allDrafts.length;
-    const publishedWords = allChapters.reduce((sum, ch) => sum + (ch.wordCount || 0), 0);
-    const draftWords = allDrafts.reduce((sum, dr) => sum + (dr.wordCount || 0), 0);
 
-    // Animation variants
     const contentVariants = {
         hidden: { opacity: 0, height: 0 },
         visible: { opacity: 1, height: 'auto', transition: { duration: 0.2, ease: 'easeOut' as const } },
@@ -54,47 +71,103 @@ export default function ChapterSidebar({ acts, theme, selectedChapterId, onSelec
             animate={{ opacity: 1, x: 0 }}
             key={item._id}
             onClick={() => onSelectChapter(item)}
-            className={`w-full text-left pl-6 pr-3 py-2 rounded-lg ${selectedChapterId === item._id ? selectedClass : hoverClass
+            className={`group w-full text-left hover:cursor-pointer pl-6 pr-3 py-2 rounded-lg ${selectedChapterId === item._id ? selectedClass : hoverClass
                 } transition-all duration-150 flex items-center gap-3 border-l-2 ${selectedChapterId === item._id ? 'border-blue-500' : 'border-transparent'}`}
         >
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 flex items-center justify-between min-w-0">
                 <div className={`text-sm truncate ${selectedChapterId === item._id ? 'font-medium' : textHeaderClass}`}>
                     {`Chương ${item.chapterNumber} - ${item.title}`}
+                </div>
+
+                <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <div
+                        className={`p-1 rounded-md hover:cursor-pointer transition-colors ${hoverClass}`}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setDeletingChapter(item);
+                            setIsDeletePopupOpen(true);
+                        }}
+                        title="Xóa chương"
+                    >
+                        <Trash size={15} strokeWidth={2} className="text-red-400 hover:text-red-500" />
+                    </div>
+                    <div
+                        className={`ml-1 p-1 rounded-md hover:cursor-pointer transition-colors ${hoverClass}`}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditChapter(item);
+                        }}
+                        title="Sửa chương"
+                    >
+                        <SquarePen size={15} strokeWidth={2} className={textMutedClass} />
+                    </div>
                 </div>
             </div>
         </motion.button>
     );
 
-    const ActSection = ({ act, chapters, type }: { act: any; chapters: any[]; type: 'published' | 'draft' }) => {
+    const ActSection = ({ act, chapters, type, onAdd }: { act: any; chapters: any[]; type: 'published' | 'draft'; onAdd: (actId: string, type: string) => void }) => {
         const actId = `${type}-${act._id}`;
         const isOpen = isActOpen(actId);
 
-        if (chapters.length === 0) return null;
+        // if (chapters.length === 0) return null;
 
         return (
-            <div className="rounded-lg overflow-hidden">
-                <button
+            <div className="rounded-lg overflow-hidden mb-1">
+                <div
+                    className={`group w-full px-3 py-2 flex items-center justify-between ${hoverClass} transition-colors rounded-lg cursor-pointer`}
                     onClick={() => toggleAct(actId)}
-                    className={`w-full px-3 py-2.5 flex items-center justify-between ${hoverClass} transition-colors rounded-lg`}
                 >
-                    <div className="flex items-center gap-2">
-                        <div className={`w-6 h-6 rounded-md flex items-center justify-center ${theme === 'light' ? 'bg-purple-100' : 'bg-purple-900/30'}`}>
+                    <div className="flex items-center gap-2 overflow-hidden">
+                        <div className={`shrink-0 w-6 h-6 rounded-md flex items-center justify-center ${theme === 'light' ? 'bg-purple-100' : 'bg-purple-900/30'}`}>
                             <Book size={14} className={theme === 'light' ? 'text-purple-600' : 'text-purple-400'} />
                         </div>
-                        <span className={`text-sm font-semibold ${textHeaderClass}`}>
-                            {act.title || `Hồi ${act.actNumber || ''}`}
+                        <span className={`text-sm mt-0.5 font-semibold truncate ${textHeaderClass}`}>
+                            {`${act.actType === '' ? 'Act' : act.actType} ${act.actNumber} - ${act.title || ''}`}
                         </span>
-                        <span className={`text-xs px-1.5 py-0.5 rounded ${theme === 'light' ? 'bg-gray-200 text-gray-600' : 'bg-gray-700 text-gray-400'}`}>
+                        {/* <span className={`shrink-0 text-xs px-1.5 py-0.5 rounded ${theme === 'light' ? 'bg-gray-200 text-gray-600' : 'bg-gray-700 text-gray-400'}`}>
                             {chapters.length}
-                        </span>
+                        </span> */}
                     </div>
-                    <motion.div
-                        animate={{ rotate: isOpen ? 180 : 0 }}
-                        transition={{ duration: 0.2 }}
-                    >
-                        <ChevronDown size={14} className={textMutedClass} />
-                    </motion.div>
-                </button>
+
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditAct(act);
+                            }}
+                            className={`
+                                opacity-0 group-hover:opacity-100 transition-opacity
+                                p-1 rounded-md hover:cursor-pointer
+                                ${theme === 'light' ? 'hover:bg-gray-200 text-gray-400 hover:text-gray-600' : 'hover:bg-gray-700 text-gray-500 hover:text-gray-300'}
+                            `}
+                            title="Sửa thông tin Hồi"
+                        >
+                            <Settings size={14} />
+                        </button>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onAdd(act._id, type);
+                            }}
+                            className={`
+                                opacity-0 group-hover:opacity-100 transition-opacity
+                                p-1 rounded-md hover:cursor-pointer
+                                ${theme === 'light' ? 'hover:bg-gray-200 text-gray-500 hover:text-blue-600' : 'hover:bg-gray-700 text-gray-400 hover:text-blue-400'}
+                            `}
+                            title={type === 'published' ? 'Thêm chương mới' : 'Thêm bản nháp'}
+                        >
+                            <Plus size={16} />
+                        </button>
+                        <motion.div
+                            animate={{ rotate: isOpen ? 180 : 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="shrink-0"
+                        >
+                            <ChevronDown size={14} className={textMutedClass} />
+                        </motion.div>
+                    </div>
+                </div>
 
                 <AnimatePresence>
                     {isOpen && (
@@ -103,9 +176,9 @@ export default function ChapterSidebar({ acts, theme, selectedChapterId, onSelec
                             initial="hidden"
                             animate="visible"
                             exit="exit"
-                            className="pl-2 pb-2"
+                            className="pl-2 pb-2 mt-1"
                         >
-                            <div className="space-y-0.5">
+                            <div className="space-y-0.5 border-l border-gray-200 dark:border-gray-800 ml-3 pl-2">
                                 {chapters.map((ch) => (
                                     <ChapterItem key={ch._id} item={ch} isDraft={type === 'draft'} />
                                 ))}
@@ -117,16 +190,56 @@ export default function ChapterSidebar({ acts, theme, selectedChapterId, onSelec
         );
     };
 
+    const handleAddChapter = (actId: string, type: string) => {
+        setCreateData({ actId, type });
+        setIsCreatePopupOpen(true);
+    };
+
+    const handleEditAct = (act: any) => {
+        setEditingAct(act);
+        setIsEditActPopupOpen(true);
+    };
+
+    const handleEditChapter = (chapter: any) => {
+        setIsEditChapterOpen(true);
+        setEditChapter(chapter);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!deletingChapter) return;
+        setIsDeleting(true);
+        try {
+            const user = await getUserFromCookies();
+            if (!user) {
+                notifyError('Vui lòng đăng nhập!');
+                return;
+            }
+
+            await deleteChapter({
+                actId: deletingChapter.actId,
+                userId: user.user._id,
+                novelId,
+                chapterId: deletingChapter._id
+            });
+            notifySuccess('Xóa chương thành công!');
+            onUpdate();
+            setIsDeletePopupOpen(false);
+            setDeletingChapter(null);
+
+            // If deleted chapter was selected, deselect it
+            if (selectedChapterId === deletingChapter._id) {
+                onSelectChapter(null as any);
+            }
+        } catch (error: any) {
+            console.error('Error deleting chapter:', error);
+            notifyError(error?.message || 'Xóa chương thất bại!');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
     return (
         <div className="w-80 flex flex-col gap-4 h-full">
-            {/* Create Chapter Card */}
-            <div className={`${cardClass} p-4 transition-all duration-200 hover:shadow-md`}>
-                <button className={`w-full hover:cursor-pointer flex items-center justify-center gap-2 px-4 py-3 border border-dashed ${theme === 'light' ? 'border-gray-300 hover:border-blue-400 hover:bg-blue-50' : 'border-gray-700 hover:border-blue-500 hover:bg-blue-900/10'} rounded-lg transition-all duration-200 group`}>
-                    <Plus size={20} className="text-blue-500 group-hover:scale-110 transition-transform" />
-                    <span className={`font-medium ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'}`}>Tạo chương mới</span>
-                </button>
-            </div>
-
             {isLoading ? (
                 <div className={`${cardClass} p-8 text-center ${textMutedClass}`}>
                     <div className="animate-pulse flex flex-col items-center gap-3">
@@ -135,7 +248,19 @@ export default function ChapterSidebar({ acts, theme, selectedChapterId, onSelec
                     </div>
                 </div>
             ) : (
-                <div className="flex flex-col gap-4 overflow-y-auto pb-4 custom-scrollbar">
+                <div className="flex flex-col gap-4 overflow-y-auto pb-4 custom-scrollbar flex-1 min-h-0">
+                    {/* Add Act Button */}
+                    <button
+                        onClick={() => setIsCreateActPopupOpen(true)}
+                        className={`w-full py-3 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 group transition-all ${theme === 'light'
+                            ? 'border-gray-300 hover:border-blue-500 hover:bg-blue-50 text-gray-500 hover:text-blue-600'
+                            : 'border-gray-700 hover:border-blue-500 hover:bg-blue-900/20 text-gray-400 hover:text-blue-400'
+                            }`}
+                    >
+                        <Layers size={18} />
+                        <span className="font-semibold text-sm">Thêm Hồi Mới</span>
+                    </button>
+
                     {/* Published Section Card */}
                     <div className={`${cardClass}`}>
                         <button
@@ -163,7 +288,7 @@ export default function ChapterSidebar({ acts, theme, selectedChapterId, onSelec
                                     initial="hidden"
                                     animate="visible"
                                     exit="exit"
-                                    className="p-3 pt-0 space-y-2"
+                                    className="p-3 pt-0 space-y-2 max-h-[40vh] overflow-y-auto custom-scrollbar"
                                 >
                                     {acts.map((actData, index) => {
                                         if (!actData?.act) return null;
@@ -173,6 +298,7 @@ export default function ChapterSidebar({ acts, theme, selectedChapterId, onSelec
                                                 act={actData.act}
                                                 chapters={actData.chapters || []}
                                                 type="published"
+                                                onAdd={handleAddChapter}
                                             />
                                         );
                                     })}
@@ -208,7 +334,7 @@ export default function ChapterSidebar({ acts, theme, selectedChapterId, onSelec
                                     initial="hidden"
                                     animate="visible"
                                     exit="exit"
-                                    className="p-3 pt-0 space-y-2"
+                                    className="p-3 pt-0 space-y-2 max-h-[40vh] overflow-y-auto custom-scrollbar"
                                 >
                                     {acts.map((actData, index) => {
                                         if (!actData?.act) return null;
@@ -218,6 +344,7 @@ export default function ChapterSidebar({ acts, theme, selectedChapterId, onSelec
                                                 act={actData.act}
                                                 chapters={actData.drafts || []}
                                                 type="draft"
+                                                onAdd={handleAddChapter}
                                             />
                                         );
                                     })}
@@ -226,6 +353,62 @@ export default function ChapterSidebar({ acts, theme, selectedChapterId, onSelec
                         </AnimatePresence>
                     </div>
                 </div>
+            )}
+
+            {isEditChapterOpen && editChapter && (
+                <EditChapterPopup
+                    novelId={novelId}
+                    actId={editChapter.actId}
+                    isOpen={isEditChapterOpen}
+                    onClose={() => setIsEditChapterOpen(false)}
+                    chapter={editChapter}
+                    theme={theme}
+                    onUpdate={onUpdate}
+                />
+            )}
+
+            {isCreatePopupOpen && createData && (
+                <CreateChapterPopup
+                    novelId={novelId}
+                    actId={createData.actId}
+                    type={createData.type}
+                    isOpen={isCreatePopupOpen}
+                    onClose={() => setIsCreatePopupOpen(false)}
+                    theme={theme}
+                    onUpdate={onUpdate}
+                />
+            )}
+
+            {isCreateActPopupOpen && (
+                <CreateActPopup
+                    novelId={novelId}
+                    isOpen={isCreateActPopupOpen}
+                    onClose={() => setIsCreateActPopupOpen(false)}
+                    theme={theme}
+                    onUpdate={onUpdate}
+                />
+            )}
+
+            {isEditActPopupOpen && editingAct && (
+                <EditActPopup
+                    novelId={novelId}
+                    act={editingAct}
+                    isOpen={isEditActPopupOpen}
+                    onClose={() => setIsEditActPopupOpen(false)}
+                    theme={theme}
+                    onUpdate={onUpdate}
+                />
+            )}
+            {isDeletePopupOpen && (
+                <DeleteConfirmPopup
+                    isOpen={isDeletePopupOpen}
+                    onClose={() => setIsDeletePopupOpen(false)}
+                    onConfirm={handleDeleteConfirm}
+                    title="Xóa Chương"
+                    message={`Bạn có chắc chắn muốn xóa "Chương ${deletingChapter?.chapterNumber} - ${deletingChapter?.title || ''}"? Hành động này không thể hoàn tác.`}
+                    isPending={isDeleting}
+                    theme={theme}
+                />
             )}
         </div>
     );

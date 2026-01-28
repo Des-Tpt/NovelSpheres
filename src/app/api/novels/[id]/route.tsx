@@ -125,8 +125,8 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
             return NextResponse.json({ error: 'Bạn không có quyền thực hiện thao tác này!' }, { status: 403 });
         }
 
-        if (!title || !actNumber) {
-            return NextResponse.json({ error: 'Vui lòng nhập đầy đủ thông tin!' }, { status: 400 });
+        if (!actNumber) {
+            return NextResponse.json({ error: 'Vui lòng nhập số thứ tự Act!' }, { status: 400 });
         }
 
         let publicId: string | null = null;

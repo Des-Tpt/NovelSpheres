@@ -107,36 +107,3 @@ export const deleteChapter = async (postData: {
 
     return await response.json();
 };
-
-export async function getNovelsForNovelsPage({
-    page = 1,
-    genreIds = [],
-    sort = 'date'
-}: {
-    page?: number;
-    genreIds?: string[];
-    sort?: 'title' | 'date' | 'views';
-}) {
-    const formData = new FormData();
-    formData.append('page', page.toString());
-    formData.append('sort', sort);
-
-    genreIds.forEach((id) => {
-        formData.append('genreId', id);
-    });
-
-    const res = await fetch('/api/novels', {
-        method: 'POST',
-        headers: {
-            'x-api-key': process.env.PRIVATE_API_KEY!,
-        },
-        body: formData,
-    });
-
-    if (!res.ok) {
-        const errorData = await res.json();
-        throw Error(errorData.error || 'Lỗi khi tải tiểu thuyết!');
-    }
-
-    return await res.json();
-}

@@ -18,6 +18,7 @@ export async function getNovelsForWorkspace({ userId, page }: { userId: string, 
 export async function getNovelForWorkspace({ novelId }: { novelId: string }) {
     const res = await fetch(`/api/workspace/novels/${novelId}`, {
         method: 'GET',
+        cache: 'no-store',
         headers: {
             'Content-Type': 'application/json',
             'x-api-key': process.env.PRIVATE_API_KEY!,

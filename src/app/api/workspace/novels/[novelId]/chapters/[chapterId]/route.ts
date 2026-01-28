@@ -3,9 +3,31 @@ import { connectDB } from "@/lib/db";
 import { Chapter } from "@/model/Chapter";
 import { NextRequest, NextResponse } from "next/server";
 
-export default async function GET(request: NextRequest, context: { params: Promise<{ chapterId: string }> }) {
+export async function GET(request: NextRequest, context: { params: Promise<{ chapterId: string }> }) {
     const params = await context.params;
     const chapterId = params.chapterId;
+
+    const currentUser = await getCurrentUser();
+
+    if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    try {
+        await connectDB();
+
+        const chapter = await Chapter.findById(chapterId).select('_idtitle content chapterNumber wordCount');
+        if (!chapter) return NextResponse.json({ error: 'Không tìm thấy!' }, { status: 404 });
+        return NextResponse.json({ chapter }, { status: 200 });
+    } catch (error) {
+        console.log(error);
+        return NextResponse.json({ error: 'Lỗi khi lấy dữ liệu' }, { status: 500 });
+    }
+}
+
+export async function POST(request: NextRequest, context: { params: Promise<{ chapterId: string }> }) {
+    const params = await context.params;
+    const chapterId = params.chapterId;
+    const body = await request.json();
+    const { title, content, chapterNumber, wordCount } = body;
 
     const currentUser = await getCurrentUser();
 
@@ -17,7 +39,14 @@ export default async function GET(request: NextRequest, context: { params: Promi
         const chapter = await Chapter.findById(chapterId);
         if (!chapter) return NextResponse.json({ error: 'Không tìm thấy!' }, { status: 404 });
 
-        return NextResponse.json({ chapter }, { status: 200 });
+        chapter.title = title;
+        chapter.content = content;
+        chapter.chapterNumber = chapterNumber;
+        chapter.wordCount = wordCount;
+
+        await chapter.save();
+
+        return NextResponse.json({ success: true }, { status: 200 });
     } catch (error) {
         console.log(error);
         return NextResponse.json({ error: 'Lỗi khi lấy dữ liệu' }, { status: 500 });
