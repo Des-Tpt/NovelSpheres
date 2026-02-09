@@ -6,9 +6,11 @@ import WorkspaceEditorContent from './WorkspaceEditorContent';
 import EditorToolbar from './EditorToolbar';
 import { notifySuccess, notifyError } from '@/utils/notify';
 import getWordCountFromHtml from '@/utils/getWordCountFromHtml';
+import { Chapter } from '@/type/Chapter';
+import { Editor } from '@tiptap/react';
 
 interface EditorAreaProps {
-    chapter: any | null;
+    chapter: Chapter | null;
     theme: 'light' | 'dark';
     novelId: string;
 }
@@ -19,7 +21,7 @@ export default function EditorArea({ chapter, theme, novelId }: EditorAreaProps)
     const [isSaving, setIsSaving] = useState(false);
     const [hasChanges, setHasChanges] = useState(false);
     const [zoom, setZoom] = useState(100);
-    const [editor, setEditor] = useState<any>(null);
+    const [editor, setEditor] = useState<Editor | null>(null);
     const editorContentRef = useRef<HTMLDivElement>(null);
     const [contentHeight, setContentHeight] = useState(0);
 

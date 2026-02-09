@@ -2,10 +2,10 @@ export interface Chapter {
     _id: string,
     novelId: string,
     actId: string,
-    title: String,
-    content: String,
-    chapterNumber: Number,
-    wordCount: Number,
+    title: string,
+    content: string,
+    chapterNumber: number,
+    wordCount: number,
     updatedAt: Date,
     createdAt: Date
 }

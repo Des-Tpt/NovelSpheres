@@ -3,7 +3,7 @@ import { connectDB } from "@/lib/db";
 import { Draft } from "@/model/Draft";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: NextRequest, context: { params: Promise<{ draftId: string }> }) {
+export async function GET(request: NextRequest, context: { params: Promise<{ novelId: string; draftId: string }> }) {
     const params = await context.params;
     const draftId = params.draftId;
 
@@ -25,9 +25,9 @@ export async function GET(request: NextRequest, context: { params: Promise<{ dra
     }
 }
 
-export async function POST(request: NextRequest, context: { params: Promise<{ chapterId: string }> }) {
+export async function POST(request: NextRequest, context: { params: Promise<{ novelId: string; draftId: string }> }) {
     const params = await context.params;
-    const chapterId = params.chapterId;
+    const draftId = params.draftId;
     const body = await request.json();
     const { title, content, chapterNumber, wordCount } = body;
 
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ ch
     try {
         await connectDB();
 
-        const draft = await Draft.findById(chapterId);
+        const draft = await Draft.findById(draftId);
         if (!draft) return NextResponse.json({ error: 'Không tìm thấy!' }, { status: 404 });
 
         draft.title = title;

@@ -6,9 +6,10 @@ import {
     AlignCenter, AlignRight, AlignJustify, Underline as UnderlineIcon
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { Editor } from '@tiptap/react';
 
 interface EditorToolbarProps {
-    editor: any;
+    editor: Editor | null;
     theme: 'light' | 'dark';
 }
 
