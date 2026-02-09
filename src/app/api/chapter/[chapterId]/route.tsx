@@ -16,7 +16,6 @@ export async function GET(request: NextRequest, context: { params: Promise<{ cha
 
         await connectDB();
 
-        // Lấy chapter - bao gồm luôn novel và act info thông qua populate
         const chapter = (await Chapter.findById(chapterId)
             .populate('novelId', '_id title')
             .populate('actId', '_id actNumber actType title')
@@ -32,7 +31,6 @@ export async function GET(request: NextRequest, context: { params: Promise<{ cha
         if (chapter && userId && userId !== '') {
             const now = Date.now();
 
-            // Chỉ update nếu đã cách đủ 5 giây
             if (now - lastUpdateTime >= UPDATE_INTERVAL) {
                 lastUpdateTime = now;
 

@@ -125,7 +125,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <QueryClientProvider client={queryClient}>
                     {!hideHeader && <Header />}
                     {children}
-                    <Footer />
+                    {!hideHeader && <Footer />}
                 </QueryClientProvider>
                 <Toaster
                     theme="light"

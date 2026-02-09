@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { createChapter } from '@/action/chapterActions';
+import { createDraft } from '@/action/draftAction';
 import { notifyError, notifySuccess } from '@/utils/notify';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getUserFromCookies } from '@/action/userAction';
@@ -40,26 +41,31 @@ const CreateChapterPopup = ({ novelId, actId, isOpen, onClose, theme, type, onUp
         }
 
         try {
-            await createChapter({
-                userId: currentUser.user._id.toString(),
-                novelId,
-                actId,
-                title,
-                chapterNumber,
-                content: '<p></p>',
-                wordCount: 0
-            });
-            notifySuccess('Tạo chapter thành công!');
+            if (type === 'draft') {
+                await createDraft(currentUser.user._id.toString(), novelId, actId, title, chapterNumber);
+                notifySuccess('Tạo bản nháp thành công!');
+            } else {
+                const postData = {
+                    userId: currentUser.user._id.toString(),
+                    novelId: novelId,
+                    actId: actId,
+                    title: title,
+                    chapterNumber: chapterNumber,
+                    content: '',
+                    wordCount: 0
+                }
+
+                await createChapter(postData);
+                notifySuccess('Tạo chapter thành công!');
+            }
             onUpdate();
             setTimeout(() => {
                 onClose();
-                // Reset form
                 setTitle('');
                 setChapterNumber(prev => prev + 1);
             }, 100);
         } catch (error: any) {
-            console.error('Error creating chapter:', error);
-            notifyError(error?.message || 'Tạo chapter thất bại!');
+            notifyError(error?.message || (type === 'draft' ? 'Tạo bản nháp thất bại!' : 'Tạo chapter thất bại!'));
         } finally {
             setIsPending(false);
         }
@@ -103,7 +109,9 @@ const CreateChapterPopup = ({ novelId, actId, isOpen, onClose, theme, type, onUp
                         {/* Clean Header */}
                         <div className="flex items-center justify-between px-5 pt-5 pb-1">
                             <div>
-                                <h2 className={`text-lg font-bold ${textPrimary} mb-0.5`}>Thêm Chapter Mới</h2>
+                                <h2 className={`text-lg font-bold ${textPrimary} mb-0.5`}>
+                                    {type === 'draft' ? 'Thêm Bản Nháp' : 'Thêm Chapter Mới'}
+                                </h2>
                                 <p className={`text-xs ${textSecondary}`}>
                                     {type === 'published' ? 'Tạo chương mới' : 'Tạo bản nháp mới'}
                                 </p>

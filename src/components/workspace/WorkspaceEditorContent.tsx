@@ -79,6 +79,15 @@ export default function WorkspaceEditorContent({
         }
     }, [editor, onEditorReady]);
 
+    useEffect(() => {
+        if (editor && content !== undefined) {
+            const currentContent = editor.getHTML();
+            if (content !== currentContent) {
+                editor.commands.setContent(content);
+            }
+        }
+    }, [editor, content]);
+
     if (!editor) return null;
 
     return (

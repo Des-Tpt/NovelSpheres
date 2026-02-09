@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Save, Loader2, Layout, ZoomIn, ZoomOut } from 'lucide-react';
 import WorkspaceEditorContent from './WorkspaceEditorContent';
 import EditorToolbar from './EditorToolbar';
@@ -10,15 +10,36 @@ import getWordCountFromHtml from '@/utils/getWordCountFromHtml';
 interface EditorAreaProps {
     chapter: any | null;
     theme: 'light' | 'dark';
+    novelId: string;
 }
 
-export default function EditorArea({ chapter, theme }: EditorAreaProps) {
+export default function EditorArea({ chapter, theme, novelId }: EditorAreaProps) {
     const [content, setContent] = useState<string>('');
     const [wordCount, setWordCount] = useState(0);
     const [isSaving, setIsSaving] = useState(false);
     const [hasChanges, setHasChanges] = useState(false);
     const [zoom, setZoom] = useState(100);
     const [editor, setEditor] = useState<any>(null);
+    const editorContentRef = useRef<HTMLDivElement>(null);
+    const [contentHeight, setContentHeight] = useState(0);
+
+    useEffect(() => {
+        const element = editorContentRef.current;
+        if (!element) return;
+
+        const observer = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                setContentHeight(entry.contentRect.height);
+            }
+        });
+
+        observer.observe(element);
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [editor]);
+
 
     const zoomLevels = [75, 100, 125, 150, 200];
 
@@ -36,7 +57,6 @@ export default function EditorArea({ chapter, theme }: EditorAreaProps) {
         }
     };
 
-    // Card styling
     const cardBg = theme === 'light' ? 'bg-white' : 'bg-gray-900';
     const cardBorder = theme === 'light' ? 'border border-gray-200' : 'border border-gray-800';
     const cardShadow = theme === 'light' ? 'shadow-sm' : 'shadow-sm shadow-gray-900/50';
@@ -45,15 +65,15 @@ export default function EditorArea({ chapter, theme }: EditorAreaProps) {
     const textHeaderClass = theme === 'light' ? 'text-gray-900' : 'text-gray-100';
     const textMutedClass = theme === 'light' ? 'text-gray-500' : 'text-gray-500';
 
-    // Load chapter content
     useEffect(() => {
         if (chapter) {
             const loadContent = async () => {
                 try {
                     const res = await fetch(`/api/chapter/${chapter._id}`);
                     const data = await res.json();
-                    setContent(data.content || '');
-                    setWordCount(getWordCountFromHtml(data.content || ''));
+                    const chapterContent = data.chapter?.content || '';
+                    setContent(chapterContent);
+                    setWordCount(getWordCountFromHtml(chapterContent));
                     setHasChanges(false);
                 } catch (error) {
                     console.error('Error loading chapter:', error);
@@ -72,29 +92,54 @@ export default function EditorArea({ chapter, theme }: EditorAreaProps) {
         setHasChanges(true);
     };
 
-    const handleSave = async () => {
+    const handleSaveChapterAndPublish = async () => {
         if (!chapter || !hasChanges) return;
 
         setIsSaving(true);
         try {
-            const res = await fetch(`/api/chapter/${chapter._id}`, {
-                method: 'PUT',
+            const res = await fetch(`/api/workspace/novels/${novelId}/chapters/${chapter._id}`, {
+                method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ content, wordCount }),
             });
 
             if (res.ok) {
-                notifySuccess('Saved successfully!');
+                notifySuccess('Đã lưu thành công!');
                 setHasChanges(false);
             } else {
-                notifyError('Failed to save');
+                notifyError('Lưu thất bại!');
             }
         } catch (error) {
-            notifyError('Error saving chapter');
+            notifyError('Lỗi khi lưu!');
         } finally {
             setIsSaving(false);
         }
     };
+
+    const handleSaveChapterAsDraft = async () => {
+        if (!chapter || !hasChanges) return;
+
+        setIsSaving(true);
+        try {
+            const res = await fetch(`/api/workspace/novels/${novelId}/chapters/${chapter._id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content, wordCount }),
+            });
+
+            if (res.ok) {
+                notifySuccess('Đã lưu thành công!');
+                setHasChanges(false);
+            } else {
+                notifyError('Lưu thất bại!');
+            }
+        } catch (error) {
+            notifyError('Lỗi khi lưu!');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
 
     if (!chapter) {
         return (
@@ -111,28 +156,27 @@ export default function EditorArea({ chapter, theme }: EditorAreaProps) {
     }
 
     return (
-        <div className={`flex-1 flex flex-col ${cardClass}`}>
-            <div className={`border-b ${theme === 'light' ? 'border-gray-100' : 'border-gray-800'} px-6 py-4 flex items-center justify-between ${cardBg}`}>
+        <div className="flex-1 flex flex-col h-full overflow-hidden bg-background">
+            <div className={`flex-shrink-0 border-b ${theme === 'light' ? 'border-gray-200 bg-white' : 'border-gray-800 bg-gray-900'} px-4 py-2 flex items-center justify-between z-10`}>
                 <div>
                     <div className="flex items-center gap-3">
                         <span className={`text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded ${theme === 'light' ? 'bg-gray-100 text-gray-500' : 'bg-gray-800 text-gray-400'}`}>Chương {chapter.chapterNumber}</span>
                         <span className={`text-xs ${textMutedClass}`}>{wordCount} từ</span>
                     </div>
-                    <h2 className={`font-bold text-xl mt-1 ${textHeaderClass}`}>{chapter.title || `Chưa có tiêu đề`}</h2>
+                    <h2 className={`font-bold text-lg mt-0.5 ${textHeaderClass} truncate max-w-md`}>{chapter.title || `Chưa có tiêu đề`}</h2>
                 </div>
 
-                <div className="flex items-center gap-3">
-                    {/* Zoom Controls */}
-                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${theme === 'light' ? 'bg-gray-50' : 'bg-gray-800'}`}>
+                <div className="flex items-center gap-2">
+                    <div className={`flex items-center gap-1 px-2 py-1 rounded-lg ${theme === 'light' ? 'bg-gray-50' : 'bg-gray-800'}`}>
                         <button
                             onClick={handleZoomOut}
                             disabled={zoom <= zoomLevels[0]}
                             className={`p-1 rounded transition ${textMutedClass} hover:${textHeaderClass} disabled:opacity-30 disabled:cursor-not-allowed`}
                             title="Zoom Out"
                         >
-                            <ZoomOut size={16} />
+                            <ZoomOut size={14} />
                         </button>
-                        <span className={`text-sm font-medium ${textMutedClass} min-w-[3rem] text-center`}>
+                        <span className={`text-xs font-medium ${textMutedClass} min-w-[2.5rem] text-center`}>
                             {zoom}%
                         </span>
                         <button
@@ -141,48 +185,57 @@ export default function EditorArea({ chapter, theme }: EditorAreaProps) {
                             className={`p-1 rounded transition ${textMutedClass} hover:${textHeaderClass} disabled:opacity-30 disabled:cursor-not-allowed`}
                             title="Zoom In"
                         >
-                            <ZoomIn size={16} />
+                            <ZoomIn size={14} />
                         </button>
                     </div>
 
                     <button
-                        onClick={handleSave}
+                        onClick={handleSaveChapterAndPublish}
                         disabled={!hasChanges || isSaving}
-                        className={`px-5 py-2 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 shadow-sm
+                        className={`px-4 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-all duration-200 shadow-sm
                             ${!hasChanges
                                 ? (theme === 'light' ? 'bg-gray-100 text-gray-400' : 'bg-gray-800 text-gray-500')
                                 : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20'} 
                             disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
-                        {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-                        <span>Lưu</span>
+                        {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                        <span>Lưu và đăng tải</span>
                     </button>
                 </div>
             </div>
 
-            {/* Formatting Toolbar - Not zoomed */}
-            <div className={`border-b ${theme === 'light' ? 'border-gray-100' : 'border-gray-800'} ${cardBg}`}>
+            <div className={`flex-shrink-0 border-b ${theme === 'light' ? 'border-gray-200 bg-white' : 'border-gray-800 bg-gray-900'}`}>
                 <EditorToolbar editor={editor} theme={theme} />
             </div>
 
-            {/* Page Container with Zoom - Only content zooms */}
-            <div className={`flex-1 overflow-auto ${theme === 'light' ? 'bg-gray-50' : 'bg-gray-800'} p-8`}>
-                <div
-                    className="mx-auto transition-transform duration-200 origin-top"
-                    style={{
-                        width: '21cm',
-                        transform: `scale(${zoom / 100})`,
-                    }}
-                >
-                    <div className={`${theme === 'light' ? 'bg-white shadow-lg' : 'bg-gray-900 shadow-xl shadow-black/30'}`}>
-                        <WorkspaceEditorContent
-                            content={content}
-                            onChange={handleContentChange}
-                            placeholder="Hãy bắt đầu viết..."
-                            minHeight="29.7cm"
-                            theme={theme}
-                            onEditorReady={setEditor}
-                        />
+            <div className={`flex-1 min-h-0 overflow-auto ${theme === 'light' ? 'bg-gray-100' : 'bg-gray-950'} flex justify-center`}>
+                <div className="py-8 px-8 min-h-full w-full flex justify-center">
+                    <div
+                        style={{
+                            width: `${21 * (zoom / 100)}cm`,
+                            transition: 'width 0.2s',
+                            minHeight: `${29.7 * (zoom / 100)}cm`
+                        }}
+                        className="flex-shrink-0"
+                    >
+                        <div
+                            ref={editorContentRef}
+                            className={`origin-top-left transition-transform duration-200 ${theme === 'light' ? 'bg-white shadow-sm' : 'bg-gray-900 shadow-xl shadow-black/20'}`}
+                            style={{
+                                width: '21cm',
+                                minHeight: '29.7cm',
+                                transform: `scale(${zoom / 100})`,
+                            }}
+                        >
+                            <WorkspaceEditorContent
+                                content={content}
+                                onChange={handleContentChange}
+                                placeholder="Hãy bắt đầu viết..."
+                                minHeight="29.7cm"
+                                theme={theme}
+                                onEditorReady={setEditor}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

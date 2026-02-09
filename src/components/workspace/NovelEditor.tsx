@@ -14,7 +14,6 @@ interface NovelEditorProps {
 }
 
 export default function NovelEditor({ novelId, novelTitle }: NovelEditorProps) {
-    console.log('NovelEditor - props:', { novelId, novelTitle });
     const router = useRouter();
     const { theme, toggleTheme } = useEditorTheme();
     const [acts, setActs] = useState<any[]>([]);
@@ -49,7 +48,6 @@ export default function NovelEditor({ novelId, novelTitle }: NovelEditorProps) {
 
     return (
         <div className={`flex flex-col h-screen overflow-hidden ${bgClass} ${textClass}`}>
-            {/* Top Navigation Bar */}
             <div className={`h-14 border-b ${headerBorder} ${headerBg} flex items-center justify-between px-4 flex-shrink-0 z-10`}>
                 <div className="flex items-center gap-4">
                     <button
@@ -77,27 +75,26 @@ export default function NovelEditor({ novelId, novelTitle }: NovelEditorProps) {
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 flex overflow-hidden gap-4 p-4 pt-4">
+            <div className="flex-1 flex overflow-hidden">
                 {/* Sidebar */}
-                <div className="w-80 flex-shrink-0 h-full overflow-hidden bg-opacity-50 rounded-lg">
-                    <div className="h-full">
-                        <ChapterSidebar
-                            acts={acts}
-                            theme={theme}
-                            selectedChapterId={selectedChapter?._id}
-                            onSelectChapter={setSelectedChapter}
-                            isLoading={isLoading}
-                            novelId={novelId}
-                            onUpdate={fetchNovelData}
-                        />
-                    </div>
+                <div className={`w-80 flex-shrink-0 h-full overflow-hidden border-r ${theme === 'light' ? 'bg-gray-50 border-gray-200' : 'bg-gray-900 border-gray-800'}`}>
+                    <ChapterSidebar
+                        acts={acts}
+                        theme={theme}
+                        selectedChapterId={selectedChapter?._id}
+                        onSelectChapter={setSelectedChapter}
+                        isLoading={isLoading}
+                        novelId={novelId}
+                        onUpdate={fetchNovelData}
+                    />
                 </div>
 
                 {/* Main Editor Area */}
-                <div className="flex-1 h-full min-w-0 bg-opacity-50 relative">
+                <div className="flex-1 h-full min-w-0 bg-opacity-50 relative flex flex-col">
                     <EditorArea
                         chapter={selectedChapter}
                         theme={theme}
+                        novelId={novelId}
                     />
                 </div>
             </div>

@@ -59,7 +59,6 @@ export async function GET(request: NextRequest, context: { params: Promise<{ use
 
         return NextResponse.json({ novels: detailedNovels, hasMore }, { status: 200 });
     } catch (error) {
-        console.log("Workspace API Error:", error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

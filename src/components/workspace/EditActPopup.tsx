@@ -31,7 +31,6 @@ const EditActPopup = ({ novelId, act, isOpen, onClose, theme, onUpdate }: EditAc
         fetchUser();
     }, []);
 
-    // Reset form when act changes
     useEffect(() => {
         if (isOpen && act) {
             setTitle(act.title || '');
@@ -125,7 +124,6 @@ const EditActPopup = ({ novelId, act, isOpen, onClose, theme, onUpdate }: EditAc
                         {/* Content */}
                         <div className="px-5 py-4 space-y-3">
                             <div className="grid grid-cols-2 gap-3">
-                                {/* Act Type Input */}
                                 <div className="space-y-1">
                                     <label className={`text-[10px] font-bold uppercase tracking-wider ${textSecondary} ml-1`}>
                                         Loại (Hồi/Quyển)
@@ -139,7 +137,6 @@ const EditActPopup = ({ novelId, act, isOpen, onClose, theme, onUpdate }: EditAc
                                     />
                                 </div>
 
-                                {/* Act Number Input */}
                                 <div className="space-y-1">
                                     <label className={`text-[10px] font-bold uppercase tracking-wider ${textSecondary} ml-1`}>
                                         Số thứ tự
@@ -155,7 +152,6 @@ const EditActPopup = ({ novelId, act, isOpen, onClose, theme, onUpdate }: EditAc
                                 </div>
                             </div>
 
-                            {/* Title Input */}
                             <div className="space-y-1">
                                 <label className={`text-[10px] font-bold uppercase tracking-wider ${textSecondary} ml-1`}>
                                     Tiêu đề (Không bắt buộc)
@@ -170,7 +166,6 @@ const EditActPopup = ({ novelId, act, isOpen, onClose, theme, onUpdate }: EditAc
                             </div>
                         </div>
 
-                        {/* Footer Actions */}
                         <div className="px-5 pb-5 pt-1 flex items-center justify-end gap-2">
                             <button
                                 onClick={onClose}
@@ -182,8 +177,8 @@ const EditActPopup = ({ novelId, act, isOpen, onClose, theme, onUpdate }: EditAc
                                 onClick={handleUpdateAct}
                                 disabled={!isValid || isPending || !hasChanges}
                                 className={`px-4 py-2 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all ${!isValid || isPending || !hasChanges
-                                        ? `${saveBtnInactive} cursor-not-allowed`
-                                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40'
+                                    ? `${saveBtnInactive} cursor-not-allowed`
+                                    : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40'
                                     }`}
                             >
                                 {isPending ? (

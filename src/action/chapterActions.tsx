@@ -81,7 +81,6 @@ export const updateChapter = async (postData: {
     return await response.json();
 }
 
-
 export const deleteChapter = async (postData: {
     actId: string;
     userId: string;
