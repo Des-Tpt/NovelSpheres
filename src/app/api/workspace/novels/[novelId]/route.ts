@@ -50,11 +50,10 @@ export async function GET(req: NextRequest, context: { params: Promise<{ novelId
 export async function POST(req: NextRequest, context: { params: Promise<{ novelId: string }> }) {
     const { novelId } = await context.params;
     const currentUser = await getCurrentUser();
-
     try {
         await connectDB();
 
-        const novel = await Novel.findById({ novelId });
+        const novel = await Novel.findById({ _id: novelId });
 
         if (!novel) {
             return NextResponse.json({ error: 'Tiểu thuyết không tồn tại!' }, { status: 404 });
@@ -88,7 +87,8 @@ export async function POST(req: NextRequest, context: { params: Promise<{ novelI
         draft.save();
 
         return NextResponse.json({ draft }, { status: 201 });
-    } catch {
+    } catch (error) {
+        console.log(error);
         return NextResponse.json({ error: 'Lỗi khi lấy dữ liệu' }, { status: 500 });
     }
 }

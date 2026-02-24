@@ -7,21 +7,26 @@ export async function createDraft(userId: string, novelId: string, actId: string
             'Content-Type': 'application/json',
             'x-api-key': process.env.PRIVATE_API_KEY!
         },
-        body: JSON.stringify({ userId, actId, title, chapterNumber, content: '', wordCount: 0 })
+        body: JSON.stringify({ userId, actId, title, chapterNumber, content: "<p></p>", wordCount: 0 })
     });
     if (!res.ok) throw new Error('Lỗi khi tạo bản nháp');
     return res.json();
 }
 
 export async function deleteDraft(novelId: string, draftId: string): Promise<void> {
-    const res = await fetch(`/api/workspace/novels/${novelId}/drafts/${draftId}`, {
-        headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': process.env.PRIVATE_API_KEY!
-        },
-        method: 'DELETE'
-    });
-    if (!res.ok) throw new Error('Lỗi khi xóa bản nháp');
+    try {
+        const res = await fetch(`/api/workspace/novels/${novelId}/drafts/${draftId}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': process.env.PRIVATE_API_KEY!
+            },
+            method: 'DELETE'
+        });
+        if (!res.ok) throw new Error('Lỗi khi xóa bản nháp');
+    } catch (error) {
+        console.log(error);
+        throw new Error('Lỗi khi xóa bản nháp');
+    }
 }
 
 interface DraftData {

@@ -61,6 +61,7 @@ export default function EditorToolbar({ editor, theme }: EditorToolbarProps) {
 
     const ToolbarButton = ({ onClick, isActive, title, icon: Icon }: any) => (
         <button
+            onMouseDown={(e) => e.preventDefault()}
             onClick={onClick}
             className={`p-2 rounded transition ${isActive ? buttonActive : `${buttonText} ${buttonHover}`}`}
             type="button"
@@ -70,29 +71,6 @@ export default function EditorToolbar({ editor, theme }: EditorToolbarProps) {
         </button>
     );
 
-    const HeadingButton = ({ level }: { level: 1 | 2 | 3 }) => {
-        const isActive = editor.isActive('heading', { level });
-        return (
-            <button
-                onClick={(e) => {
-                    e.preventDefault();
-                    if (isActive) {
-                        // If heading is active, toggle back to paragraph
-                        editor.chain().focus().setParagraph().run();
-                    } else {
-                        // Otherwise set to heading
-                        editor.chain().focus().setHeading({ level }).run();
-                    }
-                }}
-                className={`px-2 py-1 rounded transition text-sm font-semibold ${isActive ? buttonActive : `${buttonText} ${buttonHover}`
-                    }`}
-                type="button"
-                title={`Heading ${level}`}
-            >
-                H{level}
-            </button>
-        );
-    };
 
     const setLink = () => {
         const previousUrl = editor.getAttributes('link').href;
@@ -110,7 +88,7 @@ export default function EditorToolbar({ editor, theme }: EditorToolbarProps) {
 
     return (
         <div className={`${toolbarBg} border-b p-2 flex flex-wrap gap-1 shrink-0`}>
-            <div className="relative w-1">
+            <div className="relative">
                 <button
                     onClick={() => setShowFontDropdown(!showFontDropdown)}
                     className={`h-9 px-3 rounded transition text-sm ${buttonText} ${buttonHover} ${theme === 'light' ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-600'} border flex items-center gap-2 w-40 justify-between`}
@@ -173,12 +151,6 @@ export default function EditorToolbar({ editor, theme }: EditorToolbarProps) {
 
             <div className={`w-px h-8 ${theme === 'light' ? 'bg-gray-300' : 'bg-gray-600'} mx-1`} />
 
-            {/* Headings - Hidden */}
-            {/* <HeadingButton level={1} />
-            <HeadingButton level={2} />
-            <HeadingButton level={3} /> */}
-
-            {/* <div className={`w-px h-6 ${theme === 'light' ? 'bg-gray-300' : 'bg-gray-600'} mx-1`} /> */}
 
             {/* Lists */}
             <ToolbarButton
@@ -237,7 +209,7 @@ export default function EditorToolbar({ editor, theme }: EditorToolbarProps) {
                 title="Highlight"
                 icon={Highlighter}
             />
-            <ToolbarButton
+            {/* <ToolbarButton
                 onClick={() => editor.chain().focus().toggleBlockquote().run()}
                 isActive={editor.isActive('blockquote')}
                 title="Quote"
@@ -248,12 +220,13 @@ export default function EditorToolbar({ editor, theme }: EditorToolbarProps) {
                 isActive={editor.isActive('code')}
                 title="Inline Code"
                 icon={Code}
-            />
+            /> */}
 
             <div className={`w-px h-8 ${theme === 'light' ? 'bg-gray-300' : 'bg-gray-600'} mx-1`} />
 
             {/* Undo/Redo */}
             <button
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => editor.chain().focus().undo().run()}
                 disabled={!editor.can().undo()}
                 className={`p-2 rounded transition ${buttonText} ${buttonHover} disabled:opacity-30 disabled:cursor-not-allowed`}
@@ -263,6 +236,7 @@ export default function EditorToolbar({ editor, theme }: EditorToolbarProps) {
                 <Undo size={18} />
             </button>
             <button
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => editor.chain().focus().redo().run()}
                 disabled={!editor.can().redo()}
                 className={`p-2 rounded transition ${buttonText} ${buttonHover} disabled:opacity-30 disabled:cursor-not-allowed`}

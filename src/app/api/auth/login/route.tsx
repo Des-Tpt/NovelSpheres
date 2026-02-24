@@ -21,6 +21,7 @@ export interface IUser {
     };
   };
   createdAt: Date;
+  isDeleted: boolean;
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -41,12 +42,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     const secret = process.env.JWT_SECRET;
-    if (!secret) return NextResponse.json({error: "JWT_SECRET is not defined"},  { status: 404 });
+    if (!secret) return NextResponse.json({ error: "JWT_SECRET is not defined" }, { status: 404 });
+
+    if (user.isDeleted) {
+      return NextResponse.json({ error: 'Tài khoản đã bị chặn! Bạn không thể đăng nhập!' }, { status: 403 });
+    }
 
     //Tạo jwt token (về cơ bản là 1 interface chứa các attribute được lưu vào cookies)
     const token = jwt.sign(
-      { 
-        _id: user._id, 
+      {
+        _id: user._id,
         username: user.username,
         role: user.role,
         email: user.email,
@@ -54,9 +59,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         format: user.profile?.avatar?.format
       },
       process.env.JWT_SECRET!,
-      { expiresIn: '2d' }
+      { expiresIn: '1d' }
     );
-    
+
     (await cookies()).set('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -70,7 +75,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     });
 
   } catch (error) {
-    console.error('Login error:', error);
     return NextResponse.json({ error: 'Không thể đăng nhập' }, { status: 500 });
   }
 }

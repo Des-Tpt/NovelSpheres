@@ -11,6 +11,7 @@ import CreateChapterPopup from './CreateChapterPopup';
 import CreateActPopup from './CreateActPopup';
 import EditActPopup from './EditActPopup';
 import DeleteConfirmPopup from './DeleteConfirmPopup';
+import { deleteDraft } from '@/action/draftAction';
 
 interface ChapterSidebarProps {
     acts: any[];
@@ -55,7 +56,7 @@ const ChapterItem = ({
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             key={item._id}
-            onClick={() => onSelectChapter(item)}
+            onClick={() => onSelectChapter({ ...item, _type: isDraft ? 'draft' : 'chapter' })}
             className={`group w-full text-left hover:cursor-pointer pl-6 pr-3 py-2 rounded-lg ${selectedChapterId === item._id ? selectedClass : hoverClass
                 } transition-colors duration-150 flex items-center gap-3 border-l-2 ${selectedChapterId === item._id ? 'border-blue-500' : 'border-transparent'}`}
         >
@@ -230,7 +231,6 @@ export default function ChapterSidebar({ acts, theme, selectedChapterId, onSelec
 
     const hoverClass = theme === 'light' ? 'hover:bg-gray-50' : 'hover:bg-gray-800';
     const textMutedClass = theme === 'light' ? 'text-gray-500' : 'text-gray-400';
-    const textHeaderClass = theme === 'light' ? 'text-gray-900' : 'text-gray-100';
 
     const allChapters = acts.flatMap(act => act.chapters || []);
     const allDrafts = acts.flatMap(act => act.drafts || []);
@@ -256,19 +256,26 @@ export default function ChapterSidebar({ acts, theme, selectedChapterId, onSelec
         if (!deletingChapter) return;
         setIsDeleting(true);
         try {
-            const user = await getUserFromCookies();
-            if (!user) {
-                notifyError('Vui lòng đăng nhập!');
-                return;
+            const isDraft = deletingChapter._type === 'draft';
+
+            if (isDraft) {
+                await deleteDraft(novelId, deletingChapter._id);
+                notifySuccess('Xóa bản nháp thành công!');
+            } else {
+                const user = await getUserFromCookies();
+                if (!user) {
+                    notifyError('Vui lòng đăng nhập!');
+                    return;
+                }
+                await deleteChapter({
+                    actId: deletingChapter.actId,
+                    userId: user.user._id,
+                    novelId,
+                    chapterId: deletingChapter._id
+                });
+                notifySuccess('Xóa chương thành công!');
             }
 
-            await deleteChapter({
-                actId: deletingChapter.actId,
-                userId: user.user._id,
-                novelId,
-                chapterId: deletingChapter._id
-            });
-            notifySuccess('Xóa chương thành công!');
             onUpdate();
             setIsDeletePopupOpen(false);
             setDeletingChapter(null);
@@ -277,7 +284,7 @@ export default function ChapterSidebar({ acts, theme, selectedChapterId, onSelec
                 onSelectChapter(null as any);
             }
         } catch (error: any) {
-            notifyError(error?.message || 'Xóa chương thất bại!');
+            notifyError(error?.message || 'Xóa thất bại!');
         } finally {
             setIsDeleting(false);
         }
@@ -355,10 +362,10 @@ export default function ChapterSidebar({ acts, theme, selectedChapterId, onSelec
                                                     onSelectChapter={onSelectChapter}
                                                     onEditAct={handleEditAct}
                                                     onDeleteChapter={(item) => {
-                                                        setDeletingChapter(item);
+                                                        setDeletingChapter({ ...item, _type: 'chapter' });
                                                         setIsDeletePopupOpen(true);
                                                     }}
-                                                    onEditChapter={handleEditChapter}
+                                                    onEditChapter={(item) => handleEditChapter({ ...item, _type: 'chapter' })}
                                                 />
                                             );
                                         })}
@@ -411,10 +418,10 @@ export default function ChapterSidebar({ acts, theme, selectedChapterId, onSelec
                                                     onSelectChapter={onSelectChapter}
                                                     onEditAct={handleEditAct}
                                                     onDeleteChapter={(item) => {
-                                                        setDeletingChapter(item);
+                                                        setDeletingChapter({ ...item, _type: 'draft' });
                                                         setIsDeletePopupOpen(true);
                                                     }}
-                                                    onEditChapter={handleEditChapter}
+                                                    onEditChapter={(item) => handleEditChapter({ ...item, _type: 'draft' })}
                                                 />
                                             );
                                         })}
@@ -475,8 +482,8 @@ export default function ChapterSidebar({ acts, theme, selectedChapterId, onSelec
                     isOpen={isDeletePopupOpen}
                     onClose={() => setIsDeletePopupOpen(false)}
                     onConfirm={handleDeleteConfirm}
-                    title="Xóa Chương"
-                    message={`Bạn có chắc chắn muốn xóa "Chương ${deletingChapter?.chapterNumber} - ${deletingChapter?.title || ''}"? Hành động này không thể hoàn tác.`}
+                    title={deletingChapter?._type === 'draft' ? 'Xóa Bản Nháp' : 'Xóa Chương'}
+                    message={`Bạn có chắc chắn muốn xóa "${deletingChapter?._type === 'draft' ? 'Nháp' : 'Chương'} ${deletingChapter?.chapterNumber} - ${deletingChapter?.title || ''}"? Hành động này không thể hoàn tác.`}
                     isPending={isDeleting}
                     theme={theme}
                 />

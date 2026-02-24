@@ -14,6 +14,7 @@ export interface IUser extends Document {
     };
   };
   createdAt: Date;
+  isDeleted: boolean;
 }
 
 const UserSchema = new Schema<IUser>({
@@ -30,7 +31,20 @@ const UserSchema = new Schema<IUser>({
     },
   },
   createdAt: { type: Schema.Types.Date, default: Date.now },
+  isDeleted: { type: Schema.Types.Boolean, default: false },
 });
+
+const autoFilterDeleted = function (this: any, next: Function) {
+  if (this.getQuery().isDeleted === undefined) {
+    this.where({ isDeleted: { $ne: true } });
+  }
+  next();
+};
+
+UserSchema.pre('find', autoFilterDeleted);
+UserSchema.pre('findOne', autoFilterDeleted);
+UserSchema.pre('countDocuments', autoFilterDeleted);
+UserSchema.pre('findOneAndUpdate', autoFilterDeleted);
 
 UserSchema.pre('findOneAndDelete', async function (next) {
   const userId = this.getQuery()._id;

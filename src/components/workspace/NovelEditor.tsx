@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Moon, Sun, Home, Settings } from 'lucide-react';
+import { ChevronLeft, Moon, Sun, Wand2 } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 import ChapterSidebar from './ChapterSidebar';
 import EditorArea from './EditorArea';
+import AIChatSidebar from './AIChatSidebar';
 import { useEditorTheme } from '@/hooks/useEditorTheme';
 import { getNovelForWorkspace } from '@/action/workSpaceAction';
 
@@ -19,6 +21,21 @@ export default function NovelEditor({ novelId, novelTitle }: NovelEditorProps) {
     const [acts, setActs] = useState<any[]>([]);
     const [selectedChapter, setSelectedChapter] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isChatOpen, setIsChatOpen] = useState(false);
+    const [editorContent, setEditorContent] = useState('');
+    const editorRef = useRef<any>(null);
+
+    const handleInsertFromAI = (text: string) => {
+        if (editorRef.current) {
+            editorRef.current.chain().focus().command(({ tr, dispatch }: any) => {
+                if (dispatch) {
+                    const end = tr.doc.content.size;
+                    tr.insertText('\n\n' + text, end);
+                }
+                return true;
+            }).run();
+        }
+    };
 
     const fetchNovelData = async () => {
         try {
@@ -65,6 +82,16 @@ export default function NovelEditor({ novelId, novelTitle }: NovelEditorProps) {
 
                 <div className="flex items-center gap-2">
                     <button
+                        onClick={() => setIsChatOpen(!isChatOpen)}
+                        className={`p-2 rounded-lg transition-colors ${isChatOpen
+                            ? 'bg-blue-600 text-white'
+                            : (theme === 'light' ? 'hover:bg-gray-100 text-gray-600' : 'hover:bg-gray-800 text-gray-300')
+                            }`}
+                        title="AI Assistant"
+                    >
+                        <Wand2 size={18} />
+                    </button>
+                    <button
                         onClick={toggleTheme}
                         className={`p-2 rounded-lg transition-colors ${theme === 'light' ? 'hover:bg-gray-100 text-gray-600' : 'hover:bg-gray-800 text-gray-300'}`}
                         title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
@@ -95,8 +122,27 @@ export default function NovelEditor({ novelId, novelTitle }: NovelEditorProps) {
                         chapter={selectedChapter}
                         theme={theme}
                         novelId={novelId}
+                        onUpdate={fetchNovelData}
+                        onContentChange={setEditorContent}
+                        onEditorReady={(ed: any) => { editorRef.current = ed; }}
                     />
                 </div>
+
+                {/* AI Generation Panel */}
+                <AnimatePresence>
+                    {isChatOpen && (
+                        <AIChatSidebar
+                            theme={theme}
+                            editorContent={editorContent}
+                            chapterInfo={selectedChapter ? {
+                                title: selectedChapter.title,
+                                chapterNumber: selectedChapter.chapterNumber,
+                            } : null}
+                            onClose={() => setIsChatOpen(false)}
+                            onInsert={handleInsertFromAI}
+                        />
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );

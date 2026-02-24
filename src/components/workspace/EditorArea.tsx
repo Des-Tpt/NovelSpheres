@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { Save, Loader2, Layout, ZoomIn, ZoomOut } from 'lucide-react';
+import { Save, Loader2, Layout, ZoomIn, ZoomOut, FileText, Upload } from 'lucide-react';
 import WorkspaceEditorContent from './WorkspaceEditorContent';
 import EditorToolbar from './EditorToolbar';
 import { notifySuccess, notifyError } from '@/utils/notify';
@@ -11,17 +11,22 @@ interface EditorAreaProps {
     chapter: any | null;
     theme: 'light' | 'dark';
     novelId: string;
+    onUpdate?: () => void;
+    onContentChange?: (content: string) => void;
+    onEditorReady?: (editor: any) => void;
 }
 
-export default function EditorArea({ chapter, theme, novelId }: EditorAreaProps) {
+export default function EditorArea({ chapter, theme, novelId, onUpdate, onContentChange, onEditorReady }: EditorAreaProps) {
     const [content, setContent] = useState<string>('');
     const [wordCount, setWordCount] = useState(0);
-    const [isSaving, setIsSaving] = useState(false);
+    const [savingType, setSavingType] = useState<'primary' | 'secondary' | null>(null);
     const [hasChanges, setHasChanges] = useState(false);
     const [zoom, setZoom] = useState(100);
     const [editor, setEditor] = useState<any>(null);
     const editorContentRef = useRef<HTMLDivElement>(null);
     const [contentHeight, setContentHeight] = useState(0);
+
+    const isDraft = chapter?._type === 'draft';
 
     useEffect(() => {
         const element = editorContentRef.current;
@@ -69,14 +74,21 @@ export default function EditorArea({ chapter, theme, novelId }: EditorAreaProps)
         if (chapter) {
             const loadContent = async () => {
                 try {
-                    const res = await fetch(`/api/chapter/${chapter._id}`);
+                    const endpoint = isDraft
+                        ? `/api/workspace/novels/${novelId}/drafts/${chapter._id}`
+                        : `/api/chapter/${chapter._id}`;
+                    const res = await fetch(endpoint);
                     const data = await res.json();
-                    const chapterContent = data.chapter?.content || '';
-                    setContent(chapterContent);
-                    setWordCount(getWordCountFromHtml(chapterContent));
+
+                    const loadedContent = isDraft
+                        ? (data.draft?.content || '')
+                        : (data.chapter?.content || '');
+
+                    setContent(loadedContent);
+                    setWordCount(getWordCountFromHtml(loadedContent));
                     setHasChanges(false);
                 } catch (error) {
-                    console.error('Error loading chapter:', error);
+                    console.error('Error loading content:', error);
                 }
             };
             loadContent();
@@ -90,56 +102,115 @@ export default function EditorArea({ chapter, theme, novelId }: EditorAreaProps)
         setContent(html);
         setWordCount(getWordCountFromHtml(html));
         setHasChanges(true);
+        onContentChange?.(html);
     };
 
-    const handleSaveChapterAndPublish = async () => {
+    // === NÚT 1: Lưu chính (Primary Save) ===
+    // - Nếu đang xem DRAFT  → Lưu lại draft (PATCH draft)
+    // - Nếu đang xem CHAPTER → Lưu lại chapter (PATCH chapter) 
+    const handlePrimarySave = async () => {
         if (!chapter || !hasChanges) return;
 
-        setIsSaving(true);
+        setSavingType('primary');
         try {
-            const res = await fetch(`/api/workspace/novels/${novelId}/chapters/${chapter._id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content, wordCount }),
-            });
-
-            if (res.ok) {
-                notifySuccess('Đã lưu thành công!');
-                setHasChanges(false);
+            if (isDraft) {
+                const res = await fetch(`/api/workspace/novels/${novelId}/drafts/${chapter._id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: chapter.title,
+                        content,
+                        chapterNumber: chapter.chapterNumber,
+                        wordCount
+                    }),
+                });
+                if (res.ok) {
+                    notifySuccess('Đã lưu bản nháp!');
+                    setHasChanges(false);
+                } else {
+                    notifyError('Lưu bản nháp thất bại!');
+                }
             } else {
-                notifyError('Lưu thất bại!');
+                const res = await fetch(`/api/workspace/novels/${novelId}/chapters/${chapter._id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content, wordCount }),
+                });
+                if (res.ok) {
+                    notifySuccess('Đã lưu và đăng tải!');
+                    setHasChanges(false);
+                } else {
+                    notifyError('Lưu thất bại!');
+                }
             }
         } catch (error) {
             notifyError('Lỗi khi lưu!');
         } finally {
-            setIsSaving(false);
+            setSavingType(null);
         }
     };
 
-    const handleSaveChapterAsDraft = async () => {
-        if (!chapter || !hasChanges) return;
+    // === NÚT 2: Lưu chéo (Secondary Save) ===
+    // - Nếu đang xem DRAFT  → Đăng tải như Chapter (upsert chapter)
+    // - Nếu đang xem CHAPTER → Lưu như Bản nháp (upsert draft)
+    const handleSecondarySave = async () => {
+        if (!chapter) return;
 
-        setIsSaving(true);
+        setSavingType('secondary');
         try {
-            const res = await fetch(`/api/workspace/novels/${novelId}/chapters/${chapter._id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content, wordCount }),
-            });
-
-            if (res.ok) {
-                notifySuccess('Đã lưu thành công!');
-                setHasChanges(false);
+            if (isDraft) {
+                // Đang xem Draft → Đăng tải thành Chapter (upsert)
+                const res = await fetch(`/api/workspace/novels/${novelId}/chapters`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        actId: chapter.actId,
+                        chapterNumber: chapter.chapterNumber,
+                        title: chapter.title,
+                        content,
+                        wordCount,
+                    }),
+                });
+                if (res.ok) {
+                    notifySuccess('Đã đăng tải thành chương!');
+                    setHasChanges(false);
+                    onUpdate?.();
+                } else {
+                    notifyError('Đăng tải thất bại!');
+                }
             } else {
-                notifyError('Lưu thất bại!');
+                // Đang xem Chapter → Lưu thành Bản nháp (upsert)
+                const res = await fetch(`/api/workspace/novels/${novelId}/drafts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        actId: chapter.actId,
+                        chapterNumber: chapter.chapterNumber,
+                        title: chapter.title,
+                        content,
+                        wordCount,
+                    }),
+                });
+                if (res.ok) {
+                    notifySuccess('Đã lưu thành bản nháp!');
+                    setHasChanges(false);
+                    onUpdate?.();
+                } else {
+                    notifyError('Lưu bản nháp thất bại!');
+                }
             }
         } catch (error) {
             notifyError('Lỗi khi lưu!');
         } finally {
-            setIsSaving(false);
+            setSavingType(null);
         }
     };
 
+    const primaryLabel = isDraft ? 'Lưu bản nháp' : 'Lưu và đăng tải';
+    const secondaryLabel = isDraft ? 'Đăng tải chương' : 'Lưu như bản nháp';
+
+    const PrimaryIcon = isDraft ? FileText : Save;
+    const SecondaryIcon = isDraft ? Upload : FileText;
 
     if (!chapter) {
         return (
@@ -160,7 +231,12 @@ export default function EditorArea({ chapter, theme, novelId }: EditorAreaProps)
             <div className={`flex-shrink-0 border-b ${theme === 'light' ? 'border-gray-200 bg-white' : 'border-gray-800 bg-gray-900'} px-4 py-2 flex items-center justify-between z-10`}>
                 <div>
                     <div className="flex items-center gap-3">
-                        <span className={`text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded ${theme === 'light' ? 'bg-gray-100 text-gray-500' : 'bg-gray-800 text-gray-400'}`}>Chương {chapter.chapterNumber}</span>
+                        <span className={`text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded ${isDraft
+                            ? (theme === 'light' ? 'bg-amber-100 text-amber-600' : 'bg-amber-900/30 text-amber-400')
+                            : (theme === 'light' ? 'bg-gray-100 text-gray-500' : 'bg-gray-800 text-gray-400')
+                            }`}>
+                            {isDraft ? 'Nháp' : 'Chương'} {chapter.chapterNumber}
+                        </span>
                         <span className={`text-xs ${textMutedClass}`}>{wordCount} từ</span>
                     </div>
                     <h2 className={`font-bold text-lg mt-0.5 ${textHeaderClass} truncate max-w-md`}>{chapter.title || `Chưa có tiêu đề`}</h2>
@@ -189,17 +265,32 @@ export default function EditorArea({ chapter, theme, novelId }: EditorAreaProps)
                         </button>
                     </div>
 
+                    {/* Nút chính: Lưu cùng loại */}
                     <button
-                        onClick={handleSaveChapterAndPublish}
-                        disabled={!hasChanges || isSaving}
+                        onClick={handlePrimarySave}
+                        disabled={!hasChanges || savingType !== null}
                         className={`px-4 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-all duration-200 shadow-sm
                             ${!hasChanges
                                 ? (theme === 'light' ? 'bg-gray-100 text-gray-400' : 'bg-gray-800 text-gray-500')
                                 : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20'} 
                             disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
-                        {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                        <span>Lưu và đăng tải</span>
+                        {savingType === 'primary' ? <Loader2 size={16} className="animate-spin" /> : <PrimaryIcon size={16} />}
+                        <span>{primaryLabel}</span>
+                    </button>
+
+                    {/* Nút phụ: Lưu chéo loại */}
+                    <button
+                        onClick={handleSecondarySave}
+                        disabled={savingType !== null}
+                        className={`px-4 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-all duration-200 shadow-sm
+                            ${savingType !== null
+                                ? (theme === 'light' ? 'bg-gray-100 text-gray-400' : 'bg-gray-800 text-gray-500')
+                                : (theme === 'light' ? 'bg-gray-200 hover:bg-gray-300 text-gray-700' : 'bg-gray-700 hover:bg-gray-600 text-gray-200')} 
+                            disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                        {savingType === 'secondary' ? <Loader2 size={16} className="animate-spin" /> : <SecondaryIcon size={16} />}
+                        <span>{secondaryLabel}</span>
                     </button>
                 </div>
             </div>
@@ -233,7 +324,10 @@ export default function EditorArea({ chapter, theme, novelId }: EditorAreaProps)
                                 placeholder="Hãy bắt đầu viết..."
                                 minHeight="29.7cm"
                                 theme={theme}
-                                onEditorReady={setEditor}
+                                onEditorReady={(ed: any) => {
+                                    setEditor(ed);
+                                    onEditorReady?.(ed);
+                                }}
                             />
                         </div>
                     </div>

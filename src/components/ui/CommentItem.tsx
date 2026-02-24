@@ -139,7 +139,8 @@ const CommentItem: React.FC<CommentItemProps> = ({
                         <div
                             onClick={() => onProfileClick(comment.userId._id)}
                             className={`font-semibold cursor-pointer text-sm sm:text-[1.15rem] hover:text-blue-400 transition-colors truncate max-w-[120px] sm:max-w-none
-                                ${currentUser && currentUser._id === comment.userId._id ? 'bg-gradient-to-r from-amber-400 to-orange-600 bg-clip-text text-transparent' : 'text-white'}    
+                                ${currentUser && currentUser._id === comment.userId._id ? 'bg-gradient-to-r from-amber-400 to-orange-600 bg-clip-text text-transparent' : 'text-white'}                                   
+                                ${comment.userId.isDeleted ? 'line-through' : ''}
                             `}
                         >
                             {comment.userId.username}
@@ -157,7 +158,11 @@ const CommentItem: React.FC<CommentItemProps> = ({
                                 @{comment.replyToUserId.username}{' '}
                             </span>
                         )}
-                        <span className="break-words">{comment.content}</span>
+                        {comment.isDeleted ? (
+                            <span className="break-words italic">Bình luận đã bị xóa</span>
+                        ) : (
+                            <span className="break-words">{comment.content}</span>
+                        )}
                     </div>
 
                     <div className="flex items-center justify-between">

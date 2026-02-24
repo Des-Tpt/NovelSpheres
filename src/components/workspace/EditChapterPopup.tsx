@@ -12,6 +12,7 @@ interface ChapterItem {
     title: string;
     chapterNumber: number;
     wordCount?: number;
+    _type?: 'chapter' | 'draft';
 }
 
 interface EditChapterPopupProps {
@@ -50,31 +51,49 @@ const EditChapterPopup = ({ novelId, actId, isOpen, onClose, chapter, theme, onU
         }
     }, [isOpen, chapter]);
 
+    const isDraft = chapter._type === 'draft';
+
     const handleEditChapter = async () => {
         setIsPending(true);
-        if (!currentUser) {
-            notifyError('Vui lòng đăng nhập để cập nhật chapter!');
-            setIsPending(false);
-            return;
-        }
         try {
-            await updateChapter({
-                chapterId: chapter._id,
-                userId: currentUser.user._id.toString(),
-                novelId,
-                actId,
-                title,
-                chapterNumber,
-                wordCount: chapter.wordCount || 0
-            });
-            notifySuccess('Cập nhật chapter thành công!');
+            if (isDraft) {
+                const res = await fetch(`/api/workspace/novels/${novelId}/drafts/${chapter._id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title,
+                        chapterNumber,
+                    }),
+                });
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw { message: errorData.error || 'Cập nhật bản nháp thất bại!' };
+                }
+                notifySuccess('Cập nhật bản nháp thành công!');
+            } else {
+                if (!currentUser) {
+                    notifyError('Vui lòng đăng nhập để cập nhật!');
+                    setIsPending(false);
+                    return;
+                }
+                await updateChapter({
+                    chapterId: chapter._id,
+                    userId: currentUser.user._id.toString(),
+                    novelId,
+                    actId,
+                    title,
+                    chapterNumber,
+                    wordCount: chapter.wordCount || 0
+                });
+                notifySuccess('Cập nhật chapter thành công!');
+            }
             onUpdate();
             setTimeout(() => {
                 onClose();
             }, 100);
         } catch (error: any) {
-            console.error('Error updating chapter:', error);
-            notifyError(error?.message || 'Cập nhật chapter thất bại!');
+            console.error('Error updating:', error);
+            notifyError(error?.message || 'Cập nhật thất bại!');
         } finally {
             setIsPending(false);
         }
@@ -116,7 +135,7 @@ const EditChapterPopup = ({ novelId, actId, isOpen, onClose, chapter, theme, onU
                         {/* Clean Header */}
                         <div className="flex items-center justify-between px-5 pt-5 pb-1">
                             <div>
-                                <h2 className={`text-lg font-bold ${textPrimary} mb-0.5`}>Chỉnh sửa Chapter</h2>
+                                <h2 className={`text-lg font-bold ${textPrimary} mb-0.5`}>{isDraft ? 'Chỉnh sửa Bản nháp' : 'Chỉnh sửa Chapter'}</h2>
                                 <p className={`text-xs ${textSecondary}`}>
                                     Cập nhật thông tin cơ bản
                                 </p>

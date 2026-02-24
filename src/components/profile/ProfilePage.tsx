@@ -42,6 +42,7 @@ interface IUser {
         };
     };
     createdAt: string;
+    isDeleted: boolean;
 }
 
 interface IProfile {
@@ -429,7 +430,7 @@ const ProfilePage: React.FC<PageProps> = ({ userId }) => {
                             </div>
                             <div className="flex flex-col items-center justify-center md:mt-1 md:items-start">
                                 <div>
-                                    <h1 className="text-4xl font-bold text-white">{user.username}</h1>
+                                    <h1 className={`text-4xl font-bold text-white ${isOwnProfile ? 'text-blue-500' : ''} ${user.isDeleted ? 'line-through' : ''}`}>{user.username}</h1>
                                 </div>
                                 <div className={`flex items-center gap-2 px-3 py-0.5 mt-1 border rounded-full ${getRoleStyle(user.role)}`} >
                                     {getRoleIcon(user.role)}

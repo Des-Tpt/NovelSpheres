@@ -25,7 +25,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ use
         }
 
         const novels = await Novel.find({ authorId: userId, state: 'Published' })
-            .populate('authorId', 'username')
+            .populate('authorId', 'username isDeleted')
             .populate('genresId', '_id name')
             .sort({ createdAt: -1 });
 
@@ -72,7 +72,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ use
                         format: user.profile.avatar.format
                     } : undefined
                 },
-                createdAt: user.createdAt
+                createdAt: user.createdAt,
+                isDeleted: user.isDeleted
             },
             // Profile data
             profile: {

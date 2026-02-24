@@ -10,6 +10,7 @@ export interface Comment {
                 format: string
             }
         }
+        isDeleted: boolean;
     };
     content: string;
     replyToUserId?: {
@@ -22,4 +23,5 @@ export interface Comment {
         count: number;
         userIds: string[];
     }
+    isDeleted: boolean;
 }
