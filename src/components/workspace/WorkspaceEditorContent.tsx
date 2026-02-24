@@ -1,6 +1,6 @@
 "use client";
 
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import Underline from '@tiptap/extension-underline';
@@ -10,7 +10,7 @@ import Highlight from '@tiptap/extension-highlight';
 import { TextStyle } from '@tiptap/extension-text-style';
 import Color from '@tiptap/extension-color';
 import FontFamily from '@tiptap/extension-font-family';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface WorkspaceEditorContentProps {
     content: string;
@@ -18,7 +18,7 @@ interface WorkspaceEditorContentProps {
     placeholder?: string;
     minHeight?: string;
     theme: 'light' | 'dark';
-    onEditorReady?: (editor: any) => void;
+    onEditorReady?: (editor: Editor) => void;
 }
 
 export default function WorkspaceEditorContent({
@@ -32,6 +32,8 @@ export default function WorkspaceEditorContent({
     const editorText = theme === 'light' ? 'text-gray-900' : 'text-gray-100';
     const editorBg = theme === 'light' ? 'bg-white' : 'bg-gray-900';
     const proseClass = theme === 'light' ? 'prose' : 'prose-invert';
+
+    const lastHtmlRef = useRef<string>('');
 
     const editor = useEditor({
         extensions: [
@@ -63,7 +65,9 @@ export default function WorkspaceEditorContent({
         immediatelyRender: false,
         content,
         onUpdate: ({ editor }) => {
-            onChange(editor.getHTML());
+            const html = editor.getHTML();
+            lastHtmlRef.current = html;
+            onChange(html);
         },
         editorProps: {
             attributes: {
@@ -81,9 +85,10 @@ export default function WorkspaceEditorContent({
 
     useEffect(() => {
         if (editor && content !== undefined) {
-            const currentContent = editor.getHTML();
-            if (content !== currentContent) {
+            // Only update if content is different from what we last emitted
+            if (content !== lastHtmlRef.current) {
                 editor.commands.setContent(content);
+                lastHtmlRef.current = content;
             }
         }
     }, [editor, content]);

@@ -4,7 +4,7 @@ import { Draft } from "@/model/Draft";
 import { Act } from "@/model/Act";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: NextRequest, context: { params: Promise<{ draftId: string }> }) {
+export async function GET(request: NextRequest, context: { params: Promise<{ novelId: string; draftId: string }> }) {
     const params = await context.params;
     const draftId = params.draftId;
 
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ dra
     }
 }
 
-export async function PATCH(request: NextRequest, context: { params: Promise<{ draftId: string }> }) {
+export async function POST(request: NextRequest, context: { params: Promise<{ novelId: string; draftId: string }> }) {
     const params = await context.params;
     const draftId = params.draftId;
     const body = await request.json();
