@@ -7,5 +7,6 @@ export interface Chapter {
     chapterNumber: number,
     wordCount: number,
     updatedAt: Date,
-    createdAt: Date
+    createdAt: Date,
+    _type?: 'chapter' | 'draft'
 }

@@ -34,10 +34,14 @@ export async function GET(req: NextRequest, context: { params: Promise<{ novelId
             actChapters.sort((a, b) => a.chapterNumber - b.chapterNumber);
             actDrafts.sort((a, b) => a.chapterNumber - b.chapterNumber);
 
+            // Format data to add _type tag for frontend Workspace Editor
+            const formattedChapters = actChapters.map(c => ({ ...c.toObject(), _type: 'chapter' }));
+            const formattedDrafts = actDrafts.map(d => ({ ...d.toObject(), _type: 'draft' }));
+
             responseData.push({
                 act,
-                chapters: actChapters,
-                drafts: actDrafts,
+                chapters: formattedChapters,
+                drafts: formattedDrafts,
             })
         })
 
