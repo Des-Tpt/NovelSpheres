@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Book, Clock, Menu, X, HomeIcon, Settings } from 'lucide-react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { getChapterById } from '@/action/chapterActions';
 import { useSettingChapterStore } from '@/store/settingChapterStore';
 import ChapterSettingPopup from './SettingChapterPopup';
@@ -78,7 +78,7 @@ const ChapterPage = () => {
 
     const [showTOC, setShowTOC] = useState<boolean>(false);
     const [showSetting, setShowSetting] = useState(false);
-    const { fontSize, fontFamily, lineSpacing, nightMode } = useSettingChapterStore();
+    const { fontSize, fontFamily, lineSpacing, paragraphSpacing, nightMode } = useSettingChapterStore();
     const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
     const [initComplete, setInitComplete] = useState(false);
 
@@ -110,7 +110,7 @@ const ChapterPage = () => {
 
     console.log(currentUser?._id);
 
-    const { data, isLoading, error, refetch } = useQuery<ChapterData>({
+    const { data, isPending, isFetching, error, refetch } = useQuery<ChapterData>({
         queryKey: ['chapter', chapterId, currentUser?._id || 'guest'],
         queryFn: () => {
             const userId = currentUser?._id;
@@ -119,25 +119,26 @@ const ChapterPage = () => {
         enabled: !!chapterId && !!initComplete,
         staleTime: 5 * 60 * 1000,
         retry: 2,
+        placeholderData: keepPreviousData,
     });
 
     useEffect(() => {
         if (data?.navigation?.nextChapter) {
             queryClient.prefetchQuery({
-                queryKey: ['chapter', data.navigation.nextChapter.chapterId],
-                queryFn: () => getChapterById(data.navigation.nextChapter!.chapterId),
+                queryKey: ['chapter', data.navigation.nextChapter.chapterId, currentUser?._id || 'guest'],
+                queryFn: () => getChapterById(data.navigation.nextChapter!.chapterId, currentUser?._id),
                 staleTime: 5 * 60 * 1000,
             });
         }
 
         if (data?.navigation?.prevChapter) {
             queryClient.prefetchQuery({
-                queryKey: ['chapter', data.navigation.prevChapter.chapterId],
-                queryFn: () => getChapterById(data.navigation.prevChapter!.chapterId),
+                queryKey: ['chapter', data.navigation.prevChapter.chapterId, currentUser?._id || 'guest'],
+                queryFn: () => getChapterById(data.navigation.prevChapter!.chapterId, currentUser?._id),
                 staleTime: 5 * 60 * 1000,
             });
         }
-    }, [data?.navigation, queryClient]);
+    }, [data?.navigation, queryClient, currentUser?._id]);
 
     const navigateToChapter = (targetChapterId: string) => {
         router.push(`/chapter/${targetChapterId}`);
@@ -165,15 +166,15 @@ const ChapterPage = () => {
 
     function cleanHtml(html: string) {
         return html
-            .replace(/color\s*:\s*[^;"]+;?/gi, '')               // Xóa màu chữ
-            .replace(/background-color\s*:\s*[^;"]+;?/gi, '')    // Xóa màu nền
-            .replace(/font-size\s*:\s*[^;"]+;?/gi, '')           // Xóa size
-            .replace(/font-family\s*:\s*[^;"]+;?/gi, '')         // Xóa font
-            .replace(/line-height\s*:\s*[^;"]+;?/gi, '');        // Xóa line height
+            .replace(/color\s*:\s*[^;"]+;?/gi, '')
+            .replace(/background-color\s*:\s*[^;"]+;?/gi, '')
+            .replace(/font-size\s*:\s*[^;"]+;?/gi, '')
+            .replace(/font-family\s*:\s*[^;"]+;?/gi, '')
+            .replace(/line-height\s*:\s*[^;"]+;?/gi, '');
     }
 
     // Loading state
-    if (isLoading) {
+    if (isPending) {
         return (
             <div className={`min-h-screen flex items-center justify-center ${nightMode === 'dark' ? 'bg-gray-950' : 'bg-amber-50'}`}>
                 <div className="text-center">
@@ -226,6 +227,11 @@ const ChapterPage = () => {
             {/* Header */}
             <header className={`sticky top-0 z-40 border-b transition-colors ${nightMode === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'
                 }`}>
+                {isFetching && !isPending && (
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gray-200">
+                        <div className="h-1 bg-blue-600 animate-pulse w-full"></div>
+                    </div>
+                )}
                 <div className="max-w-4xl mx-auto px-4 py-3">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
@@ -258,7 +264,6 @@ const ChapterPage = () => {
             </header>
 
             <div className="flex">
-                {/* Table of Contents Sidebar */}
                 {showTOC && (
                     <aside className={`fixed left-0 top-16 w-80 h-full overflow-y-auto border-r transition-colors z-40 ${nightMode === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'
                         }`}>
@@ -269,53 +274,58 @@ const ChapterPage = () => {
                                     router.push(`/novels/${data.novel._id}`);
                                     setShowTOC(false);
                                 }}
-                                className="w-full mb-4 p-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors flex items-center justify-center"
+                                className={`w-full mb-6 p-2.5 rounded-xl font-medium transition-all shadow-sm border flex items-center justify-center ${nightMode === 'dark'
+                                    ? 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:shadow-md'
+                                    : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:shadow-md'
+                                    }`}
                             >
                                 <HomeIcon size={18} className="mr-2" />
-                                Về trang tiểu thuyết
+                                Theo dõi tác phẩm
                             </button>
 
-                            <h3 className="font-semibold mb-4 flex items-center">
+                            <h3 className={`font-bold text-lg mb-6 flex items-center tracking-wide ${nightMode === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>
                                 <Book size={18} className="mr-2" />
-                                Mục lục
+                                MỤC LỤC
                             </h3>
 
-                            {data.acts.map((act: ActWithChapters) => (
-                                <div key={act._id} className="mb-4">
-                                    <div className={`font-medium py-2 px-3 rounded-lg mb-2 ${act._id === data.act._id
-                                        ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
-                                        : ''
-                                        }`}>
-                                        {act.actType === '' ? 'Act' : act.actType} {act.actNumber}: {act.title}
-                                    </div>
+                            <div className="space-y-6">
+                                {data.acts.map((act: ActWithChapters) => (
+                                    <div key={act._id}>
+                                        <div className={`font-bold mb-3 uppercase tracking-wider text-xs border-b pb-1 ${nightMode === 'dark' ? 'text-gray-400 border-gray-700' : 'text-gray-500 border-gray-200'}`}>
+                                            {act.actType === '' ? 'Act' : act.actType} {act.actNumber}{act.title ? `: ${act.title}` : ''}
+                                        </div>
 
-                                    {/* Hiển thị chapters của act này */}
-                                    <div className="ml-4 space-y-1">
-                                        {act.chapters.map((chapter) => (
-                                            <button
-                                                key={chapter._id}
-                                                onClick={() => {
-                                                    router.push(`/chapter/${chapter._id}`);
-                                                    setShowTOC(false); // Đóng TOC khi chọn chapter
-                                                }}
-                                                className={`block w-full text-left py-2 px-3 rounded-md text-sm transition-colors ${chapter._id === data.chapter._id
-                                                    ? 'bg-blue-500 text-white'
-                                                    : 'hover:bg-gray-100 dark:hover:bg-gray-300'
-                                                    }`}
-                                            >
-                                                Chương {chapter.chapterNumber}: {chapter.title}
-                                            </button>
-                                        ))}
+                                        <div className="space-y-1">
+                                            {act.chapters.map((chapter) => {
+                                                const isActive = chapter._id === data.chapter._id;
+                                                return (
+                                                    <button
+                                                        key={chapter._id}
+                                                        onClick={() => {
+                                                            router.push(`/chapter/${chapter._id}`);
+                                                            setShowTOC(false);
+                                                        }}
+                                                        className={`block w-full text-left py-2 px-3 rounded-lg text-sm transition-all duration-200 ${isActive
+                                                            ? (nightMode === 'dark' ? 'bg-amber-500/10 text-amber-500 font-medium translate-x-1' : 'bg-amber-50 text-amber-700 font-medium translate-x-1')
+                                                            : (nightMode === 'dark' ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-200 hover:translate-x-1' : 'hover:bg-white hover:shadow-sm text-gray-600 hover:text-gray-900 hover:translate-x-1')
+                                                            }`}
+                                                    >
+                                                        {isActive && <span className="mr-2 inline-block">›</span>}
+                                                        Chương {chapter.chapterNumber}: {chapter.title}
+                                                    </button>
+                                                );
+                                            })}
 
-                                        {/* Hiển thị thông báo nếu act chưa có chapter nào */}
-                                        {act.chapters.length === 0 && (
-                                            <div className="text-sm text-gray-500 dark:text-gray-400 italic py-2 px-3">
-                                                Chưa có chương nào
-                                            </div>
-                                        )}
+                                            {/* Hiển thị thông báo nếu act chưa có chapter nào */}
+                                            {act.chapters.length === 0 && (
+                                                <div className="text-sm text-gray-400 italic py-2 px-3">
+                                                    (Chưa có chương)
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
                     </aside>
                 )}
@@ -343,8 +353,13 @@ const ChapterPage = () => {
                         </div>
 
                         {/* Chapter Content */}
+                        <style>{`
+                            .custom-chapter-content p {
+                                margin-bottom: ${paragraphSpacing}px !important;
+                            }
+                        `}</style>
                         <div
-                            className={`prose prose-invert max-w-none leading-relaxed transition-all ${nightMode === 'dark' ? 'bg-gray-950 text-white' : 'bg-amber-50 text-black'}`}
+                            className={`prose prose-invert max-w-none leading-relaxed transition-all custom-chapter-content ${nightMode === 'dark' ? 'bg-gray-950 text-white' : 'bg-amber-50 text-black'}`}
                             style={{
                                 fontSize: `${fontSize}px`,
                                 fontFamily: fontFamily === 'system-ui' ? 'system-ui, -apple-system, "Segoe UI", Roboto' : fontFamily,

@@ -46,17 +46,8 @@ export default function AdminDashboard() {
     const overview = dashboardData.overview;
 
     return (
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
-                    Quản trị Hệ thống
-                </h1>
-                <p className="text-gray-400 mt-1">
-                    Tổng quan hiệu suất nền tảng trong dữ liệu thời gian thực.
-                </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+        <div className="w-full animate-in fade-in duration-500">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5 mb-8">
                 <StatCard
                     title="Người dùng"
                     count={overview.totalUsers.count}

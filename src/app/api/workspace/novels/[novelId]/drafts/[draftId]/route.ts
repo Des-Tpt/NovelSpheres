@@ -28,7 +28,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ nov
     }
 }
 
-export async function POST(request: NextRequest, context: { params: Promise<{ novelId: string; draftId: string }> }) {
+export async function PATCH(request: NextRequest, context: { params: Promise<{ novelId: string; draftId: string }> }) {
     const params = await context.params;
     const draftId = params.draftId;
     const body = await request.json();

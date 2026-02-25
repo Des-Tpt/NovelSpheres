@@ -20,15 +20,14 @@ export type ChapterSettingPopupProps = {
 };
 
 export default function ChapterSettingPopup({ isOpen, onClose }: ChapterSettingPopupProps) {
-    const { fontSize, fontFamily, lineSpacing, nightMode, setSettingChapterStore } = useSettingChapterStore();
+    const { fontSize, fontFamily, lineSpacing, paragraphSpacing, nightMode, setSettingChapterStore } = useSettingChapterStore();
 
-    // Local states for immediate UI feedback
     const [localFontSize, setLocalFontSize] = useState<number>(fontSize);
     const [localFontFamily, setLocalFontFamily] = useState<string>(fontFamily);
     const [localLineSpacing, setLocalLineSpacing] = useState<number>(lineSpacing);
+    const [localParagraphSpacing, setLocalParagraphSpacing] = useState<number>(paragraphSpacing);
     const [localNightMode, setLocalNightMode] = useState<'light' | 'dark'>(nightMode);
 
-    // Lock body scroll when popup is open
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
@@ -44,53 +43,51 @@ export default function ChapterSettingPopup({ isOpen, onClose }: ChapterSettingP
         };
     }, [isOpen]);
 
-    // Sync local states when popup opens
     useEffect(() => {
         if (isOpen) {
             setLocalFontSize(fontSize);
             setLocalFontFamily(fontFamily);
             setLocalLineSpacing(lineSpacing);
+            setLocalParagraphSpacing(paragraphSpacing);
             setLocalNightMode(nightMode);
         }
-    }, [isOpen, fontSize, fontFamily, lineSpacing, nightMode]);
+    }, [isOpen, fontSize, fontFamily, lineSpacing, paragraphSpacing, nightMode]);
 
-    // Reset to default values
     const handleResetDefaults = () => {
         setLocalFontSize(16);
         setLocalFontFamily('serif');
         setLocalLineSpacing(1.6);
+        setLocalParagraphSpacing(16);
         setLocalNightMode('light');
     };
 
-    // Apply changes without closing
     const handleApply = () => {
         setSettingChapterStore({
             fontSize: localFontSize,
             fontFamily: localFontFamily,
             lineSpacing: +localLineSpacing.toFixed(2),
+            paragraphSpacing: localParagraphSpacing,
             nightMode: localNightMode,
         });
     };
 
-    // Save and close
     const handleSaveAndClose = () => {
         setSettingChapterStore({
             fontSize: localFontSize,
             fontFamily: localFontFamily,
             lineSpacing: +localLineSpacing.toFixed(2),
+            paragraphSpacing: localParagraphSpacing,
             nightMode: localNightMode,
         });
         onClose();
     };
 
-    // Handle backdrop click
     const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
         if (e.target === e.currentTarget) {
             onClose();
         }
     };
 
-    // Handle ESC key
     useEffect(() => {
         const handleEscKey = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
@@ -151,7 +148,6 @@ export default function ChapterSettingPopup({ isOpen, onClose }: ChapterSettingP
                             }`}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {/* Header - Fixed on mobile */}
                         <div className={`flex items-center justify-between p-4 sm:p-6 sm:mb-0 border-b sm:border-none ${nightMode === 'dark' ? 'border-gray-700' : 'border-gray-300'
                             }`}>
                             <div className="flex items-center gap-2">
@@ -165,18 +161,16 @@ export default function ChapterSettingPopup({ isOpen, onClose }: ChapterSettingP
                                 whileTap={{ scale: 0.9 }}
                                 onClick={onClose}
                                 className={`p-2 rounded-full transition-colors cursor-pointer ${nightMode === 'dark'
-                                        ? 'text-gray-400 hover:text-yellow-300 hover:bg-gray-800'
-                                        : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'
+                                    ? 'text-gray-400 hover:text-yellow-300 hover:bg-gray-800'
+                                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'
                                     }`}
                             >
                                 <X size={20} />
                             </motion.button>
                         </div>
 
-                        {/* Content - Scrollable on mobile */}
                         <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-4">
                             <div className="space-y-6 sm:space-y-6">
-                                {/* Font Size */}
                                 <motion.div
                                     initial={{ x: -20, opacity: 0 }}
                                     animate={{ x: 0, opacity: 1 }}
@@ -197,15 +191,14 @@ export default function ChapterSettingPopup({ isOpen, onClose }: ChapterSettingP
                                             className="flex-1 accent-orange-500 h-2"
                                         />
                                         <div className={`w-16 text-right text-sm font-medium px-3 py-2 rounded ${nightMode === 'dark'
-                                                ? 'text-white bg-black'
-                                                : 'text-gray-900 bg-gray-200'
+                                            ? 'text-white bg-black'
+                                            : 'text-gray-900 bg-gray-200'
                                             }`}>
                                             {localFontSize}px
                                         </div>
                                     </div>
                                 </motion.div>
 
-                                {/* Line Spacing */}
                                 <motion.div
                                     initial={{ x: -20, opacity: 0 }}
                                     animate={{ x: 0, opacity: 1 }}
@@ -226,15 +219,42 @@ export default function ChapterSettingPopup({ isOpen, onClose }: ChapterSettingP
                                             className="flex-1 accent-orange-500 h-2"
                                         />
                                         <div className={`w-16 text-right text-sm font-medium px-3 py-2 rounded ${nightMode === 'dark'
-                                                ? 'text-white bg-black'
-                                                : 'text-gray-900 bg-gray-200'
+                                            ? 'text-white bg-black'
+                                            : 'text-gray-900 bg-gray-200'
                                             }`}>
                                             {localLineSpacing.toFixed(2)}
                                         </div>
                                     </div>
                                 </motion.div>
 
-                                {/* Font Family */}
+                                <motion.div
+                                    initial={{ x: -20, opacity: 0 }}
+                                    animate={{ x: 0, opacity: 1 }}
+                                    transition={{ delay: 0.25 }}
+                                >
+                                    <label className={`block text-sm font-medium mb-3 ${nightMode === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                                        }`}>
+                                        Khoảng cách đoạn văn
+                                    </label>
+                                    <div className="flex items-center gap-4">
+                                        <input
+                                            type="range"
+                                            min={0}
+                                            max={50}
+                                            step={2}
+                                            value={localParagraphSpacing}
+                                            onChange={(e) => setLocalParagraphSpacing(Number(e.target.value))}
+                                            className="flex-1 accent-orange-500 h-2"
+                                        />
+                                        <div className={`w-16 text-right text-sm font-medium px-3 py-2 rounded ${nightMode === 'dark'
+                                            ? 'text-white bg-black'
+                                            : 'text-gray-900 bg-gray-200'
+                                            }`}>
+                                            {localParagraphSpacing}px
+                                        </div>
+                                    </div>
+                                </motion.div>
+
                                 <motion.div
                                     initial={{ x: -20, opacity: 0 }}
                                     animate={{ x: 0, opacity: 1 }}
@@ -248,8 +268,8 @@ export default function ChapterSettingPopup({ isOpen, onClose }: ChapterSettingP
                                         value={localFontFamily}
                                         onChange={(e) => setLocalFontFamily(e.target.value)}
                                         className={`w-full px-4 py-3 border-2 border-blue-500 rounded-lg focus:outline-none focus:border-blue-400 transition-colors text-base ${nightMode === 'dark'
-                                                ? 'bg-black text-white'
-                                                : 'bg-white text-gray-900'
+                                            ? 'bg-black text-white'
+                                            : 'bg-white text-gray-900'
                                             }`}
                                     >
                                         <option value="serif">Serif (Times, Georgia)</option>
@@ -259,7 +279,6 @@ export default function ChapterSettingPopup({ isOpen, onClose }: ChapterSettingP
                                     </select>
                                 </motion.div>
 
-                                {/* Night Mode */}
                                 <motion.div
                                     initial={{ x: -20, opacity: 0 }}
                                     animate={{ x: 0, opacity: 1 }}
@@ -275,8 +294,8 @@ export default function ChapterSettingPopup({ isOpen, onClose }: ChapterSettingP
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => setLocalNightMode('light')}
                                             className={`flex-1 px-4 py-4 rounded-lg border-2 transition-all flex items-center justify-center gap-2 text-base font-medium ${localNightMode === 'light'
-                                                    ? 'border-orange-500 bg-orange-500/20 text-orange-300'
-                                                    : 'border-gray-600 text-gray-400 hover:border-gray-500'
+                                                ? 'border-orange-500 bg-orange-500/20 text-orange-300'
+                                                : 'border-gray-600 text-gray-400 hover:border-gray-500'
                                                 }`}
                                         >
                                             <Sun size={18} />
@@ -287,8 +306,8 @@ export default function ChapterSettingPopup({ isOpen, onClose }: ChapterSettingP
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => setLocalNightMode('dark')}
                                             className={`flex-1 px-4 py-4 rounded-lg border-2 transition-all flex items-center justify-center gap-2 text-base font-medium ${localNightMode === 'dark'
-                                                    ? 'border-orange-500 bg-orange-500/20 text-orange-300'
-                                                    : 'border-gray-600 text-gray-400 hover:border-gray-500'
+                                                ? 'border-orange-500 bg-orange-500/20 text-orange-300'
+                                                : 'border-gray-600 text-gray-400 hover:border-gray-500'
                                                 }`}
                                         >
                                             <Moon size={18} />
@@ -297,7 +316,6 @@ export default function ChapterSettingPopup({ isOpen, onClose }: ChapterSettingP
                                     </div>
                                 </motion.div>
 
-                                {/* Preview */}
                                 <motion.div
                                     initial={{ y: 20, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
@@ -310,8 +328,8 @@ export default function ChapterSettingPopup({ isOpen, onClose }: ChapterSettingP
                                     </div>
                                     <div
                                         className={`p-4 rounded border max-h-32 overflow-auto ${localNightMode === 'dark'
-                                                ? 'bg-gray-800 border-gray-700 text-gray-200'
-                                                : 'bg-white border-gray-300 text-gray-900'
+                                            ? 'bg-gray-800 border-gray-700 text-gray-200'
+                                            : 'bg-white border-gray-300 text-gray-900'
                                             }`}
                                         style={{
                                             fontSize: `${localFontSize}px`,
@@ -321,20 +339,21 @@ export default function ChapterSettingPopup({ isOpen, onClose }: ChapterSettingP
                                             lineHeight: localLineSpacing,
                                         }}
                                     >
-                                        <p>
-                                            Đây là bản xem trước văn bản. Bạn có thể điều chỉnh kích thước chữ,
-                                            khoảng cách dòng, phông chữ và chế độ hiển thị để có trải nghiệm đọc tốt nhất.
-                                            Những thay đổi sẽ được áp dụng ngay lập tức trong bản xem trước này.
-                                        </p>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: `${localParagraphSpacing}px` }}>
+                                            <p>
+                                                Đây là bản xem trước văn bản. Bạn có thể điều chỉnh kích thước chữ, khoảng cách dòng, khoảng cách đoạn và phông chữ.
+                                            </p>
+                                            <p>
+                                                Những thay đổi sẽ được áp dụng ngay lập tức trong bản xem trước này và lưu lại để sử dụng cho toàn bộ các chương truyện.
+                                            </p>
+                                        </div>
                                     </div>
                                 </motion.div>
 
-                                {/* Spacer for mobile to prevent content hiding behind fixed buttons */}
                                 <div className="h-24 sm:hidden"></div>
                             </div>
                         </div>
 
-                        {/* Action Buttons - Fixed at bottom on mobile */}
                         <motion.div
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
@@ -342,17 +361,15 @@ export default function ChapterSettingPopup({ isOpen, onClose }: ChapterSettingP
                             className={`p-4 sm:p-6 sm:pt-4 border-t sm:border-none bg-inherit ${nightMode === 'dark' ? 'border-gray-700' : 'border-gray-300'
                                 }`}
                         >
-                            {/* Mobile Layout */}
                             <div className="sm:hidden space-y-3">
-                                {/* Top row: Reset + Apply */}
                                 <div className="flex gap-3">
                                     <motion.button
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={handleResetDefaults}
                                         className={`flex-1 px-4 py-4 border-2 rounded-lg transition-colors text-base font-medium ${nightMode === 'dark'
-                                                ? 'border-gray-600 text-gray-300 hover:bg-gray-800'
-                                                : 'border-gray-400 text-gray-700 hover:bg-gray-100'
+                                            ? 'border-gray-600 text-gray-300 hover:bg-gray-800'
+                                            : 'border-gray-400 text-gray-700 hover:bg-gray-100'
                                             }`}
                                     >
                                         Đặt lại mặc định
@@ -367,15 +384,14 @@ export default function ChapterSettingPopup({ isOpen, onClose }: ChapterSettingP
                                     </motion.button>
                                 </div>
 
-                                {/* Bottom row: Cancel + Save */}
                                 <div className="flex gap-3">
                                     <motion.button
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={onClose}
                                         className={`flex-1 px-4 py-4 border-2 rounded-lg transition-colors text-base font-medium ${nightMode === 'dark'
-                                                ? 'border-gray-600 text-white hover:bg-gray-800'
-                                                : 'border-gray-400 text-gray-900 hover:bg-gray-100'
+                                            ? 'border-gray-600 text-white hover:bg-gray-800'
+                                            : 'border-gray-400 text-gray-900 hover:bg-gray-100'
                                             }`}
                                     >
                                         Hủy
@@ -391,17 +407,15 @@ export default function ChapterSettingPopup({ isOpen, onClose }: ChapterSettingP
                                 </div>
                             </div>
 
-                            {/* Desktop Layout */}
                             <div className="hidden sm:flex flex-col sm:flex-row gap-3">
-                                {/* Left side buttons */}
                                 <div className="flex gap-3">
                                     <motion.button
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={handleResetDefaults}
                                         className={`px-4 py-2 border rounded transition-colors ${nightMode === 'dark'
-                                                ? 'border-gray-600 text-gray-300 hover:bg-gray-800'
-                                                : 'border-gray-400 text-gray-700 hover:bg-gray-100'
+                                            ? 'border-gray-600 text-gray-300 hover:bg-gray-800'
+                                            : 'border-gray-400 text-gray-700 hover:bg-gray-100'
                                             }`}
                                     >
                                         Đặt lại mặc định
@@ -416,15 +430,14 @@ export default function ChapterSettingPopup({ isOpen, onClose }: ChapterSettingP
                                     </motion.button>
                                 </div>
 
-                                {/* Right side buttons */}
                                 <div className="flex gap-3 sm:ml-auto">
                                     <motion.button
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={onClose}
                                         className={`flex-1 sm:flex-none px-4 py-2 border rounded transition-colors ${nightMode === 'dark'
-                                                ? 'border-gray-600 text-white hover:bg-gray-800'
-                                                : 'border-gray-400 text-gray-900 hover:bg-gray-100'
+                                            ? 'border-gray-600 text-white hover:bg-gray-800'
+                                            : 'border-gray-400 text-gray-900 hover:bg-gray-100'
                                             }`}
                                     >
                                         Hủy

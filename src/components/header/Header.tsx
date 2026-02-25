@@ -7,7 +7,7 @@ import AuthForm from '../auth/AuthForm';
 import { getUserFromCookies } from '@/action/userAction';
 import getImage from '@/action/imageActions';
 import Image from 'next/image';
-import { ArrowRight, Book, Heart, History, HistoryIcon } from 'lucide-react';
+import { ArrowRight, Book, Heart, History, HistoryIcon, ShieldIcon } from 'lucide-react';
 import handleRole from '@/utils/handleRole';
 import { AnimatePresence, motion } from 'framer-motion';
 import NotificationComponent from '../notification/NotificationComponent';
@@ -257,6 +257,19 @@ const Header = () => {
                                                 <UserIcon className="h-5 w-5" />
                                                 <span>Hồ sơ</span>
                                             </button>
+
+                                            {currentUser.role === 'admin' && (
+                                                <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-gray-100 hover:bg-gray-600 transition-colors"
+                                                    onClick={() => {
+                                                        router.push(`/dashboard`)
+                                                        setIsUserDropdownOpen(false);
+                                                    }}
+                                                >
+                                                    <ShieldIcon className="h-5 w-5" />
+                                                    <span>Khu vực quản trị viên</span>
+                                                </button>
+                                            )}
+
                                             <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-gray-100 hover:bg-gray-600 transition-colors"
                                                 onClick={() => {
                                                     router.push(`/workspace`)

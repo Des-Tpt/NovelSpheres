@@ -18,7 +18,6 @@ export async function getCurrentUser() {
     };
     return decoded;
   } catch (err) {
-    console.error('Token không khả dụng:', err);
     return null;
   }
 }

@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         })
     );
 
-    const hidePathName = ['/chapter/', '/workspace/'];
+    const hidePathName = ['/chapter/', '/workspace/', '/dashboard'];
 
     const pathname = usePathname();
 
