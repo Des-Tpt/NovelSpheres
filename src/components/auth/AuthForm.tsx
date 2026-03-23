@@ -79,10 +79,10 @@ export default function AuthForm({ onClose, isOpen }: Props) {
             notifyError('Mật khẩu không khớp.');
             return;
         }
-        if (!email.includes('@') || password.length < 6) {
-            notifyError('Email hoặc mật khẩu không hợp lệ.');
-            return;
-        }
+        // if (!email.includes('@') || password.length < 6) {
+        //     notifyError('Email hoặc mật khẩu không hợp lệ.');
+        //     return;
+        // }
         mutation.mutate();
     }
 
@@ -121,8 +121,6 @@ export default function AuthForm({ onClose, isOpen }: Props) {
                         exit={{ opacity: 0 }}
                     >
                         <motion.div
-                            // Desktop: popup modal với max-width và border radius
-                            // Mobile: full screen overlay
                             className="bg-black text-white relative
                                        w-full h-full overflow-y-auto
                                        md:w-full md:max-w-md md:h-auto md:max-h-[90vh] md:rounded-xl"
@@ -130,8 +128,6 @@ export default function AuthForm({ onClose, isOpen }: Props) {
                             onMouseDown={(e) => e.stopPropagation()}
                             onMouseUp={(e) => e.stopPropagation()}
                             initial={{
-                                // Mobile: slide up from bottom
-                                // Desktop: scale from center
                                 scale: typeof window !== 'undefined' && window.innerWidth >= 768 ? 0.8 : 1,
                                 opacity: 0,
                                 y: typeof window !== 'undefined' && window.innerWidth < 768 ? '100%' : 0
@@ -223,7 +219,7 @@ export default function AuthForm({ onClose, isOpen }: Props) {
                                         <div className="flex items-center bg-gray-900 rounded-lg px-4 py-3 gap-3">
                                             <EnvelopeIcon className="w-5 h-5 text-gray-400 flex-shrink-0" />
                                             <input
-                                                type="email"
+                                                type="text"
                                                 placeholder="Email..."
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}

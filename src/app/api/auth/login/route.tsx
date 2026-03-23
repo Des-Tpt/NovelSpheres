@@ -32,6 +32,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'Vui lòng nhập đầy đủ thông tin' }, { status: 400 });
     }
 
+    console.log(email);
+
     await connectDB();
 
     const user = await User.findOne({ email }).lean<IUser>();

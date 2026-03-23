@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useCallback } from 'react';
-import { X, Sparkles, RotateCcw, ClipboardPaste, ChevronDown, ChevronUp, Wand2, Loader2, Settings2 } from 'lucide-react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { X, Sparkles, RotateCcw, ClipboardPaste, ChevronDown, ChevronUp, Wand2, Loader2, Settings2, Square, Wifi, WifiOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface AIGenerationPanelProps {
@@ -12,28 +12,7 @@ interface AIGenerationPanelProps {
     onInsert: (text: string) => void;
 }
 
-const generateMockText = (context: string, instruction: string, maxTokens: number): string => {
-    const samples = [
-        `Ánh trăng rọi qua khung cửa sổ, vẽ lên sàn nhà những vệt sáng bạc mờ ảo. Gió đêm lùa qua kẽ hở, mang theo hơi lạnh se sắt của mùa đông đang dần kéo tới. Trong căn phòng tối, chỉ có tiếng thở đều đặn phá vỡ sự tĩnh lặng.\n\nNhân vật chính mở mắt, đôi mắt sáng lên trong bóng tối như hai ngọn nến nhỏ. Một cảm giác bất an len lỏi trong lồng ngực — như thể có điều gì đó đang đến gần, điều gì đó không thể né tránh.`,
-
-        `"Ngươi không nên ở đây," giọng nói vang lên từ phía sau, lạnh lẽo và xa cách.\n\nCô quay lại, bắt gặp đôi mắt đen thẫm đang nhìn mình chằm chằm. Người đàn ông đứng ở ngưỡng cửa, dáng vẻ cao gầy, khoác trên mình chiếc áo choàng sẫm màu. Khuôn mặt anh nửa sáng nửa tối dưới ánh đèn hành lang, khiến biểu cảm trở nên khó đoán.\n\n"Tôi có việc cần làm ở đây," cô đáp, cố giữ giọng bình thản dù tim đập nhanh hơn.`,
-
-        `Con đường mòn xuyên qua khu rừng rậm, hai bên là những thân cây cổ thụ vươn cành như những cánh tay ma quái. Lá khô xào xạc dưới mỗi bước chân, tiếng vọng lan xa trong không gian yên ả đến rợn người.\n\nĐoàn người dừng lại trước một ngã ba. Bản đồ cũ kỹ trong tay đã bị mờ đi bởi thời gian, những ký hiệu trên đó gần như không thể đọc được nữa.\n\n"Rẽ trái," người dẫn đầu nói, giọng đầy quả quyết. Nhưng ánh mắt anh lại phản bội — một thoáng do dự lướt qua, nhanh đến mức gần như không ai nhận ra.`,
-
-        `Tiếng chuông đồng hồ vang lên mười hai lần, báo hiệu nửa đêm. Thành phố dần chìm vào giấc ngủ, nhưng có những nơi không bao giờ ngừng hoạt động.\n\nQuán trà nhỏ ở góc phố vẫn sáng đèn. Bên trong, mùi trà nóng quyện với khói thuốc tạo nên một bầu không khí quen thuộc. Chủ quán — một ông lão tóc bạc — đang lau chiếc cốc thủy tinh, ánh mắt thỉnh thoảng liếc về phía cánh cửa.\n\nKhi cánh cửa mở ra, ông không tỏ vẻ ngạc nhiên. "Tôi đã đợi cậu," ông nói nhẹ nhàng.`,
-    ];
-
-    if (instruction.includes('hội thoại') || instruction.includes('dialogue')) {
-        return samples[1];
-    }
-    if (instruction.includes('cảnh') || instruction.includes('mô tả') || instruction.includes('setting')) {
-        return samples[2];
-    }
-    if (instruction.includes('bí ẩn') || instruction.includes('mystery')) {
-        return samples[3];
-    }
-    return samples[Math.floor(Math.random() * samples.length)];
-};
+type OllamaStatus = 'checking' | 'connected' | 'disconnected';
 
 export default function AIGenerationPanel({ theme, editorContent, chapterInfo, onClose, onInsert }: AIGenerationPanelProps) {
     const [instruction, setInstruction] = useState('');
@@ -41,14 +20,20 @@ export default function AIGenerationPanel({ theme, editorContent, chapterInfo, o
     const [isGenerating, setIsGenerating] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const [hasGenerated, setHasGenerated] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus>('checking');
+    const [modelName, setModelName] = useState('');
 
-    const [temperature, setTemperature] = useState(0.8);
-    const [maxTokens, setMaxTokens] = useState(512);
+    // Params mặc định khớp Modelfile
+    const [temperature, setTemperature] = useState(0.6);
+    const [maxTokens, setMaxTokens] = useState(100);
     const [topP, setTopP] = useState(0.9);
     const [repetitionPenalty, setRepetitionPenalty] = useState(1.15);
 
     const outputRef = useRef<HTMLDivElement>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
+    // Lấy context: 80 từ cuối từ editor (strip HTML)
     const contextPreview = editorContent
         ?.replace(/<[^>]*>/g, '')
         ?.trim()
@@ -56,23 +41,112 @@ export default function AIGenerationPanel({ theme, editorContent, chapterInfo, o
         ?.slice(-80)
         ?.join(' ') || '';
 
+    // Health check Ollama khi mount
+    useEffect(() => {
+        checkOllamaStatus();
+    }, []);
+
+    const checkOllamaStatus = async () => {
+        setOllamaStatus('checking');
+        try {
+            const res = await fetch('/api/workspace/ai-generate', {
+                signal: AbortSignal.timeout(5000),
+            });
+            const data = await res.json();
+            if (data.status === 'connected') {
+                setOllamaStatus('connected');
+                setModelName(data.activeModel || '');
+            } else {
+                setOllamaStatus('disconnected');
+            }
+        } catch {
+            setOllamaStatus('disconnected');
+        }
+    };
+
+    // Gọi Ollama streaming
     const handleGenerate = useCallback(async () => {
         if (isGenerating) return;
 
         setIsGenerating(true);
         setHasGenerated(true);
         setGeneratedText('');
+        setError(null);
 
-        // Mock API delay — thay bằng fetch() thật khi kết nối AI
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Tạo AbortController để có thể huỷ
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
 
-        const result = generateMockText(editorContent, instruction, maxTokens);
-        setGeneratedText(result);
-        setIsGenerating(false);
-    }, [isGenerating, editorContent, instruction, maxTokens]);
+        try {
+            // Xây prompt: context + instruction (nếu có)
+            let prompt = contextPreview;
+            if (instruction.trim()) {
+                prompt = `[Chỉ thị: ${instruction.trim()}]\n\nBối cảnh:\n${contextPreview}`;
+            }
+
+            const res = await fetch('/api/workspace/ai-generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt,
+                    temperature,
+                    num_predict: maxTokens,
+                    top_p: topP,
+                    repeat_penalty: repetitionPenalty,
+                }),
+                signal: controller.signal,
+            });
+
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+                throw new Error(errData.error || `Lỗi ${res.status}`);
+            }
+
+            if (!res.body) {
+                throw new Error('Không nhận được stream từ server');
+            }
+
+            // Đọc stream từng chunk
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let fullText = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                fullText += chunk;
+                setGeneratedText(fullText);
+
+                // Auto-scroll output
+                if (outputRef.current) {
+                    outputRef.current.scrollTop = outputRef.current.scrollHeight;
+                }
+            }
+        } catch (err: any) {
+            if (err.name === 'AbortError') {
+                // User đã nhấn Stop — không hiện lỗi
+                return;
+            }
+            setError(err.message || 'Lỗi không xác định');
+            setOllamaStatus('disconnected');
+        } finally {
+            setIsGenerating(false);
+            abortControllerRef.current = null;
+        }
+    }, [isGenerating, contextPreview, instruction, temperature, maxTokens, topP, repetitionPenalty]);
+
+    const handleStop = () => {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+            setIsGenerating(false);
+        }
+    };
 
     const handleRetry = () => {
         setGeneratedText('');
+        setError(null);
         handleGenerate();
     };
 
@@ -84,7 +158,7 @@ export default function AIGenerationPanel({ theme, editorContent, chapterInfo, o
         }
     };
 
-    // Theme
+    // Theme tokens
     const bg = theme === 'light' ? 'bg-white' : 'bg-gray-900';
     const bgHeader = theme === 'light' ? 'bg-gradient-to-r from-violet-50 to-blue-50' : 'bg-gradient-to-r from-violet-950/40 to-blue-950/40';
     const border = theme === 'light' ? 'border-gray-200' : 'border-gray-800';
@@ -97,7 +171,6 @@ export default function AIGenerationPanel({ theme, editorContent, chapterInfo, o
     const hoverBtn = theme === 'light' ? 'hover:bg-gray-100' : 'hover:bg-gray-800';
     const outputBg = theme === 'light' ? 'bg-amber-50/50 border-amber-200/60' : 'bg-amber-900/10 border-amber-700/30';
     const outputText = theme === 'light' ? 'text-gray-800' : 'text-gray-200';
-    const sliderTrack = theme === 'light' ? 'bg-gray-200' : 'bg-gray-700';
 
     return (
         <motion.div
@@ -115,7 +188,30 @@ export default function AIGenerationPanel({ theme, editorContent, chapterInfo, o
                     </div>
                     <div>
                         <h3 className={`text-sm font-bold ${textPrimary}`}>AI Generation</h3>
-                        <p className={`text-[10px] ${textMuted}`}>Sinh nội dung tự động</p>
+                        <div className="flex items-center gap-1.5">
+                            <p className={`text-[10px] ${textMuted}`}>Ollama</p>
+                            {ollamaStatus === 'connected' && (
+                                <span className="flex items-center gap-0.5 text-[9px] text-emerald-500">
+                                    <Wifi size={8} />
+                                    <span>{modelName}</span>
+                                </span>
+                            )}
+                            {ollamaStatus === 'disconnected' && (
+                                <button
+                                    onClick={checkOllamaStatus}
+                                    className="flex items-center gap-0.5 text-[9px] text-red-400 hover:text-red-300 transition-colors"
+                                >
+                                    <WifiOff size={8} />
+                                    <span>Mất kết nối</span>
+                                </button>
+                            )}
+                            {ollamaStatus === 'checking' && (
+                                <span className="flex items-center gap-0.5 text-[9px] text-yellow-500">
+                                    <Loader2 size={8} className="animate-spin" />
+                                    <span>Đang kiểm tra...</span>
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
                 <button onClick={onClose} className={`p-1.5 rounded-lg transition-colors ${textMuted} ${hoverBtn}`}>
@@ -139,7 +235,7 @@ export default function AIGenerationPanel({ theme, editorContent, chapterInfo, o
                         <div className={`${cardBg} rounded-xl p-3 max-h-28 overflow-y-auto`}>
                             {contextPreview ? (
                                 <p className={`text-xs ${textMuted} leading-relaxed italic`}>
-                                    "...{contextPreview}"
+                                    &quot;...{contextPreview}&quot;
                                 </p>
                             ) : (
                                 <p className={`text-xs ${textDimmed} text-center py-2`}>
@@ -157,7 +253,7 @@ export default function AIGenerationPanel({ theme, editorContent, chapterInfo, o
                         <textarea
                             value={instruction}
                             onChange={(e) => setInstruction(e.target.value)}
-                            placeholder="VD: Viết thêm đoạn hội thoại, mô tả cảnh chiến đấu..."
+                            placeholder="VD: Nhân vật chính rút kiếm phản công, mô tả cảnh truy đuổi..."
                             rows={2}
                             className={`w-full px-3 py-2 ${inputBg} border ${inputBorder} rounded-xl text-sm ${textPrimary} placeholder:${textDimmed} outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all resize-none`}
                         />
@@ -206,7 +302,7 @@ export default function AIGenerationPanel({ theme, editorContent, chapterInfo, o
                                             </div>
                                         </div>
 
-                                        {/* Max Tokens */}
+                                        {/* Max Tokens (num_predict) */}
                                         <div>
                                             <div className="flex items-center justify-between mb-1">
                                                 <span className={`text-[10px] font-semibold ${textMuted}`}>Độ dài tối đa</span>
@@ -214,17 +310,17 @@ export default function AIGenerationPanel({ theme, editorContent, chapterInfo, o
                                             </div>
                                             <input
                                                 type="range"
-                                                min="128"
-                                                max="2048"
-                                                step="64"
+                                                min="50"
+                                                max="500"
+                                                step="10"
                                                 value={maxTokens}
                                                 onChange={(e) => setMaxTokens(parseInt(e.target.value))}
                                                 className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-violet-500"
-                                                style={{ background: `linear-gradient(to right, rgb(139, 92, 246) ${((maxTokens - 128) / 1920) * 100}%, ${theme === 'light' ? '#e5e7eb' : '#374151'} ${((maxTokens - 128) / 1920) * 100}%)` }}
+                                                style={{ background: `linear-gradient(to right, rgb(139, 92, 246) ${((maxTokens - 50) / 450) * 100}%, ${theme === 'light' ? '#e5e7eb' : '#374151'} ${((maxTokens - 50) / 450) * 100}%)` }}
                                             />
                                             <div className={`flex justify-between text-[9px] ${textDimmed} mt-0.5`}>
-                                                <span>Ngắn</span>
-                                                <span>Dài</span>
+                                                <span>Ngắn (50)</span>
+                                                <span>Dài (500)</span>
                                             </div>
                                         </div>
 
@@ -246,10 +342,10 @@ export default function AIGenerationPanel({ theme, editorContent, chapterInfo, o
                                             />
                                         </div>
 
-                                        {/* Repetition Penalty */}
+                                        {/* Repeat Penalty */}
                                         <div>
                                             <div className="flex items-center justify-between mb-1">
-                                                <span className={`text-[10px] font-semibold ${textMuted}`}>Repetition Penalty</span>
+                                                <span className={`text-[10px] font-semibold ${textMuted}`}>Repeat Penalty</span>
                                                 <span className={`text-[10px] font-mono ${textPrimary}`}>{repetitionPenalty.toFixed(2)}</span>
                                             </div>
                                             <input
@@ -273,29 +369,47 @@ export default function AIGenerationPanel({ theme, editorContent, chapterInfo, o
                         </AnimatePresence>
                     </div>
 
-                    {/* Generate Button */}
-                    <button
-                        onClick={handleGenerate}
-                        disabled={isGenerating || !contextPreview}
-                        className={`w-full py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300 ${isGenerating
-                            ? 'bg-violet-600/80 text-white cursor-wait'
-                            : !contextPreview
-                                ? (theme === 'light' ? 'bg-gray-100 text-gray-400' : 'bg-gray-800 text-gray-600') + ' cursor-not-allowed'
-                                : 'bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 text-white shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 active:scale-[0.98]'
+                    {/* Error Message */}
+                    {error && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`rounded-xl p-3 text-xs ${theme === 'light' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-red-900/20 text-red-400 border border-red-800/40'}`}
+                        >
+                            <p className="font-medium mb-1">⚠ Lỗi kết nối</p>
+                            <p>{error}</p>
+                            <button
+                                onClick={() => { setError(null); checkOllamaStatus(); }}
+                                className="mt-2 text-[10px] underline opacity-80 hover:opacity-100"
+                            >
+                                Thử kết nối lại
+                            </button>
+                        </motion.div>
+                    )}
+
+                    {/* Generate / Stop Button */}
+                    {isGenerating ? (
+                        <button
+                            onClick={handleStop}
+                            className="w-full py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300 bg-red-600 hover:bg-red-700 text-white active:scale-[0.98]"
+                        >
+                            <Square size={14} fill="currentColor" />
+                            <span>Dừng sinh</span>
+                        </button>
+                    ) : (
+                        <button
+                            onClick={handleGenerate}
+                            disabled={!contextPreview || ollamaStatus === 'disconnected'}
+                            className={`w-full py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300 ${
+                                !contextPreview || ollamaStatus === 'disconnected'
+                                    ? (theme === 'light' ? 'bg-gray-100 text-gray-400' : 'bg-gray-800 text-gray-600') + ' cursor-not-allowed'
+                                    : 'bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 text-white shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 active:scale-[0.98]'
                             }`}
-                    >
-                        {isGenerating ? (
-                            <>
-                                <Loader2 size={16} className="animate-spin" />
-                                <span>Đang sinh...</span>
-                            </>
-                        ) : (
-                            <>
-                                <Sparkles size={16} />
-                                <span>Sinh nội dung</span>
-                            </>
-                        )}
-                    </button>
+                        >
+                            <Sparkles size={16} />
+                            <span>Sinh nội dung</span>
+                        </button>
+                    )}
 
                     {/* Output Area */}
                     {hasGenerated && (
@@ -321,9 +435,19 @@ export default function AIGenerationPanel({ theme, editorContent, chapterInfo, o
                                 ref={outputRef}
                                 className={`${outputBg} border rounded-xl p-3 max-h-60 overflow-y-auto`}
                             >
-                                <p className={`text-sm ${outputText} leading-relaxed whitespace-pre-wrap`}>
-                                    {generatedText}
-                                </p>
+                                {generatedText ? (
+                                    <p className={`text-sm ${outputText} leading-relaxed whitespace-pre-wrap`}>
+                                        {generatedText}
+                                        {isGenerating && (
+                                            <span className="inline-block w-1.5 h-4 ml-0.5 bg-violet-500 animate-pulse rounded-sm align-middle" />
+                                        )}
+                                    </p>
+                                ) : isGenerating ? (
+                                    <div className="flex items-center justify-center py-3 gap-2">
+                                        <Loader2 size={14} className={`animate-spin ${textMuted}`} />
+                                        <span className={`text-xs ${textMuted}`}>Đang chờ phản hồi từ Ollama...</span>
+                                    </div>
+                                ) : null}
                             </div>
 
                             {/* Insert Button */}
@@ -353,7 +477,7 @@ export default function AIGenerationPanel({ theme, editorContent, chapterInfo, o
             {/* Footer */}
             <div className={`px-4 py-2 border-t ${border} flex-shrink-0`}>
                 <p className={`text-[10px] ${textDimmed} text-center`}>
-                    Nội dung sinh tự động • Có thể chỉnh sửa sau khi chèn
+                    Ollama Local • Nội dung sinh tự động • Có thể chỉnh sửa sau khi chèn
                 </p>
             </div>
         </motion.div>
