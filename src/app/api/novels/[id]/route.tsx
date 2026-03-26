@@ -33,7 +33,6 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
         }
 
         const currentUser = await getCurrentUser();
-        // If novel is Draft and current user is not the author, return 404
         if (novel.state === 'Draft') {
             if (!currentUser || currentUser._id.toString() !== novel.authorId._id.toString()) {
                 return NextResponse.json({ error: "Không tìm thấy tiểu thuyết" }, { status: 404 });
